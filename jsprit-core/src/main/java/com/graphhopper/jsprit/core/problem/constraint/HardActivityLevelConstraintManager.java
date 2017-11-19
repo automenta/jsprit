@@ -45,15 +45,15 @@ class HardActivityLevelConstraintManager implements HardActivityConstraint {
     }
 
     Collection<HardActivityConstraint> getCriticalConstraints() {
-        return Collections.unmodifiableCollection(criticalConstraints);
+        return /*Collections.unmodifiableCollection*/(criticalConstraints);
     }
 
     Collection<HardActivityConstraint> getHighPrioConstraints() {
-        return Collections.unmodifiableCollection(highPrioConstraints);
+        return /*Collections.unmodifiableCollection*/(highPrioConstraints);
     }
 
     Collection<HardActivityConstraint> getLowPrioConstraints() {
-        return Collections.unmodifiableCollection(lowPrioConstraints);
+        return /*Collections.unmodifiableCollection*/(lowPrioConstraints);
     }
 
     Collection<HardActivityConstraint> getAllConstraints() {

@@ -98,7 +98,7 @@ public class SimpleExampleWithPriorities {
 		 */
         VehicleRoutingProblemSolution bestSolution = Solutions.bestOf(solutions);
 
-        new VrpXMLWriter(problem, solutions).write("output/problem-with-solution.xml");
+        new VrpXMLWriter(problem, solutions).write("/tmp/problem-with-solution.xml");
 
         SolutionPrinter.print(problem, bestSolution, SolutionPrinter.Print.VERBOSE);
 

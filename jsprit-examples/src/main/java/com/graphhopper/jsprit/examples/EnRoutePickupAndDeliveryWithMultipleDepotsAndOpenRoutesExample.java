@@ -160,7 +160,9 @@ public class EnRoutePickupAndDeliveryWithMultipleDepotsAndOpenRoutesExample {
         solutionPlotter.plotShipments(true);
         solutionPlotter.plot("output/enRoutePickupAndDeliveryWithMultipleLocationsExample_solution.png", "en-route pickup and delivery");
 
-        new GraphStreamViewer(problem, Solutions.bestOf(solutions)).labelWith(Label.ACTIVITY).setRenderDelay(100).setRenderShipments(true).display();
+        new GraphStreamViewer(problem, Solutions.bestOf(solutions)).labelWith(Label.ACTIVITY)
+                .setGraphStreamFrameScalingFactor(4)
+                .setRenderDelay(100).setRenderShipments(true).display();
 
     }
 

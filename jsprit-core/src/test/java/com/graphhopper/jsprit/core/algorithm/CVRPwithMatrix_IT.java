@@ -30,9 +30,7 @@ import com.graphhopper.jsprit.core.util.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -82,7 +80,7 @@ public class CVRPwithMatrix_IT {
 
     private VehicleRoutingProblem createVrpWithLocationIndecesAndMatrix(VehicleRoutingProblem vrp_, boolean return_to_depot) {
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
-        List<Location> locations = new ArrayList<Location>();
+        Set<Location> locations = new LinkedHashSet<Location>();
         for (Vehicle v : vrp_.vehicles()) {
             Location l = Location.Builder.the().setIndex(getIndex()).setId(v.start().id)
                 .setCoord(v.start().coord).build();

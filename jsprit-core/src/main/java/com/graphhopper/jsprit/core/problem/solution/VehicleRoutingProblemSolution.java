@@ -20,8 +20,7 @@ package com.graphhopper.jsprit.core.problem.solution;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 
 /**
@@ -41,7 +40,7 @@ public class VehicleRoutingProblemSolution {
         return new VehicleRoutingProblemSolution(solution2copy);
     }
 
-    public final Collection<VehicleRoute> routes;
+    public final Set<VehicleRoute> routes;
 
     public final Collection<Job> jobsUnassigned;
 
@@ -49,13 +48,12 @@ public class VehicleRoutingProblemSolution {
 
     private VehicleRoutingProblemSolution(VehicleRoutingProblemSolution solution) {
         if (solution.routes!=null) {
-            routes = new ArrayList<>(solution.routes.size());
+            routes = new LinkedHashSet<>(solution.routes.size());
             for (VehicleRoute r : solution.routes) {
-                VehicleRoute route = VehicleRoute.copyOf(r);
-                routes.add(route);
+                routes.add(VehicleRoute.copyOf(r));
             }
         } else {
-            routes = new ArrayList(0);
+            routes = new LinkedHashSet();
         }
         this.cost = solution.cost();
 
@@ -69,10 +67,15 @@ public class VehicleRoutingProblemSolution {
      * @param cost   total costs of solution
      */
     public VehicleRoutingProblemSolution(Collection<VehicleRoute> routes, double cost) {
-        this.routes = routes;
         assert(routes!=null);
+        this.routes = initRoutes(routes);
         this.cost = cost;
         jobsUnassigned = new ArrayList<>();
+    }
+
+    private Set<VehicleRoute> initRoutes(Collection<VehicleRoute> routes) {
+        return routes instanceof Set ?
+                (Set<VehicleRoute>) routes : new LinkedHashSet<>(routes);
     }
 
     /**
@@ -82,8 +85,8 @@ public class VehicleRoutingProblemSolution {
      * @param jobsUnassigned jobs that could not be assigned to any vehicle
      * @param cost           total costs of solution
      */
-    public VehicleRoutingProblemSolution(Collection<VehicleRoute> routes, Collection<Job> jobsUnassigned, double cost) {
-        this.routes = routes;
+    public VehicleRoutingProblemSolution(Set<VehicleRoute> routes, Collection<Job> jobsUnassigned, double cost) {
+        this.routes = initRoutes(routes);
         assert(routes!=null);
         this.jobsUnassigned = jobsUnassigned;
         this.cost = cost;

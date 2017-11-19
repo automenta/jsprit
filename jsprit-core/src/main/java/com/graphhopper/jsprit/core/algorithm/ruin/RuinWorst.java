@@ -40,7 +40,7 @@ import java.util.*;
 
 public final class RuinWorst extends AbstractRuinStrategy {
 
-    private final Logger logger = LoggerFactory.getLogger(RuinWorst.class);
+    private static final Logger logger = LoggerFactory.getLogger(RuinWorst.class);
 
     private NoiseMaker noiseMaker = () -> 0;
 
@@ -83,11 +83,12 @@ public final class RuinWorst extends AbstractRuinStrategy {
 
     private Job getWorst(Iterable<VehicleRoute> copied) {
         Job worst = null;
-        double bestSavings = Double.MIN_VALUE;
+        double bestSavings = Double.NEGATIVE_INFINITY;
 
+        Map<Job, Double> savingsMap = new LinkedHashMap<>();
         for (VehicleRoute route : copied) {
+            savingsMap.clear();
             if (route.isEmpty()) continue;
-            Map<Job, Double> savingsMap = new HashMap<>();
             AbstractActivity actBefore = route.start;
             AbstractActivity actToEval = null;
             for (AbstractActivity act : route.activities()) {

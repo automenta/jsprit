@@ -42,9 +42,10 @@ public class Capacity {
      */
     public static Capacity addup(Capacity cap1, Capacity cap2) {
         if (cap1 == null || cap2 == null)
-            throw new NullPointerException("arguments must not be null");
+            throw new NullPointerException();
         Capacity.Builder capacityBuilder = Capacity.Builder.get();
-        for (int i = 0; i < Math.max(cap1.dim(), cap2.dim()); i++) {
+        int max = Math.max(cap1.dim(), cap2.dim());
+        for (int i = 0; i < max; i++) {
             capacityBuilder.addDimension(i, cap1.get(i) + cap2.get(i));
         }
         return capacityBuilder.build();
@@ -62,7 +63,8 @@ public class Capacity {
     public static Capacity subtract(Capacity cap, Capacity cap2subtract) {
         if (cap == null || cap2subtract == null) throw new NullPointerException("arguments must not be null");
         Capacity.Builder capacityBuilder = Capacity.Builder.get();
-        for (int i = 0; i < Math.max(cap.dim(), cap2subtract.dim()); i++) {
+        int max = Math.max(cap.dim(), cap2subtract.dim());
+        for (int i = 0; i < max; i++) {
             int dimValue = cap.get(i) - cap2subtract.get(i);
             capacityBuilder.addDimension(i, dimValue);
         }
@@ -79,7 +81,8 @@ public class Capacity {
     public static Capacity invert(Capacity cap2invert) {
         if (cap2invert == null) throw new NullPointerException("arguments must not be null");
         Capacity.Builder capacityBuilder = Capacity.Builder.get();
-        for (int i = 0; i < cap2invert.dim(); i++) {
+        int d = cap2invert.dim();
+        for (int i = 0; i < d; i++) {
             int dimValue = cap2invert.get(i) * -1;
             capacityBuilder.addDimension(i, dimValue);
         }
@@ -101,18 +104,20 @@ public class Capacity {
     public static double divide(Capacity numerator, Capacity denominator) {
         int nuOfDimensions = 0;
         double sumQuotients = 0.0;
-        for (int index = 0; index < Math.max(numerator.dim(), denominator.dim()); index++) {
-            if (numerator.get(index) != 0 && denominator.get(index) == 0) {
+        int max = Math.max(numerator.dim(), denominator.dim());
+        for (int index = 0; index < max; index++) {
+            int ni = numerator.get(index);
+            int di = denominator.get(index);
+            if (ni != 0 && di == 0) {
                 throw new IllegalArgumentException("numerator > 0 and denominator = 0. cannot divide by 0");
-            } else if (numerator.get(index) == 0 && denominator.get(index) == 0) {
+            } else if (ni == 0 && di == 0) {
                 continue;
             } else {
                 nuOfDimensions++;
-                sumQuotients += (double) numerator.get(index) / (double) denominator.get(index);
+                sumQuotients += ((double) ni) / di;
             }
         }
-        if (nuOfDimensions > 0) return sumQuotients / (double) nuOfDimensions;
-        return 0.0;
+        return nuOfDimensions > 0 ? sumQuotients / nuOfDimensions : 0.0;
     }
 
 //    /**
@@ -243,10 +248,10 @@ public class Capacity {
         //int d = this.dim();
         int[] cc = this.dimensions;
         int[] dd = toCompare.dimensions;
-        int d = cc.length;
-        if (dd.length > d) return true;
-
-        for (int i = 0; i < d; i++) {
+        int cLen = cc.length;
+        int dLen = dd.length;
+        if (cLen!=dLen) return cLen < dLen;
+        for (int i = 0; i < cLen; i++) {
             if (cc[i] > dd[i]) return false;
         }
         return true;
@@ -264,9 +269,10 @@ public class Capacity {
         //int d = Math.max(this.dim(), toCompare.dim());
         int[] cc = this.dimensions;
         int[] dd = toCompare.dimensions;
-        int d = cc.length;
-        if (d > dd.length) return true;
-        for (int i = 0; i < d; i++) {
+        int cLen = cc.length;
+        int dLen = dd.length;
+        if (cLen!=dLen) return cLen > dLen;
+        for (int i = 0; i < cLen; i++) {
             if (cc[i] < dd[i]) return false;
         }
         return true;
@@ -291,7 +297,8 @@ public class Capacity {
     public static Capacity max(Capacity cap1, Capacity cap2) {
 //        if (cap1 == null || cap2 == null) throw new IllegalArgumentException("arg must not be null");
         Capacity.Builder toReturnBuilder = Capacity.Builder.get();
-        for (int i = 0; i < Math.max(cap1.dim(), cap2.dim()); i++) {
+        int max = Math.max(cap1.dim(), cap2.dim());
+        for (int i = 0; i < max; i++) {
             toReturnBuilder.addDimension(i, Math.max(cap1.get(i), cap2.get(i)));
         }
         return toReturnBuilder.build();
@@ -300,7 +307,8 @@ public class Capacity {
     public static Capacity min(Capacity cap1, Capacity cap2) {
 //        if (cap1 == null || cap2 == null) throw new IllegalArgumentException("arg must not be null");
         Capacity.Builder toReturnBuilder = Capacity.Builder.get();
-        for (int i = 0; i < Math.max(cap1.dim(), cap2.dim()); i++) {
+        int max = Math.max(cap1.dim(), cap2.dim());
+        for (int i = 0; i < max; i++) {
             toReturnBuilder.addDimension(i, Math.min(cap1.get(i), cap2.get(i)));
         }
         return toReturnBuilder.build();

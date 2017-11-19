@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.graphhopper.jsprit.core.algorithm.recreate.AccordingToPriorities.PRIORITY_COMPARATOR;
+
 
 /**
  * Best insertion that insert the job where additional costs are minimal.
@@ -46,7 +48,7 @@ public final class BestInsertion extends AbstractInsertionStrategy {
     public BestInsertion(JobInsertionCostsCalculator jobInsertionCalculator, VehicleRoutingProblem vehicleRoutingProblem) {
         super(vehicleRoutingProblem);
         bestInsertionCostCalculator = jobInsertionCalculator;
-        logger.debug("initialise {}", this);
+        //logger.debug("initialise {}", this);
     }
 
     @Override
@@ -54,16 +56,18 @@ public final class BestInsertion extends AbstractInsertionStrategy {
         return "[name=bestInsertion]";
     }
 
+
     @Override
     public Collection<Job> insertUnassignedJobs(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
         Collection<Job> badJobs = new ArrayList<>(unassignedJobs.size());
         List<Job> unassignedJobList = new ArrayList<>(unassignedJobs);
         Collections.shuffle(unassignedJobList, random);
-        unassignedJobList.sort(new AccordingToPriorities());
+
+        unassignedJobList.sort(PRIORITY_COMPARATOR);
         for (Job unassignedJob : unassignedJobList) {
             Insertion bestInsertion = null;
             InsertionData empty = new InsertionData.NoInsertionFound();
-            double bestInsertionCost = Double.MAX_VALUE;
+            double bestInsertionCost = Double.POSITIVE_INFINITY;
             for (VehicleRoute vehicleRoute : vehicleRoutes) {
                 InsertionData iData = bestInsertionCostCalculator.getInsertionData(vehicleRoute, unassignedJob, NO_NEW_VEHICLE_YET, NO_NEW_DEPARTURE_TIME_YET, NO_NEW_DRIVER_YET, bestInsertionCost);
                 if (iData instanceof InsertionData.NoInsertionFound) {

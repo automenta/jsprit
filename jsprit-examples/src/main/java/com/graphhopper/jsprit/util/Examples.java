@@ -18,17 +18,20 @@
 package com.graphhopper.jsprit.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class Examples {
 
     public static void createOutputFolder() {
-        File dir = new File("output");
-        // if the directory does not exist, create it
-        if (!dir.exists()) {
-            System.out.println("creating directory ./output");
-            boolean result = dir.mkdir();
-            if (result) System.out.println("./output created");
+        File dir = null; //File("output");
+        try {
+            dir = Files.createTempDirectory("jtrips").toFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+        // if the directory does not exist, create it
+        System.err.println("temporary " + dir + " created");
     }
 
 }

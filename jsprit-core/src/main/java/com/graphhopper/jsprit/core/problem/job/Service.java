@@ -297,7 +297,7 @@ public class Service extends AbstractJob {
     }
 
     @Override
-    public final String id() {
+    public String id() {
         return id;
     }
 

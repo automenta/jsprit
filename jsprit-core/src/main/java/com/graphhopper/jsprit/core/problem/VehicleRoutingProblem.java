@@ -78,19 +78,19 @@ public class VehicleRoutingProblem {
 
         private final Map<String, Job> tentativeJobs = new LinkedHashMap<>();
 
-        private final Collection<Job> jobsInInitialRoutes = new HashSet<>();
+        private final Set<Job> jobsInInitialRoutes = new HashSet<>();
 
         private final Map<String, v2> tentative_coordinates = new HashMap<>();
 
         private FleetSize fleetSize = FleetSize.INFINITE;
 
-        private final Collection<VehicleType> vehicleTypes = new ArrayList<>();
+        private final Set<VehicleType> vehicleTypes = new HashSet<>();
 
-        private final Collection<VehicleRoute> initialRoutes = new ArrayList<>();
+        private final Set<VehicleRoute> initialRoutes = new LinkedHashSet();
 
-        private final Collection<Vehicle> uniqueVehicles = new LinkedHashSet<>();
+        private final Set<Vehicle> uniqueVehicles = new LinkedHashSet<>();
 
-        private final Collection<String> addedVehicleIds = new LinkedHashSet<>();
+        private final Set<String> addedVehicleIds = new LinkedHashSet<>();
 
 //        private final boolean hasBreaks;
 
@@ -135,7 +135,7 @@ public class VehicleRoutingProblem {
             vehicleTypeIdIndexCounter++;
         }
 
-        private final Collection<Location> allLocations = new HashSet<>();
+        private final Set<Location> allLocations = new LinkedHashSet<>();
 
         /**
          * Returns the unmodifiable map of collected locations (mapped by their location-id).
@@ -228,8 +228,8 @@ public class VehicleRoutingProblem {
         }
 
         private void addLocationToTentativeLocations(Location location) {
-            tentative_coordinates.put(location.id, location.coord);
-            allLocations.add(location);
+            if (allLocations.add(location))
+                tentative_coordinates.put(location.id, location.coord);
         }
 
         private void addJobToFinalJobMapAndCreateActivities(Job job) {
@@ -280,7 +280,6 @@ public class VehicleRoutingProblem {
         public Builder addInitialVehicleRoute(VehicleRoute route) {
             if(!addedVehicleIds.contains(route.vehicle().id())){
                 addVehicle((AbstractVehicle) route.vehicle());
-                addedVehicleIds.add(route.vehicle().id());
             }
             for (AbstractActivity act : route.activities()) {
                 AbstractActivity abstractAct = act;
@@ -288,9 +287,10 @@ public class VehicleRoutingProblem {
                 incActivityIndexCounter();
                 if (act instanceof JobActivity) {
                     Job job = ((JobActivity) act).job();
-                    jobsInInitialRoutes.add(job);
-                    addLocationToTentativeLocations(job);
-                    registerJobAndActivity((JobActivity) abstractAct, job);
+                    if (jobsInInitialRoutes.add(job)) {
+                        addLocationToTentativeLocations(job);
+                        registerJobAndActivity((JobActivity) abstractAct, job);
+                    }
                 }
             }
             initialRoutes.add(route);
@@ -300,14 +300,7 @@ public class VehicleRoutingProblem {
 
 
         private void registerJobAndActivity(JobActivity abstractAct, Job job) {
-            List<JobActivity> jobs = activityMap.get(job);
-            if (jobs != null) {
-                jobs.add(abstractAct);
-            } else {
-                List<JobActivity> actList = new ArrayList<>(1);
-                actList.add(abstractAct);
-                activityMap.put(job, actList);
-            }
+            activityMap.computeIfAbsent(job, (k)->new ArrayList()).add(abstractAct);
         }
 
         /**
@@ -324,13 +317,12 @@ public class VehicleRoutingProblem {
         }
 
         private void addShipment(Job job) {
-            if (jobs.containsKey(job.id())) {
+            if (jobs.putIfAbsent(job.id(), job)!=null) {
                 logger.warn("job {} already in job list. overrides existing job.", job);
             }
             addLocationToTentativeLocations(job);
 //            tentative_coordinates.put(job.getPickupLocation().getId(), job.getPickupLocation().getCoordinate());
 //            tentative_coordinates.put(job.getDeliveryLocation().getId(), job.getDeliveryLocation().getCoordinate());
-            jobs.put(job.id(), job);
         }
 
         /**
@@ -352,10 +344,10 @@ public class VehicleRoutingProblem {
          * @return this builder
          */
         public Builder addVehicle(AbstractVehicle vehicle) {
-            if(addedVehicleIds.contains(vehicle.id())){
+            if(!addedVehicleIds.add(vehicle.id())){
                 throw new IllegalArgumentException("problem already contains a vehicle with id " + vehicle.id() + ". choose unique ids for each vehicle.");
             }
-            else addedVehicleIds.add(vehicle.id());
+
             if (!uniqueVehicles.contains(vehicle)) {
                 vehicle.setIndex(vehicleIndexCounter);
                 incVehicleIndexCounter();
@@ -368,9 +360,9 @@ public class VehicleRoutingProblem {
                 incVehicleTypeIdIndexCounter();
             }
             uniqueVehicles.add(vehicle);
-            if (!vehicleTypes.contains(vehicle.type())) {
-                vehicleTypes.add(vehicle.type());
-            }
+
+            vehicleTypes.add(vehicle.type());
+
             String startLocationId = vehicle.start().id;
             addLocationToTentativeLocations(vehicle.start());
 //            tentative_coordinates.put(startLocationId, vehicle.getStartLocation().getCoordinate());
@@ -608,8 +600,8 @@ public class VehicleRoutingProblem {
      *
      * @return copied collection of initial vehicle routes
      */
-    public Collection<VehicleRoute> initialVehicleRoutes() {
-        Collection<VehicleRoute> copiedInitialRoutes = new ArrayList<>(initialVehicleRoutes.size());
+    public Set<VehicleRoute> initialVehicleRoutes() {
+        Set<VehicleRoute> copiedInitialRoutes = new HashSet<>(initialVehicleRoutes.size());
         for (VehicleRoute route : initialVehicleRoutes) {
             copiedInitialRoutes.add(VehicleRoute.copyOf(route));
         }

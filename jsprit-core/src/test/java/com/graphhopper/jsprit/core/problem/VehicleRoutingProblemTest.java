@@ -130,11 +130,11 @@ public class VehicleRoutingProblemTest {
     @Test
     public void whenServicesAreAdded_vrpShouldContainThem() {
         Service s1 = mock(Service.class);
-        when(s1.id).thenReturn("s1");
-        when(s1.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s1.id()).thenReturn("s1");
+        when(s1.location()).thenReturn(Location.Builder.the().setIndex(1).build());
         Service s2 = mock(Service.class);
-        when(s2.id).thenReturn("s2");
-        when(s2.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s2.id()).thenReturn("s2");
+        when(s2.location()).thenReturn(Location.Builder.the().setIndex(1).build());
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addJob(s1).addJob(s2);
@@ -151,11 +151,11 @@ public class VehicleRoutingProblemTest {
     @Test
     public void whenPickupsAreAdded_vrpShouldContainThem() {
         Pickup s1 = mock(Pickup.class);
-        when(s1.id).thenReturn("s1");
-        when(s1.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s1.id()).thenReturn("s1");
+        when(s1.location()).thenReturn(Location.Builder.the().setIndex(1).build());
         Pickup s2 = mock(Pickup.class);
-        when(s2.id).thenReturn("s2");
-        when(s2.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s2.id()).thenReturn("s2");
+        when(s2.location()).thenReturn(Location.Builder.the().setIndex(1).build());
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addJob(s1).addJob(s2);
@@ -170,11 +170,11 @@ public class VehicleRoutingProblemTest {
     @Test
     public void whenPickupsAreAddedAllAtOnce_vrpShouldContainThem() {
         Pickup s1 = mock(Pickup.class);
-        when(s1.id).thenReturn("s1");
-        when(s1.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s1.id()).thenReturn("s1");
+        when(s1.location()).thenReturn(Location.Builder.the().setIndex(1).build());
         Pickup s2 = mock(Pickup.class);
-        when(s2.id).thenReturn("s2");
-        when(s2.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s2.id()).thenReturn("s2");
+        when(s2.location()).thenReturn(Location.Builder.the().setIndex(1).build());
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addAllJobs(Arrays.asList(s1, s2));
@@ -189,13 +189,13 @@ public class VehicleRoutingProblemTest {
     @Test
     public void whenDelivieriesAreAdded_vrpShouldContainThem() {
         Delivery s1 = mock(Delivery.class);
-        when(s1.id).thenReturn("s1");
-        when(s1.size).thenReturn(Capacity.Builder.get().build());
-        when(s1.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s1.id()).thenReturn("s1");
+        when(s1.size()).thenReturn(Capacity.Builder.get().build());
+        when(s1.location()).thenReturn(Location.Builder.the().setIndex(1).build());
         Delivery s2 = mock(Delivery.class);
-        when(s2.id).thenReturn("s2");
-        when(s2.size).thenReturn(Capacity.Builder.get().build());
-        when(s2.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s2.id()).thenReturn("s2");
+        when(s2.size()).thenReturn(Capacity.Builder.get().build());
+        when(s2.location()).thenReturn(Location.Builder.the().setIndex(1).build());
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addJob(s1).addJob(s2);
@@ -210,13 +210,13 @@ public class VehicleRoutingProblemTest {
     @Test
     public void whenDelivieriesAreAddedAllAtOnce_vrpShouldContainThem() {
         Delivery s1 = mock(Delivery.class);
-        when(s1.id).thenReturn("s1");
-        when(s1.size).thenReturn(Capacity.Builder.get().build());
-        when(s1.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s1.id()).thenReturn("s1");
+        when(s1.size()).thenReturn(Capacity.Builder.get().build());
+        when(s1.location()).thenReturn(Location.Builder.the().setIndex(1).build());
         Delivery s2 = mock(Delivery.class);
-        when(s2.id).thenReturn("s2");
-        when(s2.size).thenReturn(Capacity.Builder.get().build());
-        when(s2.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s2.id()).thenReturn("s2");
+        when(s2.size()).thenReturn(Capacity.Builder.get().build());
+        when(s2.location()).thenReturn(Location.Builder.the().setIndex(1).build());
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addAllJobs(Arrays.asList(s1, s2));
@@ -231,11 +231,11 @@ public class VehicleRoutingProblemTest {
     @Test
     public void whenServicesAreAddedAllAtOnce_vrpShouldContainThem() {
         Service s1 = mock(Service.class);
-        when(s1.id).thenReturn("s1");
-        when(s1.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s1.id()).thenReturn("s1");
+        when(s1.location()).thenReturn(Location.Builder.the().setIndex(1).build());
         Service s2 = mock(Service.class);
-        when(s2.id).thenReturn("s2");
-        when(s2.location).thenReturn(Location.Builder.the().setIndex(1).build());
+        when(s2.id()).thenReturn("s2");
+        when(s2.location()).thenReturn(Location.Builder.the().setIndex(1).build());
 
         Collection<Service> services = new ArrayList<Service>();
         services.add(s1);

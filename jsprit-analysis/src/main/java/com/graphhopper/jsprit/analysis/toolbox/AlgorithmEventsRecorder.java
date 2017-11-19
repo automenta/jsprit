@@ -56,7 +56,7 @@ import java.util.zip.GZIPOutputStream;
  */
 public class AlgorithmEventsRecorder implements RuinListener, IterationStartsListener, InsertionStartsListener, BeforeJobInsertionListener, InsertionEndsListener, AlgorithmEndsListener {
 
-    private final boolean renderShipments;
+    private final boolean renderShipments = true;
 
     public static final int BEFORE_RUIN_RENDER_SOLUTION = 2;
 

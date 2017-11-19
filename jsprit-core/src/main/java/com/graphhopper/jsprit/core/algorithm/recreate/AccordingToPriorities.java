@@ -25,11 +25,9 @@ import java.util.Comparator;
 /**
  * Created by schroeder on 30/06/17.
  */
-class AccordingToPriorities implements Comparator<Job> {
+class AccordingToPriorities {
 
-    @Override
-    public int compare(Job o1, Job o2) {
-        return o1.pri() - o2.pri();
-    }
+    public final static Comparator<Job> PRIORITY_COMPARATOR =
+            Comparator.comparingInt(Job::pri);
 
 }

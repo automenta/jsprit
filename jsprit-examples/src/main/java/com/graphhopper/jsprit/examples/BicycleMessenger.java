@@ -41,17 +41,17 @@ import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.ReverseActivityVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.ReverseActivityVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivityStateGetter;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
-import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.CrowFlyCosts;
 import com.graphhopper.jsprit.core.util.Solutions;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.util.Examples;
 
 import java.io.BufferedReader;
@@ -212,7 +212,7 @@ public class BicycleMessenger {
         public void visit(AbstractActivity currAct) {
             double timeOfNearestMessenger = bestMessengers.get(((JobActivity) currAct).job().id());
             double potential_latest_arrTime_at_currAct =
-                latest_arrTime_at_prevAct - routingCosts.transportTimeReverse(currAct.location(), prevAct.location(), latest_arrTime_at_prevAct, route.driver, route.vehicle()) - currAct.operationTime();
+                    latest_arrTime_at_prevAct - routingCosts.transportTimeReverse(currAct.location(), prevAct.location(), latest_arrTime_at_prevAct, route.driver, route.vehicle()) - currAct.operationTime();
             double latest_arrTime_at_currAct = Math.min(3 * timeOfNearestMessenger, potential_latest_arrTime_at_currAct);
             stateManager.putActivityState(currAct, latest_act_arrival_time_state, latest_arrTime_at_currAct);
             assert currAct.arrTime() <= latest_arrTime_at_currAct : "this must not be since it breaks condition; actArrTime: " + currAct.arrTime() + " latestArrTime: " + latest_arrTime_at_currAct + " vehicle: " + route.vehicle().id();
@@ -266,7 +266,7 @@ public class BicycleMessenger {
         constraintManager.addConstraint(new IgnoreMessengerThatCanNeverMeetTimeRequirements(nearestMessengers, routingCosts));
 
         VehicleRoutingAlgorithm algorithm = Jsprit.Builder.newInstance(bicycleMessengerProblem)
-            .setStateAndConstraintManager(stateManager,constraintManager).buildAlgorithm();
+                .setStateAndConstraintManager(stateManager, constraintManager).buildAlgorithm();
 
         algorithm.setMaxIterations(2000);
 
@@ -287,7 +287,7 @@ public class BicycleMessenger {
 //        VariationCoefficientTermination prematureAlgorithmTermination = new VariationCoefficientTermination(200, 0.001);
 //        algorithm.setPrematureAlgorithmTermination(prematureAlgorithmTermination);
 //        algorithm.addListener(prematureAlgorithmTermination);
-        algorithm.addListener(new AlgorithmSearchProgressChartListener("output/progress.png"));
+        algorithm.addListener(new AlgorithmSearchProgressChartListener("/tmp/progress.png"));
 
         //search
         Collection<VehicleRoutingProblemSolution> solutions = algorithm.searchSolutions();
@@ -301,22 +301,28 @@ public class BicycleMessenger {
         Plotter plotter = new Plotter(bicycleMessengerProblem);
 //		plotter.setBoundingBox(10000, 47500, 20000, 67500);
         plotter.plotShipments(true);
-        plotter.plot("output/bicycleMessengerProblem.png", "bicycleMessenger");
+        plotter.plot("/tmp/bicycleMessengerProblem.png", "bicycleMessenger");
 
         //and the problem as well as the solution
         Plotter plotter1 = new Plotter(bicycleMessengerProblem, Solutions.bestOf(solutions));
         plotter1.setLabel(Plotter.Label.ID);
         plotter1.plotShipments(false);
 //		plotter1.setBoundingBox(5000, 45500, 25000, 66500);
-        plotter1.plot("output/bicycleMessengerSolution.png", "bicycleMessenger");
+        plotter1.plot("/tmp/bicycleMessengerSolution.png", "bicycleMessenger");
 
         //and write out your solution in xml
-//		new VrpXMLWriter(bicycleMessengerProblem, solutions).write("output/bicycleMessenger.xml");
+//		new VrpXMLWriter(bicycleMessengerProblem, solutions).write("/tmp/bicycleMessenger.xml");
 
 
-        new GraphStreamViewer(bicycleMessengerProblem).labelWith(Label.ID).setRenderShipments(true).setRenderDelay(150).display();
+        new GraphStreamViewer(bicycleMessengerProblem).labelWith(Label.ID)
+                .setGraphStreamFrameScalingFactor(10.5)
+                .setRenderShipments(true).setRenderDelay(150).display();
 //
-        new GraphStreamViewer(bicycleMessengerProblem, Solutions.bestOf(solutions)).setGraphStreamFrameScalingFactor(1.5).setCameraView(12500, 55000, 0.25).labelWith(Label.ACTIVITY).setRenderShipments(true).setRenderDelay(150).display();
+        new GraphStreamViewer(bicycleMessengerProblem, Solutions.bestOf(solutions))
+                .setRenderShipments(true)
+                .setGraphStreamFrameScalingFactor(10.5)
+                .setCameraView(12500, 55000, 0.95)
+                .labelWith(Label.ACTIVITY).setRenderShipments(true).setRenderDelay(150).display();
 
     }
 
@@ -350,11 +356,15 @@ public class BicycleMessenger {
     static double getTimeOfDirectRoute(Job job, Vehicle v, VehicleRoutingTransportCosts routingCosts) {
         Shipment envelope = (Shipment) job;
         return routingCosts.transportTime(v.start(), envelope.getPickupLocation(), 0.0, DriverImpl.noDriver(), v) +
-            routingCosts.transportTime(envelope.getPickupLocation(), envelope.getDeliveryLocation(), 0.0, DriverImpl.noDriver(), v);
+                routingCosts.transportTime(envelope.getPickupLocation(), envelope.getDeliveryLocation(), 0.0, DriverImpl.noDriver(), v);
     }
 
+    //TODO use correct resource path
+    static final String PATH = "/home/me/jsprit/jsprit-examples/input/";
+
     private static void readEnvelopes(Builder problemBuilder) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(new File("input/bicycle_messenger_demand.txt")));
+        BufferedReader reader = new BufferedReader(new FileReader(
+                new File(PATH + "bicycle_messenger_demand.txt")));
         String line;
         boolean firstLine = true;
         while ((line = reader.readLine()) != null) {
@@ -365,24 +375,25 @@ public class BicycleMessenger {
             String[] tokens = line.split("\\s+");
             //define your envelope which is basically a shipment from A to B
             Shipment envelope = Shipment.Builder.newInstance(tokens[1]).addSizeDimension(0, 1)
-                .setPickupLocation(Location.Builder.the().setCoord(v2.the(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]))).build())
-                .setDeliveryLocation(Location.Builder.the().setCoord(v2.the(Double.parseDouble(tokens[4]), Double.parseDouble(tokens[5]))).build()).build();
+                    .setPickupLocation(Location.Builder.the().setCoord(v2.the(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]))).build())
+                    .setDeliveryLocation(Location.Builder.the().setCoord(v2.the(Double.parseDouble(tokens[4]), Double.parseDouble(tokens[5]))).build()).build();
             problemBuilder.addJob(envelope);
         }
         reader.close();
     }
 
     private static void readMessengers(Builder problemBuilder) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(new File("input/bicycle_messenger_supply.txt")));
+        BufferedReader reader = new BufferedReader(new FileReader(new File(
+                PATH + "bicycle_messenger_supply.txt")));
         String line;
         boolean firstLine = true;
         VehicleType messengerType = VehicleTypeImpl.Builder.the("messengerType").addCapacityDimension(0, 15).setCostPerDistance(1).build();
         /*
          * the algo requires some time and space to search for a valid solution. if you ommit a penalty-type, it probably throws an Exception once it cannot insert an envelope anymore
-		 * thus, give it space by defining a penalty/shadow vehicle with higher variable and fixed costs to up the pressure to find solutions without penalty type
-		 *
-		 * it is important to give it the same typeId as the type you want to shadow
-		 */
+         * thus, give it space by defining a penalty/shadow vehicle with higher variable and fixed costs to up the pressure to find solutions without penalty type
+         *
+         * it is important to give it the same typeId as the type you want to shadow
+         */
         while ((line = reader.readLine()) != null) {
             if (firstLine) {
                 firstLine = false;
@@ -391,8 +402,8 @@ public class BicycleMessenger {
             String[] tokens = line.split("\\s+");
             //build your vehicle
             VehicleImpl vehicle = VehicleImpl.Builder.newInstance(tokens[1])
-                .setStartLocation(Location.Builder.the().setCoord(v2.the(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]))).build())
-                .setReturnToDepot(false).setType(messengerType).build();
+                    .setStartLocation(Location.Builder.the().setCoord(v2.the(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]))).build())
+                    .setReturnToDepot(false).setType(messengerType).build();
             problemBuilder.addVehicle(vehicle);
         }
         reader.close();

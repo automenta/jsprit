@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -67,7 +68,7 @@ public class CalcVehicleTypeDependentServiceInsertionTest {
         when(service.size()).thenReturn(Capacity.Builder.get().build());
         when(service.timeWindow()).thenReturn(TimeWindow.the(0.0, Double.MAX_VALUE));
 
-        when(vehicleRoute.driver).thenReturn(null);
+        when(vehicleRoute.driver()).thenReturn(null);
         when(vehicleRoute.vehicle()).thenReturn(VehicleImpl.get());
     }
 
@@ -80,7 +81,7 @@ public class CalcVehicleTypeDependentServiceInsertionTest {
         when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh2);
         when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, 10.0)).thenReturn(iDataVeh2);
         VehicleRoutingProblem vrp = mock(VehicleRoutingProblem.class);
-        when(vrp.initialVehicleRoutes()).thenReturn(Collections.emptyList());
+        when(vrp.initialVehicleRoutes()).thenReturn(Set.of());
         VehicleTypeDependentJobInsertionCalculator insertion = new VehicleTypeDependentJobInsertionCalculator(vrp, fleetManager, calc);
         InsertionData iData = insertion.getInsertionData(vehicleRoute, service, null, 0.0, null, Double.MAX_VALUE);
         assertThat(iData.getSelectedVehicle(), is(veh1));
@@ -96,7 +97,7 @@ public class CalcVehicleTypeDependentServiceInsertionTest {
         when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh2);
         when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, 20.0)).thenReturn(iDataVeh2);
         VehicleRoutingProblem vrp = mock(VehicleRoutingProblem.class);
-        when(vrp.initialVehicleRoutes()).thenReturn(Collections.emptyList());
+        when(vrp.initialVehicleRoutes()).thenReturn(Set.of());
         VehicleTypeDependentJobInsertionCalculator insertion = new VehicleTypeDependentJobInsertionCalculator(vrp, fleetManager, calc);
         InsertionData iData = insertion.getInsertionData(vehicleRoute, service, null, 0.0, null, Double.MAX_VALUE);
         assertThat(iData.getSelectedVehicle(), is(veh2));

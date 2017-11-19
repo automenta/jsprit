@@ -71,7 +71,7 @@ public class TestInserter {
         inserter.insertJob(serviceToInsert, iData, route);
 
         assertEquals(2, route.tourActivities().activities().size());
-        assertEquals(route.tourActivities().activities().get(1).location().id, serviceToInsert.location.id);
+        assertEquals(route.tourActivities().activities().get(1).location().id, serviceToInsert.location.id());
         assertEquals(route.end.location().id, vehicle.end().id);
     }
 
@@ -105,7 +105,7 @@ public class TestInserter {
         inserter.insertJob(serviceToInsert, iData, route);
 
         assertEquals(2, route.tourActivities().activities().size());
-        assertEquals(route.tourActivities().activities().get(1).location().id, serviceToInsert.location.id);
+        assertEquals(route.tourActivities().activities().get(1).location().id, serviceToInsert.location.id());
         assertEquals(route.end.location().id, serviceToInsert.location.id);
     }
 

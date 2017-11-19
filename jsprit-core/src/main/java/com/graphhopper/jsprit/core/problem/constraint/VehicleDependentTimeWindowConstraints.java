@@ -108,12 +108,14 @@ public class VehicleDependentTimeWindowConstraints implements HardActivityConstr
         }
         //			log.info("check insertion of " + newAct + " between " + prevAct + " and " + nextAct + ". prevActDepTime=" + prevActDepTime);
         double arrTimeAtNewAct = prevActDepTime + routingCosts.transportTime(prevAct.location(), newAct.location(), prevActDepTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
-        double endTimeAtNewAct = Math.max(arrTimeAtNewAct, newAct.startEarliest()) + activityCosts.getActivityDuration(newAct, arrTimeAtNewAct,iFacts.getNewDriver(),iFacts.getNewVehicle());
+        double activityDuration = activityCosts.getActivityDuration(newAct, arrTimeAtNewAct, iFacts.getNewDriver(), iFacts.getNewVehicle());
+        double endTimeAtNewAct = Math.max(arrTimeAtNewAct, newAct.startEarliest())
+                + activityDuration;
         double latestArrTimeAtNewAct =
             Math.min(newAct.startLatest(),
                 latestArrTimeAtNextAct -
                     routingCosts.transportTimeReverse(newAct.location(), nextActLocation, latestArrTimeAtNextAct, iFacts.getNewDriver(), iFacts.getNewVehicle())
-                    - activityCosts.getActivityDuration(newAct, arrTimeAtNewAct, iFacts.getNewDriver(), iFacts.getNewVehicle())
+                    - activityDuration
             );
 
 			/*
@@ -139,10 +141,8 @@ public class VehicleDependentTimeWindowConstraints implements HardActivityConstr
 			 *                       		                 |--- vehicle's arrival @nextAct
 			 *        latest arrival of vehicle @nextAct ---|
 			 */
-        if (arrTimeAtNextAct > latestArrTimeAtNextAct) {
-            return ConstraintsStatus.NOT_FULFILLED;
-        }
-        return ConstraintsStatus.FULFILLED;
+        return arrTimeAtNextAct > latestArrTimeAtNextAct ?
+                ConstraintsStatus.NOT_FULFILLED : ConstraintsStatus.FULFILLED;
     }
 }
 

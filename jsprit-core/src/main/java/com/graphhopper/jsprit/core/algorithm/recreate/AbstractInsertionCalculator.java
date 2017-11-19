@@ -25,9 +25,8 @@ import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint.Con
 import com.graphhopper.jsprit.core.problem.constraint.HardRouteConstraint;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by schroeder on 06/02/17.
@@ -46,8 +45,11 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
     }
 
     static ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime, Collection<String> failedActivityConstraints, ConstraintManager constraintManager) {
+
         ConstraintsStatus notFulfilled = null;
-        Collection<String> failed = new ArrayList<>();
+
+        Set<Class> failed = new HashSet<>();
+
         for (HardActivityConstraint c : constraintManager.getCriticalHardActivityConstraints()) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
             if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
@@ -55,30 +57,29 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
                 return status;
             } else {
                 if (status == ConstraintsStatus.NOT_FULFILLED) {
-                    failed.add(c.getClass().getSimpleName());
+                    failed.add(c.getClass());
                     notFulfilled = status;
                 }
             }
-        }
-        if (notFulfilled != null) {
-            failedActivityConstraints.addAll(failed);
-            return notFulfilled;
         }
 
-        for (HardActivityConstraint c : constraintManager.getHighPrioHardActivityConstraints()) {
-            ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
-                failedActivityConstraints.add(c.getClass().getSimpleName());
-                return status;
-            } else {
-                if (status == ConstraintsStatus.NOT_FULFILLED) {
-                    failed.add(c.getClass().getSimpleName());
-                    notFulfilled = status;
+        if (notFulfilled == null) {
+            for (HardActivityConstraint c : constraintManager.getHighPrioHardActivityConstraints()) {
+                ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
+                if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
+                    failedActivityConstraints.add(c.getClass().getSimpleName());
+                    return status;
+                } else {
+                    if (status == ConstraintsStatus.NOT_FULFILLED) {
+                        failed.add(c.getClass());
+                        notFulfilled = status;
+                    }
                 }
             }
         }
+
         if (notFulfilled != null) {
-            failedActivityConstraints.addAll(failed);
+            failed.stream().map(Class::getSimpleName).collect(Collectors.toCollection(()->failedActivityConstraints));
             return notFulfilled;
         }
 
@@ -89,6 +90,7 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
                 return status;
             }
         }
+
         return ConstraintsStatus.FULFILLED;
     }
 

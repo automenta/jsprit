@@ -22,6 +22,7 @@ import com.graphhopper.jsprit.core.algorithm.recreate.listener.JobUnassignedList
 import com.graphhopper.jsprit.core.problem.job.Job;
 import org.apache.commons.math3.stat.Frequency;
 
+
 import java.util.*;
 
 /**
@@ -31,114 +32,119 @@ public class UnassignedJobReasonTracker implements JobUnassignedListener {
 
     public static String getMostLikelyFailedConstraintName(Frequency failedConstraintNamesFrequency) {
         if (failedConstraintNamesFrequency == null) return "no reason found";
-        Iterator<Map.Entry<Comparable<?>, Long>> entryIterator = failedConstraintNamesFrequency.entrySetIterator();
         long maxCount = 0;
-        String mostLikely = null;
+        Comparable<?> mostLikely = null;
+        Iterator<Map.Entry<Comparable<?>, Long>> entryIterator = failedConstraintNamesFrequency.entrySetIterator();
         while (entryIterator.hasNext()) {
             Map.Entry<Comparable<?>, Long> entry = entryIterator.next();
-            if (entry.getValue() > maxCount) {
-                Comparable<?> key = entry.getKey();
-                maxCount = entry.getValue();
-                mostLikely = key.toString();
+            long ev = entry.getValue();
+            if (ev > maxCount) {
+                maxCount = ev;
+                mostLikely = entry.getKey();
             }
         }
-        return mostLikely;
+        java.util.
+        return mostLikely.toString();
     }
 
     final Map<String, Frequency> failedConstraintNamesFrequencyMapping = new HashMap<>();
 
-    final Map<Integer, String> codesToHumanReadableReason = new HashMap<>();
+    static final String[] codesToHumanReadableReason = new String[]{
+        /* 0 */ null,
+        /* 1 */ "cannot serve required skill",
+        /* 2 */ "cannot be visited within time window",
+        /* 3 */ "does not fit into any vehicle due to capacity",
+        /* 4 */ "cannot be assigned due to max distance constraint of vehicle"
+    };
 
-    final Map<String, Integer> failedConstraintNamesToCode = new HashMap<>();
+    static final Map<String, Integer> failedConstraintNamesToCode = Map.of(
+            "HardSkillConstraint", 1,
+            "VehicleDependentTimeWindowConstraints", 2,
+            "ServiceLoadRouteLevelConstraint", 3,
+            "PickupAndDeliverShipmentLoadActivityLevelConstraint", 3,
+            "ServiceLoadActivityLevelConstraint", 3,
+            "MaxDistanceConstraint", 4
+    );
 
-    final Collection<String> failedConstraintNamesToBeIgnored = new HashSet<>();
+//    final Collection<String> failedConstraintNamesToBeIgnored = new HashSet<>();
 
     public UnassignedJobReasonTracker() {
-        codesToHumanReadableReason.put(1, "cannot serve required skill");
-        codesToHumanReadableReason.put(2, "cannot be visited within time window");
-        codesToHumanReadableReason.put(3, "does not fit into any vehicle due to capacity");
-        codesToHumanReadableReason.put(4, "cannot be assigned due to max distance constraint of vehicle");
 
-        failedConstraintNamesToCode.put("HardSkillConstraint", 1);
-        failedConstraintNamesToCode.put("VehicleDependentTimeWindowConstraints", 2);
-        failedConstraintNamesToCode.put("ServiceLoadRouteLevelConstraint", 3);
-        failedConstraintNamesToCode.put("PickupAndDeliverShipmentLoadActivityLevelConstraint", 3);
-        failedConstraintNamesToCode.put("ServiceLoadActivityLevelConstraint", 3);
-        failedConstraintNamesToCode.put("MaxDistanceConstraint", 4);
+
     }
 
-    public void ignore(String simpleNameOfConstraint) {
-        failedConstraintNamesToBeIgnored.add(simpleNameOfConstraint);
-    }
+//    public void ignore(String simpleNameOfConstraint) {
+//        failedConstraintNamesToBeIgnored.add(simpleNameOfConstraint);
+//    }
 
     @Override
     public void informJobUnassigned(Job unassigned, Collection<String> failedConstraintNames) {
-        if (!this.failedConstraintNamesFrequencyMapping.containsKey(unassigned.id())) {
-            this.failedConstraintNamesFrequencyMapping.put(unassigned.id(), new Frequency());
-        }
+        String uid = unassigned.id();
+        Frequency m = this.failedConstraintNamesFrequencyMapping
+                .computeIfAbsent(uid, (x) -> new Frequency());
         for (String r : failedConstraintNames) {
-            if (failedConstraintNamesToBeIgnored.contains(r)) continue;
-            this.failedConstraintNamesFrequencyMapping.get(unassigned.id()).addValue(r);
+//            if (failedConstraintNamesToBeIgnored.contains(r)) continue;
+            m.addValue(r);
         }
     }
 
-    public void put(String simpleNameOfFailedConstraint, int code, String reason) {
-        if (code <= 20)
-            throw new IllegalArgumentException("first 20 codes are reserved internally. choose a code > 20");
-        codesToHumanReadableReason.put(code, reason);
-        if (failedConstraintNamesToCode.containsKey(simpleNameOfFailedConstraint)) {
-            throw new IllegalArgumentException(simpleNameOfFailedConstraint + " already assigned to code and reason");
-        } else failedConstraintNamesToCode.put(simpleNameOfFailedConstraint, code);
-    }
+//    public void put(String simpleNameOfFailedConstraint, int code, String reason) {
+//        if (code <= 20)
+//            throw new IllegalArgumentException("first 20 codes are reserved internally. choose a code > 20");
+//        codesToHumanReadableReason.put(code, reason);
+//        if (failedConstraintNamesToCode.containsKey(simpleNameOfFailedConstraint)) {
+//            throw new IllegalArgumentException(simpleNameOfFailedConstraint + " already assigned to code and reason");
+//        } else failedConstraintNamesToCode.put(simpleNameOfFailedConstraint, code);
+//    }
 
-    /**
-     * For each job id, it returns frequency distribution of failed constraints (simple name of constraint) in an unmodifiable map.
-     *
-     * @return
-     */
-    @Deprecated
-    public Map<String, Frequency> getReasons() {
-        return Collections.unmodifiableMap(failedConstraintNamesFrequencyMapping);
-    }
+//    /**
+//     * For each job id, it returns frequency distribution of failed constraints (simple name of constraint) in an unmodifiable map.
+//     *
+//     * @return
+//     */
+//    @Deprecated
+//    public Map<String, Frequency> getReasons() {
+//        return Collections.unmodifiableMap(failedConstraintNamesFrequencyMapping);
+//    }
 
-    /**
-     * For each job id, it returns frequency distribution of failed constraints (simple name of constraint) in an unmodifiable map.
-     *
-     * @return
-     */
-    public Map<String, Frequency> getFailedConstraintNamesFrequencyMapping() {
-        return Collections.unmodifiableMap(failedConstraintNamesFrequencyMapping);
-    }
+//    /**
+//     * For each job id, it returns frequency distribution of failed constraints (simple name of constraint) in an unmodifiable map.
+//     *
+//     * @return
+//     */
+//    public Map<String, Frequency> getFailedConstraintNamesFrequencyMapping() {
+//        return Collections.unmodifiableMap(failedConstraintNamesFrequencyMapping);
+//    }
 
-    /**
-     * Returns an unmodifiable map of codes and reason pairs.
-     *
-     * @return
-     */
-    public Map<Integer, String> getCodesToReason() {
-        return Collections.unmodifiableMap(codesToHumanReadableReason);
-    }
+//    /**
+//     * Returns an unmodifiable map of codes and reason pairs.
+//     *
+//     * @return
+//     */
+//    public Map<Integer, String> getCodesToReason() {
+//        return Collections.unmodifiableMap(codesToHumanReadableReason);
+//    }
 
-    /**
-     * Returns an unmodifiable map of constraint names (simple name of constraint) and reason code pairs.
-     *
-     * @return
-     */
-    public Map<String, Integer> getFailedConstraintNamesToCode() {
-        return Collections.unmodifiableMap(failedConstraintNamesToCode);
-    }
+//    /**
+//     * Returns an unmodifiable map of constraint names (simple name of constraint) and reason code pairs.
+//     *
+//     * @return
+//     */
+//    public Map<String, Integer> getFailedConstraintNamesToCode() {
+//        return Collections.unmodifiableMap(failedConstraintNamesToCode);
+//    }
 
-    public int getCode(String failedConstraintName) {
-        return toCode(failedConstraintName);
-    }
+//    public int getCode(String failedConstraintName) {
+//        return toCode(failedConstraintName);
+//    }
 
-    public String getHumanReadableReason(int code) {
-        return getCodesToReason().get(code);
-    }
-
-    public String getHumanReadableReason(String failedConstraintName) {
-        return getCodesToReason().get(getCode(failedConstraintName));
-    }
+//    public String getHumanReadableReason(int code) {
+//        return getCodesToReason().get(code);
+//    }
+//
+//    public String getHumanReadableReason(String failedConstraintName) {
+//        return getCodesToReason().get(getCode(failedConstraintName));
+//    }
 
     /**
      * Returns the most likely reason code i.e. the reason (failed constraint) being observed most often.
@@ -152,25 +158,27 @@ public class UnassignedJobReasonTracker implements JobUnassignedListener {
      * @return
      */
     public int getMostLikelyReasonCode(String jobId) {
-        if (!this.failedConstraintNamesFrequencyMapping.containsKey(jobId)) return -1;
+
         Frequency reasons = this.failedConstraintNamesFrequencyMapping.get(jobId);
-        String mostLikelyReason = getMostLikelyFailedConstraintName(reasons);
-        return toCode(mostLikelyReason);
+        if (reasons == null)
+            return -1;
+
+        return toCode(getMostLikelyFailedConstraintName(reasons));
     }
 
-    /**
-     * Returns the most likely reason i.e. the reason (failed constraint) being observed most often.
-     *
-     * @param jobId
-     * @return
-     */
-    public String getMostLikelyReason(String jobId) {
-        if (!this.failedConstraintNamesFrequencyMapping.containsKey(jobId)) return "no reason found";
-        Frequency reasons = this.failedConstraintNamesFrequencyMapping.get(jobId);
-        String mostLikelyReason = getMostLikelyFailedConstraintName(reasons);
-        int code = toCode(mostLikelyReason);
-        return code == -1 ? mostLikelyReason : codesToHumanReadableReason.get(code);
-    }
+//    /**
+//     * Returns the most likely reason i.e. the reason (failed constraint) being observed most often.
+//     *
+//     * @param jobId
+//     * @return
+//     */
+//    public String getMostLikelyReason(String jobId) {
+//        if (!this.failedConstraintNamesFrequencyMapping.containsKey(jobId)) return "no reason found";
+//        Frequency reasons = this.failedConstraintNamesFrequencyMapping.get(jobId);
+//        String mostLikelyReason = getMostLikelyFailedConstraintName(reasons);
+//        int code = toCode(mostLikelyReason);
+//        return code == -1 ? mostLikelyReason : codesToHumanReadableReason.get(code);
+//    }
 
     private int toCode(String mostLikelyReason) {
         return failedConstraintNamesToCode.getOrDefault(mostLikelyReason, -1);

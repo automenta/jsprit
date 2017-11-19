@@ -44,6 +44,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -99,7 +100,8 @@ public class SolutionAnalyserTest {
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get().addVehicle(vehicle)
             .addVehicle(vehicle2)
             .addJob(s1)
-            .addJob(s2).addJob(shipment1).addJob(s3).addJob(s4).addJob(shipment2).setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE);
+            .addJob(s2).addJob(shipment1).addJob(s3).addJob(s4).addJob(shipment2)
+                .setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE);
         vrpBuilder.setRoutingCost(new ManhattanCosts(vrpBuilder.getLocations()));
         vrp = vrpBuilder.build();
 
@@ -109,7 +111,7 @@ public class SolutionAnalyserTest {
         VehicleRoute route2 = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp.jobActivityFactory())
             .addService(s3).addPickup(shipment2).addDelivery(shipment2).addService(s4).build();
 
-        solution = new VehicleRoutingProblemSolution(Arrays.asList(route1, route2), 42);
+        solution = new VehicleRoutingProblemSolution(List.of(route1, route2), 42);
     }
 
 
@@ -168,7 +170,7 @@ public class SolutionAnalyserTest {
             .addPickup(s1)
             .build();
 
-        solution = new VehicleRoutingProblemSolution(Arrays.asList(route), 300);
+        solution = new VehicleRoutingProblemSolution(Set.of(route), 300);
     }
 
     /**

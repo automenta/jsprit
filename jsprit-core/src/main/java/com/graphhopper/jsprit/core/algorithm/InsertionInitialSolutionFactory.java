@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 
 public final class InsertionInitialSolutionFactory implements InitialSolutionFactory {
@@ -48,22 +49,24 @@ public final class InsertionInitialSolutionFactory implements InitialSolutionFac
     }
 
     @Override
-    public VehicleRoutingProblemSolution createSolution(final VehicleRoutingProblem vrp) {
+    public VehicleRoutingProblemSolution solution(final VehicleRoutingProblem vrp) {
         logger.info("create initial solution");
-        List<VehicleRoute> vehicleRoutes = new ArrayList<>(vrp.initialVehicleRoutes());
-        Collection<Job> badJobs = insertion.insertJobs(vehicleRoutes, getUnassignedJobs(vrp));
+        Set<VehicleRoute> vehicleRoutes = vrp.initialVehicleRoutes();
+        Collection<Job> badJobs = insertion.insertJobs(vehicleRoutes, jobsUnassigned(vrp));
         VehicleRoutingProblemSolution solution = new VehicleRoutingProblemSolution(vehicleRoutes, badJobs, Double.MAX_VALUE);
         double costs = solutionCostsCalculator.getCosts(solution);
         solution.setCost(costs);
         return solution;
     }
 
-    private static Collection<Job> getUnassignedJobs(VehicleRoutingProblem vrp) {
-        List<Job> jobs = new ArrayList<>(vrp.jobs().values());
-//        for (Vehicle v : vrp.getVehicles()) {
-//            if (v.getBreak() != null) jobs.add(v.getBreak());
-//        }
-        return jobs;
+    private static Collection<Job> jobsUnassigned(VehicleRoutingProblem vrp) {
+        return vrp.jobs().values();
+
+//        List<Job> jobs = new ArrayList<>();
+////        for (Vehicle v : vrp.getVehicles()) {
+////            if (v.getBreak() != null) jobs.add(v.getBreak());
+////        }
+//        return jobs;
     }
 
 }

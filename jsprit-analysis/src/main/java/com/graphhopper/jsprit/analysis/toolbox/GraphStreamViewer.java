@@ -49,7 +49,7 @@ public class GraphStreamViewer {
         public static String BLUE_FOREST =
             "graph { fill-color: #141F2E; }" +
                 "node {" +
-                "	size: 7px, 7px;" +
+                "	size:157px, 15px;" +
                 "   fill-color: #A0FFA0;" +
                 "	text-alignment: at-right;" +
                 " 	stroke-mode: plain;" +
@@ -57,7 +57,7 @@ public class GraphStreamViewer {
                 "	stroke-width: 1.0;" +
                 "	text-font: couriernew;" +
                 " 	text-offset: 2,-5;" +
-                "	text-size: 8;" +
+                "	text-size: 16;" +
                 "}" +
                 "node.pickup {" +
                 " 	fill-color: #6CC644;" +
@@ -117,7 +117,7 @@ public class GraphStreamViewer {
         @SuppressWarnings("UnusedDeclaration")
         public static String SIMPLE_WHITE =
             "node {" +
-                "	size: 10px, 10px;" +
+                "	size: 40px, 40px;" +
                 "   fill-color: #6CC644;" +
                 "	text-alignment: at-right;" +
                 " 	stroke-mode: plain;" +
@@ -180,13 +180,17 @@ public class GraphStreamViewer {
     public static ViewPanel createEmbeddedView(Graph graph, double scaling) {
         Viewer viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
         ViewPanel view = viewer.addDefaultView(false);
+        view.setBackground(Color.BLACK);
+        viewer.enableXYZfeedback(true);
+
         view.setPreferredSize(new Dimension((int) (698 * scaling), (int) (440 * scaling)));
         return view;
     }
 
     public static String STYLESHEET =
-        "node {" +
-            "	size: 10px, 10px;" +
+            "graph { canvas-color: #000000; } " +
+            "node {" +
+            "	size: 50px, 50px;" +
             "   fill-color: #6CC644;" +
             "	text-alignment: at-right;" +
             " 	stroke-mode: plain;" +
@@ -194,7 +198,7 @@ public class GraphStreamViewer {
             "	stroke-width: 1.0;" +
             "	text-font: couriernew;" +
             " 	text-offset: 2,-5;" +
-            "	text-size: 8;" +
+            "	text-size: 16;" +
             "}" +
             "node.pickup {" +
             " 	fill-color: #6CC644;" +
@@ -328,7 +332,12 @@ public class GraphStreamViewer {
 
     private JFrame createJFrame(ViewPanel view, double scaling) {
         JFrame jframe = new JFrame();
+        jframe.setIgnoreRepaint(true);
+        jframe.setBackground(Color.BLACK);
+        jframe.getRootPane().setBackground(Color.BLACK);
+
         JPanel basicPanel = new JPanel();
+        basicPanel.setOpaque(false);
         basicPanel.setLayout(new BoxLayout(basicPanel, BoxLayout.Y_AXIS));
 
         //result-panel
@@ -337,13 +346,15 @@ public class GraphStreamViewer {
 
 
         JPanel graphStreamPanel = new JPanel();
+        graphStreamPanel.setOpaque(false);
         graphStreamPanel.setPreferredSize(new Dimension((int) (800 * scaling), (int) (460 * scaling)));
-        graphStreamPanel.setBackground(Color.WHITE);
+        graphStreamPanel.setBackground(Color.BLACK);
 
         JPanel graphStreamBackPanel = new JPanel();
+        graphStreamBackPanel.setOpaque(false);
         graphStreamBackPanel.setPreferredSize(new Dimension((int) (700 * scaling), (int) (450 * scaling)));
         graphStreamBackPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
-        graphStreamBackPanel.setBackground(Color.WHITE);
+        graphStreamBackPanel.setBackground(Color.BLACK);
 
         graphStreamBackPanel.add(view);
         graphStreamPanel.add(graphStreamBackPanel);
@@ -371,6 +382,10 @@ public class GraphStreamViewer {
     }
 
     private void render(Graph g, ViewPanel view) {
+        view.setOpaque(false);
+        view.setBackground(Color.BLACK);
+        view.getCamera().setAutoFitView(true);
+
         if (center != null) {
             view.resizeFrame(view.getWidth(), view.getHeight());
             alignCamera(view);
@@ -418,12 +433,12 @@ public class GraphStreamViewer {
 
         JPanel panel = new JPanel();
         panel.setPreferredSize(new Dimension((int) (width * scaling), (int) (height * scaling)));
-        panel.setBackground(Color.WHITE);
+        panel.setBackground(Color.BLACK);
 
         JPanel subpanel = new JPanel();
         subpanel.setLayout(new FlowLayout());
         subpanel.setPreferredSize(new Dimension((int) (700 * scaling), (int) (40 * scaling)));
-        subpanel.setBackground(Color.WHITE);
+        subpanel.setBackground(Color.BLACK);
         subpanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
 
         Font font = Font.decode("couriernew");
@@ -598,8 +613,8 @@ public class GraphStreamViewer {
         }
     }
 
-    private String makeEdgeId(int routeId, int vehicle_edgeId) {
-        return Integer.valueOf(routeId) + "." + Integer.valueOf(vehicle_edgeId);
+    static String makeEdgeId(int routeId, int vehicle_edgeId) {
+        return routeId + "." + vehicle_edgeId;
     }
 
     //	public void saveAsPNG(String filename){

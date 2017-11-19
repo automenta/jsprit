@@ -101,7 +101,7 @@ public final class BestInsertionConcurrent extends AbstractInsertionStrategy {
         Collection<Job> badJobs = new ArrayList<>(unassignedJobs.size());
         List<Job> unassignedJobList = new ArrayList<>(unassignedJobs);
         Collections.shuffle(unassignedJobList, random);
-        unassignedJobList.sort(new AccordingToPriorities());
+        unassignedJobList.sort(AccordingToPriorities.PRIORITY_COMPARATOR);
         List<Batch> batches = distributeRoutes(vehicleRoutes, nuOfBatches);
         List<String> failedConstraintNames = new ArrayList<>();
         for (final Job unassignedJob : unassignedJobList) {

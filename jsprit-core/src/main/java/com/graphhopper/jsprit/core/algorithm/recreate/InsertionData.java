@@ -41,7 +41,7 @@ public class InsertionData {
 
     }
 
-    private static final InsertionData noInsertion = new NoInsertionFound();
+    public static final InsertionData noInsertion = new NoInsertionFound();
 
     /**
      * Returns an instance of InsertionData that represents an EmptyInsertionData (which might indicate

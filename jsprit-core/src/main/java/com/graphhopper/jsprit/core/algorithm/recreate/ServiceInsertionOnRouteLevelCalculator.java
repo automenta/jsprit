@@ -287,7 +287,7 @@ final class ServiceInsertionOnRouteLevelCalculator implements JobInsertionCostsC
 
     private void initialiseStartAndEnd(final Vehicle newVehicle, double newVehicleDepartureTime) {
         if (start == null) {
-            start = new Start(newVehicle.start(), newVehicle.earliestDeparture(), Double.MAX_VALUE);
+            start = new Start(newVehicle.start(), newVehicle.earliestDeparture(), Double.POSITIVE_INFINITY);
             start.end(newVehicleDepartureTime);
         } else {
             start.setLocation(Location.the(newVehicle.start().id));
