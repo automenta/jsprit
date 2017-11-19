@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ReverseActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,16 +27,16 @@ import java.util.Iterator;
 
 public class ReverseRouteActivityVisitor implements RouteVisitor {
 
-    private Collection<ReverseActivityVisitor> visitors = new ArrayList<ReverseActivityVisitor>();
+    private final Collection<ReverseActivityVisitor> visitors = new ArrayList<>();
 
     @Override
     public void visit(VehicleRoute route) {
         if (visitors.isEmpty()) return;
         if (route.isEmpty()) return;
         begin(route);
-        Iterator<TourActivity> revIterator = route.getTourActivities().reverseActivityIterator();
+        Iterator<AbstractActivity> revIterator = route.tourActivities().reverseActivityIterator();
         while (revIterator.hasNext()) {
-            TourActivity act = revIterator.next();
+            AbstractActivity act = revIterator.next();
             visit(act);
         }
         finish(route);
@@ -49,7 +49,7 @@ public class ReverseRouteActivityVisitor implements RouteVisitor {
 
     }
 
-    private void visit(TourActivity act) {
+    private void visit(AbstractActivity act) {
         for (ReverseActivityVisitor visitor : visitors) {
             visitor.visit(act);
         }

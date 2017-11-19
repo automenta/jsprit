@@ -57,19 +57,19 @@ public class RefuseCollectionWithFastMatrixExample {
 		/*
          * create vehicle-type and vehicle
 		 */
-        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("vehicle-type").addCapacityDimension(0, 23);
+        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("vehicle-type").addCapacityDimension(0, 23);
         typeBuilder.setCostPerDistance(1.0);
         VehicleTypeImpl bigType = typeBuilder.build();
 
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.Builder.newInstance().setIndex(1).build());
+        vehicleBuilder.setStartLocation(Location.Builder.the().setIndex(1).build());
         vehicleBuilder.setType(bigType);
         VehicleImpl bigVehicle = vehicleBuilder.build();
 
 		/*
          * start building the problem
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.setFleetSize(FleetSize.INFINITE);
         vrpBuilder.addVehicle(bigVehicle);
 
@@ -81,7 +81,7 @@ public class RefuseCollectionWithFastMatrixExample {
 		/*
          * create cost-matrix
 		 */
-        FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(11, true);
+        FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.get(11, true);
         readDistances(matrixBuilder);
 
         vrpBuilder.setRoutingCost(matrixBuilder.build());
@@ -113,8 +113,8 @@ public class RefuseCollectionWithFastMatrixExample {
              * build service
 			 */
             Service service = Service.Builder.newInstance(lineTokens[0])
-                .addSizeDimension(0, Integer.parseInt(lineTokens[1]))
-                .setLocation(Location.Builder.newInstance().setIndex(Integer.parseInt(lineTokens[0])).build())
+                .sizeDimension(0, Integer.parseInt(lineTokens[1]))
+                .location(Location.Builder.the().setIndex(Integer.parseInt(lineTokens[0])).build())
                 .build();
             /*
 			 * and add it to problem

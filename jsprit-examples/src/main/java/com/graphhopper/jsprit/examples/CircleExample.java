@@ -29,7 +29,7 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Solutions;
 
 import java.io.File;
@@ -41,12 +41,12 @@ import java.util.Collection;
  */
 public class CircleExample {
 
-    public static Collection<Coordinate> createCoordinates(double center_x, double center_y, double radius, double step) {
-        Collection<Coordinate> coords = new ArrayList<Coordinate>();
+    public static Collection<v2> createCoordinates(double center_x, double center_y, double radius, double step) {
+        Collection<v2> coords = new ArrayList<v2>();
         for (double theta = 0; theta < 2 * Math.PI; theta += step) {
             double x = center_x + radius * Math.cos(theta);
             double y = center_y - radius * Math.sin(theta);
-            coords.add(Coordinate.newInstance(x, y));
+            coords.add(v2.the(x, y));
         }
         return coords;
     }
@@ -60,16 +60,16 @@ public class CircleExample {
             if (result) System.out.println("./output created");
         }
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
+            .setStartLocation(Location.Builder.the().setCoord(v2.the(0, 0)).build()).build();
         vrpBuilder.addVehicle(v);
 
         double step = 2 * Math.PI / 50.;
-        Collection<Coordinate> circle = createCoordinates(0, 0, 20, step);
+        Collection<v2> circle = createCoordinates(0, 0, 20, step);
         int id = 1;
-        for (Coordinate c : circle) {
-            Service s = Service.Builder.newInstance(Integer.toString(id)).setLocation(Location.Builder.newInstance().setCoordinate(c).build()).build();
+        for (v2 c : circle) {
+            Service s = Service.Builder.newInstance(Integer.toString(id)).location(Location.Builder.the().setCoord(c).build()).build();
             vrpBuilder.addJob(s);
             id++;
         }

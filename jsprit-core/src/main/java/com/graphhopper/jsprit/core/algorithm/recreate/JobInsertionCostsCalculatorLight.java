@@ -23,6 +23,6 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 
 public interface JobInsertionCostsCalculatorLight {
 
-    public InsertionData getInsertionData(Job unassignedJob, VehicleRoute route, double bestKnownCosts);
+    InsertionData getInsertionData(Job unassignedJob, VehicleRoute route, double bestKnownCosts);
 
 }

@@ -20,7 +20,7 @@ package com.graphhopper.jsprit.core.util;
 
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
-import com.graphhopper.jsprit.core.algorithm.state.StateId;
+import com.graphhopper.jsprit.core.algorithm.state.State;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
@@ -51,10 +51,10 @@ public class UnassignedJobReasonTrackerTest {
 
     @Before
     public void doBefore() {
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(0, 1);
+        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.the("vehicleType").addCapacityDimension(0, 1);
         VehicleType vehicleType = vehicleTypeBuilder.build();
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance(10, 10));
+        vehicleBuilder.setStartLocation(Location.the(10, 10));
         vehicleBuilder.setType(vehicleType);
         vehicleBuilder.setEarliestStart(0).setLatestArrival(100);
         vehicle = vehicleBuilder.build();
@@ -62,9 +62,9 @@ public class UnassignedJobReasonTrackerTest {
 
     @Test
     public void shouldReturnCorrectCapacityReasonCode() {
-        Service service = Service.Builder.newInstance("1").addSizeDimension(0, 5).setLocation(Location.newInstance(5, 7)).build();
+        Service service = Service.Builder.newInstance("1").sizeDimension(0, 5).location(Location.the(5, 7)).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service)
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service)
             .build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
@@ -72,15 +72,15 @@ public class UnassignedJobReasonTrackerTest {
         vra.addListener(reasonTracker);
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        Assert.assertEquals(1, solution.getUnassignedJobs().size());
-        Assert.assertEquals(3, reasonTracker.getMostLikelyReasonCode(solution.getUnassignedJobs().iterator().next().getId()));
+        Assert.assertEquals(1, solution.jobsUnassigned.size());
+        Assert.assertEquals(3, reasonTracker.getMostLikelyReasonCode(solution.jobsUnassigned.iterator().next().id()));
     }
 
     @Test
     public void shouldReturnCorrectSkillReasonCode() {
-        Service service = Service.Builder.newInstance("1").addSizeDimension(0, 1).addRequiredSkill("ice").setLocation(Location.newInstance(5, 7)).build();
+        Service service = Service.Builder.newInstance("1").sizeDimension(0, 1).skillRequired("ice").location(Location.the(5, 7)).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service)
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service)
             .build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
@@ -88,15 +88,15 @@ public class UnassignedJobReasonTrackerTest {
         vra.addListener(reasonTracker);
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        Assert.assertEquals(1, solution.getUnassignedJobs().size());
-        Assert.assertEquals(1, reasonTracker.getMostLikelyReasonCode(solution.getUnassignedJobs().iterator().next().getId()));
+        Assert.assertEquals(1, solution.jobsUnassigned.size());
+        Assert.assertEquals(1, reasonTracker.getMostLikelyReasonCode(solution.jobsUnassigned.iterator().next().id()));
     }
 
     @Test
     public void shouldReturnCorrectTWReasonCode() {
-        Service service = Service.Builder.newInstance("1").addSizeDimension(0, 1).setTimeWindow(TimeWindow.newInstance(110, 200)).setLocation(Location.newInstance(5, 7)).build();
+        Service service = Service.Builder.newInstance("1").sizeDimension(0, 1).timeWindowSet(TimeWindow.the(110, 200)).location(Location.the(5, 7)).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service)
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service)
             .build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
@@ -104,24 +104,24 @@ public class UnassignedJobReasonTrackerTest {
         vra.addListener(reasonTracker);
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        Assert.assertEquals(1, solution.getUnassignedJobs().size());
-        Assert.assertEquals(2, reasonTracker.getMostLikelyReasonCode(solution.getUnassignedJobs().iterator().next().getId()));
+        Assert.assertEquals(1, solution.jobsUnassigned.size());
+        Assert.assertEquals(2, reasonTracker.getMostLikelyReasonCode(solution.jobsUnassigned.iterator().next().id()));
     }
 
     @Test
     public void shouldReturnCorrectMaxDistanceReasonCode() {
-        Service service = Service.Builder.newInstance("1").setLocation(Location.newInstance(51, 0)).build();
+        Service service = Service.Builder.newInstance("1").location(Location.the(51, 0)).build();
 
-        Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
+        Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
 
-        final VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service).build();
+        final VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addVehicle(vehicle).addJob(service).build();
 
         StateManager stateManager = new StateManager(vrp);
         ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
-        StateId maxDistance = stateManager.createStateId("max-distance");
+        State maxDistance = stateManager.createStateId("max-distance");
         Map<Vehicle, Double> distMap = new HashMap<>();
         distMap.put(vehicle, 100d);
-        MaxDistanceConstraint distanceConstraint = new MaxDistanceConstraint(stateManager, maxDistance, vrp.getTransportCosts(), distMap);
+        MaxDistanceConstraint distanceConstraint = new MaxDistanceConstraint(stateManager, maxDistance, vrp.transportCosts(), distMap);
         constraintManager.addConstraint(distanceConstraint, ConstraintManager.Priority.CRITICAL);
 
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp).setStateAndConstraintManager(stateManager, constraintManager)
@@ -130,8 +130,8 @@ public class UnassignedJobReasonTrackerTest {
         vra.addListener(reasonTracker);
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        Assert.assertEquals(1, solution.getUnassignedJobs().size());
-        Assert.assertEquals(4, reasonTracker.getMostLikelyReasonCode(solution.getUnassignedJobs().iterator().next().getId()));
+        Assert.assertEquals(1, solution.jobsUnassigned.size());
+        Assert.assertEquals(4, reasonTracker.getMostLikelyReasonCode(solution.jobsUnassigned.iterator().next().id()));
     }
 
     @Test
@@ -157,7 +157,7 @@ public class UnassignedJobReasonTrackerTest {
         Iterator<Map.Entry<Comparable<?>, Long>> entryIterator = frequency.entrySetIterator();
         while (entryIterator.hasNext()) {
             Map.Entry<Comparable<?>, Long> e = entryIterator.next();
-            System.out.println(e.getKey().toString() + " " + e.getValue());
+            System.out.println(e.getKey() + " " + e.getValue());
         }
     }
 }

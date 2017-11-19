@@ -17,12 +17,12 @@
  */
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.cost.ForwardTransportCost;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
 
 
@@ -34,21 +34,21 @@ import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
  */
 public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
 
-    private VehicleRoutingActivityCosts activityCost;
+    private final VehicleRoutingActivityCosts activityCost;
 
-    private ForwardTransportCost transportCost;
+    private final ForwardTransportCost transportCost;
 
-    private StateManager states;
+    private final StateManager states;
 
-    private double totalOperationCost = 0.0;
+    private double totalOperationCost;
 
-    private VehicleRoute vehicleRoute = null;
+    private VehicleRoute vehicleRoute;
 
-    private TourActivity prevAct = null;
+    private AbstractActivity prevAct;
 
-    private double startTimeAtPrevAct = 0.0;
+    private double startTimeAtPrevAct;
 
-    private ActivityTimeTracker timeTracker;
+    private final ActivityTimeTracker timeTracker;
 
     /**
      * Updates total costs (i.e. transport and activity costs) at route and activity level.
@@ -61,7 +61,6 @@ public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
      * @param states
      */
     public UpdateVariableCosts(VehicleRoutingActivityCosts activityCost, VehicleRoutingTransportCosts transportCost, StateManager states) {
-        super();
         this.activityCost = activityCost;
         this.transportCost = transportCost;
         this.states = states;
@@ -79,16 +78,16 @@ public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
     public void begin(VehicleRoute route) {
         vehicleRoute = route;
         timeTracker.begin(route);
-        prevAct = route.getStart();
+        prevAct = route.start;
         startTimeAtPrevAct = timeTracker.getActEndTime();
     }
 
     @Override
-    public void visit(TourActivity act) {
+    public void visit(AbstractActivity act) {
         timeTracker.visit(act);
 
-        double transportCost = this.transportCost.getTransportCost(prevAct.getLocation(), act.getLocation(), startTimeAtPrevAct, vehicleRoute.getDriver(), vehicleRoute.getVehicle());
-        double actCost = activityCost.getActivityCost(act, timeTracker.getActArrTime(), vehicleRoute.getDriver(), vehicleRoute.getVehicle());
+        double transportCost = this.transportCost.transportCost(prevAct.location(), act.location(), startTimeAtPrevAct, vehicleRoute.driver, vehicleRoute.vehicle());
+        double actCost = activityCost.getActivityCost(act, timeTracker.getActArrTime(), vehicleRoute.driver, vehicleRoute.vehicle());
 
         totalOperationCost += transportCost;
         totalOperationCost += actCost;
@@ -102,8 +101,8 @@ public class UpdateVariableCosts implements ActivityVisitor, StateUpdater {
     @Override
     public void finish() {
         timeTracker.finish();
-        double transportCost = this.transportCost.getTransportCost(prevAct.getLocation(), vehicleRoute.getEnd().getLocation(), startTimeAtPrevAct, vehicleRoute.getDriver(), vehicleRoute.getVehicle());
-        double actCost = activityCost.getActivityCost(vehicleRoute.getEnd(), timeTracker.getActEndTime(), vehicleRoute.getDriver(), vehicleRoute.getVehicle());
+        double transportCost = this.transportCost.transportCost(prevAct.location(), vehicleRoute.end.location(), startTimeAtPrevAct, vehicleRoute.driver, vehicleRoute.vehicle());
+        double actCost = activityCost.getActivityCost(vehicleRoute.end, timeTracker.getActEndTime(), vehicleRoute.driver, vehicleRoute.vehicle());
 
         totalOperationCost += transportCost;
         totalOperationCost += actCost;

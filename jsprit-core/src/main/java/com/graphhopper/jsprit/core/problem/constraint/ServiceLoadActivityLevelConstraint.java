@@ -18,6 +18,7 @@
 package com.graphhopper.jsprit.core.problem.constraint;
 
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.*;
@@ -33,18 +34,17 @@ import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivity
  */
 public class ServiceLoadActivityLevelConstraint implements HardActivityConstraint {
 
-    private RouteAndActivityStateGetter stateManager;
+    private final RouteAndActivityStateGetter stateManager;
 
-    private Capacity defaultValue;
+    private final Capacity defaultValue;
 
     public ServiceLoadActivityLevelConstraint(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
-        defaultValue = Capacity.Builder.newInstance().build();
+        defaultValue = Capacity.Builder.get().build();
     }
 
     @Override
-    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
         Capacity futureMaxLoad;
         Capacity prevMaxLoad;
         if (prevAct instanceof Start) {
@@ -53,19 +53,19 @@ public class ServiceLoadActivityLevelConstraint implements HardActivityConstrain
             prevMaxLoad = stateManager.getRouteState(iFacts.getRoute(), InternalStates.LOAD_AT_BEGINNING, Capacity.class);
             if (prevMaxLoad == null) prevMaxLoad = defaultValue;
         } else {
-            futureMaxLoad = stateManager.getActivityState(prevAct, InternalStates.FUTURE_MAXLOAD, Capacity.class);
+            futureMaxLoad = stateManager.state(prevAct, InternalStates.FUTURE_MAXLOAD, Capacity.class);
             if (futureMaxLoad == null) futureMaxLoad = defaultValue;
-            prevMaxLoad = stateManager.getActivityState(prevAct, InternalStates.PAST_MAXLOAD, Capacity.class);
+            prevMaxLoad = stateManager.state(prevAct, InternalStates.PAST_MAXLOAD, Capacity.class);
             if (prevMaxLoad == null) prevMaxLoad = defaultValue;
 
         }
         if (newAct instanceof PickupService || newAct instanceof ServiceActivity) {
-            if (!Capacity.addup(newAct.getSize(), futureMaxLoad).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions())) {
+            if (!Capacity.addup(newAct.size(), futureMaxLoad).lessOrEq(iFacts.getNewVehicle().type().getCapacityDimensions())) {
                 return ConstraintsStatus.NOT_FULFILLED;
             }
         }
         if (newAct instanceof DeliverService) {
-            if (!Capacity.addup(Capacity.invert(newAct.getSize()), prevMaxLoad).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions())) {
+            if (!Capacity.addup(Capacity.invert(newAct.size()), prevMaxLoad).lessOrEq(iFacts.getNewVehicle().type().getCapacityDimensions())) {
                 return ConstraintsStatus.NOT_FULFILLED_BREAK;
             }
         }

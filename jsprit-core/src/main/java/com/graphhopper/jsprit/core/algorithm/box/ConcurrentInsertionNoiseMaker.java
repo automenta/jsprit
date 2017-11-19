@@ -19,11 +19,11 @@
 package com.graphhopper.jsprit.core.algorithm.box;
 
 import com.graphhopper.jsprit.core.algorithm.listener.IterationStartsListener;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.SoftActivityConstraint;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.util.RandomNumberGeneration;
 
 import java.util.Collection;
@@ -36,21 +36,21 @@ class ConcurrentInsertionNoiseMaker implements SoftActivityConstraint, Iteration
 
     private final double noiseProbability;
 
-    private boolean makeNoise = false;
+    private boolean makeNoise;
 
     private double noiseLevel = 0.1;
 
     private Random random = RandomNumberGeneration.newInstance();
 
-    private Random[] randomArray;
+    private final Random[] randomArray;
 
-    private double maxCosts;
+    private final double maxCosts;
 
     ConcurrentInsertionNoiseMaker(VehicleRoutingProblem vrp, double maxCosts, double noiseLevel, double noiseProbability) {
         this.noiseLevel = noiseLevel;
         this.noiseProbability = noiseProbability;
         this.maxCosts = maxCosts;
-        randomArray = new Random[vrp.getNuActivities() + 2];
+        randomArray = new Random[vrp.activitiesCount() + 2];
         for (int i = 0; i < randomArray.length; i++) {
             Random r = new Random();
             r.setSeed(random.nextLong());
@@ -60,15 +60,13 @@ class ConcurrentInsertionNoiseMaker implements SoftActivityConstraint, Iteration
 
     @Override
     public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-        if (random.nextDouble() < noiseProbability) {
-            makeNoise = true;
-        } else makeNoise = false;
+        makeNoise = random.nextDouble() < noiseProbability;
     }
 
     @Override
-    public double getCosts(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+    public double getCosts(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
         if (makeNoise) {
-            return noiseLevel * maxCosts * randomArray[newAct.getIndex()].nextDouble();
+            return noiseLevel * maxCosts * randomArray[newAct.index()].nextDouble();
         }
         return 0;
     }

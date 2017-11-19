@@ -40,10 +40,9 @@ public final class InsertionInitialSolutionFactory implements InitialSolutionFac
 
     private final InsertionStrategy insertion;
 
-    private SolutionCostCalculator solutionCostsCalculator;
+    private final SolutionCostCalculator solutionCostsCalculator;
 
     public InsertionInitialSolutionFactory(InsertionStrategy insertionStrategy, SolutionCostCalculator solutionCostCalculator) {
-        super();
         this.insertion = insertionStrategy;
         this.solutionCostsCalculator = solutionCostCalculator;
     }
@@ -51,8 +50,7 @@ public final class InsertionInitialSolutionFactory implements InitialSolutionFac
     @Override
     public VehicleRoutingProblemSolution createSolution(final VehicleRoutingProblem vrp) {
         logger.info("create initial solution");
-        List<VehicleRoute> vehicleRoutes = new ArrayList<VehicleRoute>();
-        vehicleRoutes.addAll(vrp.getInitialVehicleRoutes());
+        List<VehicleRoute> vehicleRoutes = new ArrayList<>(vrp.initialVehicleRoutes());
         Collection<Job> badJobs = insertion.insertJobs(vehicleRoutes, getUnassignedJobs(vrp));
         VehicleRoutingProblemSolution solution = new VehicleRoutingProblemSolution(vehicleRoutes, badJobs, Double.MAX_VALUE);
         double costs = solutionCostsCalculator.getCosts(solution);
@@ -60,8 +58,8 @@ public final class InsertionInitialSolutionFactory implements InitialSolutionFac
         return solution;
     }
 
-    private List<Job> getUnassignedJobs(VehicleRoutingProblem vrp) {
-        ArrayList<Job> jobs = new ArrayList<Job>(vrp.getJobs().values());
+    private static Collection<Job> getUnassignedJobs(VehicleRoutingProblem vrp) {
+        List<Job> jobs = new ArrayList<>(vrp.jobs().values());
 //        for (Vehicle v : vrp.getVehicles()) {
 //            if (v.getBreak() != null) jobs.add(v.getBreak());
 //        }

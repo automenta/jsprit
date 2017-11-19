@@ -18,10 +18,11 @@
 
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Skills;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 
 /**
  * Update to update required skills on route
@@ -30,7 +31,7 @@ public class UpdateSkills implements StateUpdater, ActivityVisitor {
 
     private Skills.Builder skillBuilder;
 
-    private StateManager statesManager;
+    private final StateManager statesManager;
 
     private VehicleRoute route;
 
@@ -45,9 +46,9 @@ public class UpdateSkills implements StateUpdater, ActivityVisitor {
     }
 
     @Override
-    public void visit(TourActivity activity) {
-        if (activity instanceof TourActivity.JobActivity) {
-            Skills skills = ((TourActivity.JobActivity) activity).getJob().getRequiredSkills();
+    public void visit(AbstractActivity activity) {
+        if (activity instanceof JobActivity) {
+            Skills skills = ((JobActivity) activity).job().skillsRequired();
             skillBuilder.addAllSkills(skills.values());
         }
     }

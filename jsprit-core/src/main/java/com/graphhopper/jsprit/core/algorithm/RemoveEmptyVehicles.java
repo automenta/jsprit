@@ -28,10 +28,9 @@ import java.util.List;
 
 public class RemoveEmptyVehicles implements InsertionEndsListener {
 
-    private VehicleFleetManager fleetManager;
+    private final VehicleFleetManager fleetManager;
 
     public RemoveEmptyVehicles(VehicleFleetManager fleetManager) {
-        super();
         this.fleetManager = fleetManager;
     }
 
@@ -42,10 +41,10 @@ public class RemoveEmptyVehicles implements InsertionEndsListener {
 
     @Override
     public void informInsertionEnds(Collection<VehicleRoute> vehicleRoutes) {
-        List<VehicleRoute> routes = new ArrayList<VehicleRoute>(vehicleRoutes);
+        Iterable<VehicleRoute> routes = new ArrayList<>(vehicleRoutes);
         for (VehicleRoute route : routes) {
             if (route.isEmpty()) {
-                fleetManager.unlock(route.getVehicle());
+                fleetManager.unlock(route.vehicle());
                 vehicleRoutes.remove(route);
             }
         }

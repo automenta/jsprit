@@ -45,7 +45,7 @@ public class MultipleTimeWindowExample2 {
 		/*
          * get a vehicle type-builder and build a type with the typeId "vehicleType" and one capacity dimension, i.e. weight, and capacity dimension value of 2
 		 */
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType")
+        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.the("vehicleType")
             .addCapacityDimension(0, 60)
             .setCostPerWaitingTime(0.8)
             ;
@@ -55,7 +55,7 @@ public class MultipleTimeWindowExample2 {
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
 		 */
         Builder vehicleBuilder = Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance(0, 0));
+        vehicleBuilder.setStartLocation(Location.the(0, 0));
         vehicleBuilder.setType(vehicleType);
         vehicleBuilder.setLatestArrival(800);
         VehicleImpl vehicle = vehicleBuilder.build();
@@ -76,7 +76,7 @@ public class MultipleTimeWindowExample2 {
 		/*
          * build services at the required locations, each with a capacity-demand of 1.
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addVehicle(vehicle);
 //            .addVehicle(vehicle2).addVehicle(vehicle3);
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
@@ -85,12 +85,12 @@ public class MultipleTimeWindowExample2 {
         Random random = RandomNumberGeneration.newInstance();
         for(int i=0;i<40;i++){
             Service service = Service.Builder.newInstance("" + (i + 1))
-                .addTimeWindow(random.nextInt(50), 200)
-                .addTimeWindow(220 + random.nextInt(50), 350)
-                .addTimeWindow(400 + random.nextInt(50), 550)
+                .timeWindowAdd(random.nextInt(50), 200)
+                .timeWindowAdd(220 + random.nextInt(50), 350)
+                .timeWindowAdd(400 + random.nextInt(50), 550)
 //                .addSizeDimension(0, 1)
-                .setServiceTime(1)
-                .setLocation(Location.newInstance(random.nextInt(50), random.nextInt(50))).build();
+                .serviceTime(1)
+                .location(Location.the(random.nextInt(50), random.nextInt(50))).build();
             vrpBuilder.addJob(service);
         }
 
@@ -100,15 +100,15 @@ public class MultipleTimeWindowExample2 {
 ////                .addTimeWindow(120, 200)
 //                .addTimeWindow(250,500)
 //                .addSizeDimension(0, 1)
-                .setServiceTime(2)
-                .setLocation(Location.newInstance(50 + random.nextInt(20), 20 + random.nextInt(25))).build();
+                .serviceTime(2)
+                .location(Location.the(50 + random.nextInt(20), 20 + random.nextInt(25))).build();
             vrpBuilder.addJob(service);
         }
 
         Service service = Service.Builder.newInstance("100")
-            .addTimeWindow(50, 80)
-            .setServiceTime(10)
-            .setLocation(Location.newInstance(40, 1)).build();
+            .timeWindowAdd(50, 80)
+            .serviceTime(10)
+            .location(Location.the(40, 1)).build();
         vrpBuilder.addJob(service);
 
         final VehicleRoutingProblem problem = vrpBuilder.build();
@@ -134,7 +134,7 @@ public class MultipleTimeWindowExample2 {
 		 */
         new Plotter(problem,bestSolution).setLabel(Plotter.Label.ID).plot("output/plot", "mtw");
 
-        SolutionAnalyser a = new SolutionAnalyser(problem, bestSolution, problem.getTransportCosts());
+        SolutionAnalyser a = new SolutionAnalyser(problem, bestSolution, problem.transportCosts());
 
         System.out.println("distance: " + a.getDistance());
         System.out.println("ttime: " + a.getTransportTime());

@@ -18,11 +18,11 @@
 
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.cost.TransportDistance;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
 
@@ -35,9 +35,9 @@ public class VehicleDependentTraveledDistance implements StateUpdater, ActivityV
 
     static class State {
 
-        Location prevLocation;
+        final Location prevLocation;
 
-        double distance;
+        final double distance;
 
         public State(Location prevLocation, double distance) {
             this.prevLocation = prevLocation;
@@ -57,27 +57,27 @@ public class VehicleDependentTraveledDistance implements StateUpdater, ActivityV
 
     private final StateManager stateManager;
 
-    private final StateId traveledDistanceId;
+    private final com.graphhopper.jsprit.core.algorithm.state.State traveledDistanceId;
 
     private VehicleRoute route;
 
-    private List<Vehicle> uniqueVehicles;
+    private final List<Vehicle> uniqueVehicles;
 
     private Map<VehicleTypeKey, State> states;
 
-    public VehicleDependentTraveledDistance(TransportDistance transportCostMatrices, StateManager stateManager, StateId distanceInRouteId, Collection<Vehicle> vehicles) {
+    public VehicleDependentTraveledDistance(TransportDistance transportCostMatrices, StateManager stateManager, com.graphhopper.jsprit.core.algorithm.state.State distanceInRouteId, Collection<Vehicle> vehicles) {
         this.transportDistance = transportCostMatrices;
         this.stateManager = stateManager;
         this.traveledDistanceId = distanceInRouteId;
         uniqueVehicles = getUniqueVehicles(vehicles);
     }
 
-    private List<Vehicle> getUniqueVehicles(Collection<Vehicle> vehicles) {
-        Set<VehicleTypeKey> types = new HashSet<>();
+    private static List<Vehicle> getUniqueVehicles(Iterable<Vehicle> vehicles) {
+        Collection<VehicleTypeKey> types = new HashSet<>();
         List<Vehicle> uniqueVehicles = new ArrayList<>();
         for (Vehicle v : vehicles) {
-            if (!types.contains(v.getVehicleTypeIdentifier())) {
-                types.add(v.getVehicleTypeIdentifier());
+            if (!types.contains(v.vehicleType())) {
+                types.add(v.vehicleType());
                 uniqueVehicles.add(v);
             }
         }
@@ -89,29 +89,29 @@ public class VehicleDependentTraveledDistance implements StateUpdater, ActivityV
         this.route = route;
         states = new HashMap<>();
         for (Vehicle v : uniqueVehicles) {
-            State state = new State(v.getStartLocation(), 0);
-            states.put(v.getVehicleTypeIdentifier(), state);
+            State state = new State(v.start(), 0);
+            states.put(v.vehicleType(), state);
         }
     }
 
     @Override
-    public void visit(TourActivity activity) {
+    public void visit(AbstractActivity activity) {
         for (Vehicle v : uniqueVehicles) {
-            State old = states.get(v.getVehicleTypeIdentifier());
+            State old = states.get(v.vehicleType());
             double distance = old.getDistance();
-            distance += transportDistance.getDistance(old.getPrevLocation(), activity.getLocation(), 0, v);
+            distance += transportDistance.distance(old.getPrevLocation(), activity.location(), 0, v);
             stateManager.putActivityState(activity, v, traveledDistanceId, distance);
-            states.put(v.getVehicleTypeIdentifier(), new State(activity.getLocation(), distance));
+            states.put(v.vehicleType(), new State(activity.location(), distance));
         }
     }
 
     @Override
     public void finish() {
         for (Vehicle v : uniqueVehicles) {
-            State old = states.get(v.getVehicleTypeIdentifier());
+            State old = states.get(v.vehicleType());
             double distance = old.getDistance();
             if (v.isReturnToDepot()) {
-                distance += transportDistance.getDistance(old.getPrevLocation(), v.getEndLocation(), 0, v);
+                distance += transportDistance.distance(old.getPrevLocation(), v.end(), 0, v);
             }
             stateManager.putRouteState(route, v, traveledDistanceId, distance);
         }

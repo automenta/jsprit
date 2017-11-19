@@ -27,16 +27,10 @@ class Scorer {
 
     static double score(Job unassignedJob, InsertionData best, InsertionData secondBest, ScoringFunction scoringFunction){
         if (best == null) {
-            throw new IllegalStateException("cannot insert job " + unassignedJob.getId());
+            throw new IllegalStateException("cannot insert job " + unassignedJob.id());
         }
         double score;
-        if (secondBest == null) { //either there is only one vehicle or there are more vehicles, but they cannot load unassignedJob
-            //if only one vehicle, I want the job to be inserted with min iCosts
-            //if there are more vehicles, I want this job to be prioritized since there are no alternatives
-            score = (11 - unassignedJob.getPriority()) * (Integer.MAX_VALUE - best.getInsertionCost()) + scoringFunction.score(best, unassignedJob);
-        } else {
-            score = (11 - unassignedJob.getPriority()) * (secondBest.getInsertionCost() - best.getInsertionCost()) + scoringFunction.score(best, unassignedJob);
-        }
+        score = secondBest == null ? (11 - unassignedJob.pri()) * (Integer.MAX_VALUE - best.getInsertionCost()) + scoringFunction.score(best, unassignedJob) : (11 - unassignedJob.pri()) * (secondBest.getInsertionCost() - best.getInsertionCost()) + scoringFunction.score(best, unassignedJob);
         return score;
     }
 }

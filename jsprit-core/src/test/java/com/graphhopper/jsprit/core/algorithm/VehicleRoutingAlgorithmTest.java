@@ -50,7 +50,7 @@ public class VehicleRoutingAlgorithmTest {
 
     private static class CountIterations implements IterationStartsListener {
 
-        private int countIterations = 0;
+        private int countIterations;
 
         @Override
         public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {

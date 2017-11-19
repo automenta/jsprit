@@ -48,7 +48,7 @@ public class VRPWithBackhaulsExample {
 		 *
 		 * But define a problem-builder first.
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
 
 		/*
          * A solomonReader reads solomon-instance files, and stores the required information in the builder.

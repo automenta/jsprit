@@ -34,7 +34,6 @@ import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -52,19 +51,19 @@ public class RefuseCollection_IT {
 		/*
          * create vehicle-type and vehicle
 		 */
-        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("vehicle-type").addCapacityDimension(0, 23);
+        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("vehicle-type").addCapacityDimension(0, 23);
         typeBuilder.setCostPerDistance(1.0);
         VehicleTypeImpl bigType = typeBuilder.build();
 
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance("1"));
+        vehicleBuilder.setStartLocation(Location.the("1"));
         vehicleBuilder.setType(bigType);
         VehicleImpl bigVehicle = vehicleBuilder.build();
 
 		/*
          * start building the problem
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE);
         vrpBuilder.addVehicle(bigVehicle);
 
@@ -80,12 +79,12 @@ public class RefuseCollection_IT {
 
         vrpBuilder.setRoutingCost(matrixBuilder.build());
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        VehicleRoutingAlgorithm vra = new SchrimpfFactory().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = SchrimpfFactory.createAlgorithm(vrp);
         vra.setPrematureAlgorithmTermination(new IterationWithoutImprovementTermination(100));
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        Assert.assertEquals(397.0, Solutions.bestOf(solutions).getCost(), 40.);
-        Assert.assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        Assert.assertEquals(397.0, Solutions.bestOf(solutions).cost(), 40.);
+        Assert.assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
     @Test
@@ -94,19 +93,19 @@ public class RefuseCollection_IT {
 		/*
          * create vehicle-type and vehicle
 		 */
-        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("vehicle-type").addCapacityDimension(0, 23);
+        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("vehicle-type").addCapacityDimension(0, 23);
         typeBuilder.setCostPerDistance(1.0);
         VehicleTypeImpl bigType = typeBuilder.build();
 
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance("1"));
+        vehicleBuilder.setStartLocation(Location.the("1"));
         vehicleBuilder.setType(bigType);
         VehicleImpl bigVehicle = vehicleBuilder.build();
 
 		/*
          * start building the problem
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE);
         vrpBuilder.addVehicle(bigVehicle);
 
@@ -126,8 +125,8 @@ public class RefuseCollection_IT {
         vra.setPrematureAlgorithmTermination(new IterationWithoutImprovementTermination(100));
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        Assert.assertEquals(397.0, Solutions.bestOf(solutions).getCost(), 40.);
-        Assert.assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        Assert.assertEquals(397.0, Solutions.bestOf(solutions).cost(), 40.);
+        Assert.assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
     @Test
@@ -136,19 +135,19 @@ public class RefuseCollection_IT {
 		/*
 		 * create vehicle-type and vehicle
 		 */
-        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("vehicle-type").addCapacityDimension(0, 23);
+        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("vehicle-type").addCapacityDimension(0, 23);
         typeBuilder.setCostPerDistance(1.0);
         VehicleTypeImpl bigType = typeBuilder.build();
 
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance("1"));
+        vehicleBuilder.setStartLocation(Location.the("1"));
         vehicleBuilder.setType(bigType);
         VehicleImpl bigVehicle = vehicleBuilder.build();
 
 		/*
 		 * start building the problem
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE);
         vrpBuilder.addVehicle(bigVehicle);
 
@@ -164,12 +163,12 @@ public class RefuseCollection_IT {
 
         vrpBuilder.setRoutingCost(matrixBuilder.build());
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        VehicleRoutingAlgorithm vra = new SchrimpfFactory().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = SchrimpfFactory.createAlgorithm(vrp);
         vra.setPrematureAlgorithmTermination(new IterationWithoutImprovementTermination(100));
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        Assert.assertEquals(397.0, Solutions.bestOf(solutions).getCost(), 40.);
-        Assert.assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        Assert.assertEquals(397.0, Solutions.bestOf(solutions).cost(), 40.);
+        Assert.assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
     @Test
@@ -178,19 +177,19 @@ public class RefuseCollection_IT {
 		/*
 		 * create vehicle-type and vehicle
 		 */
-        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("vehicle-type").addCapacityDimension(0, 23);
+        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("vehicle-type").addCapacityDimension(0, 23);
         typeBuilder.setCostPerDistance(1.0);
         VehicleTypeImpl bigType = typeBuilder.build();
 
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance("1"));
+        vehicleBuilder.setStartLocation(Location.the("1"));
         vehicleBuilder.setType(bigType);
         VehicleImpl bigVehicle = vehicleBuilder.build();
 
 		/*
 		 * start building the problem
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE);
         vrpBuilder.addVehicle(bigVehicle);
 
@@ -206,12 +205,12 @@ public class RefuseCollection_IT {
 
         vrpBuilder.setRoutingCost(matrixBuilder.build());
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        VehicleRoutingAlgorithm vra = new SchrimpfFactory().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = SchrimpfFactory.createAlgorithm(vrp);
         vra.setPrematureAlgorithmTermination(new IterationWithoutImprovementTermination(100));
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        Assert.assertEquals(397.0, Solutions.bestOf(solutions).getCost(), 40.);
-        Assert.assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        Assert.assertEquals(397.0, Solutions.bestOf(solutions).cost(), 40.);
+        Assert.assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
 
@@ -228,8 +227,8 @@ public class RefuseCollection_IT {
 			/*
 			 * build service
 			 */
-            Service service = Service.Builder.newInstance(lineTokens[0]).addSizeDimension(0, Integer.parseInt(lineTokens[1]))
-                .setLocation(Location.newInstance(lineTokens[0])).build();
+            Service service = Service.Builder.newInstance(lineTokens[0]).sizeDimension(0, Integer.parseInt(lineTokens[1]))
+                .location(Location.the(lineTokens[0])).build();
 			/*
 			 * and add it to problem
 			 */
@@ -255,8 +254,8 @@ public class RefuseCollection_IT {
 			/*
 			 * build service
 			 */
-            Pickup service = Pickup.Builder.newInstance(lineTokens[0]).addSizeDimension(0, Integer.parseInt(lineTokens[1]))
-                .setLocation(Location.newInstance(lineTokens[0])).build();
+            Pickup service = Pickup.Builder.the(lineTokens[0]).sizeDimension(0, Integer.parseInt(lineTokens[1]))
+                .location(Location.the(lineTokens[0])).build();
 			/*
 			 * and add it to problem
 			 */
@@ -278,8 +277,8 @@ public class RefuseCollection_IT {
 			/*
 			 * build service
 			 */
-            Delivery service = (Delivery) Delivery.Builder.newInstance(lineTokens[0]).addSizeDimension(0, Integer.parseInt(lineTokens[1]))
-                .setLocation(Location.newInstance(lineTokens[0])).build();
+            Delivery service = Delivery.Builder.newInstance(lineTokens[0]).sizeDimension(0, Integer.parseInt(lineTokens[1]))
+                .location(Location.the(lineTokens[0])).build();
 			/*
 			 * and add it to problem
 			 */

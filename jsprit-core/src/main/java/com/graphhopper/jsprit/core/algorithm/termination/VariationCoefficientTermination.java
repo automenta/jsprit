@@ -56,9 +56,9 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
 
     private int currentIteration;
 
-    private double[] solutionValues;
+    private final double[] solutionValues;
 
-    private VehicleRoutingProblemSolution lastAccepted = null;
+    private VehicleRoutingProblemSolution lastAccepted;
 
     /**
      * Constructs termination.
@@ -70,7 +70,6 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
      *                                      is smaller than the specified threshold, the algorithm terminates.
      */
     public VariationCoefficientTermination(int noIterations, double variationCoefficientThreshold) {
-        super();
         this.noIterations = noIterations;
         this.variationCoefficientThreshold = variationCoefficientThreshold;
         solutionValues = new double[noIterations];
@@ -79,26 +78,22 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
 
     @Override
     public String toString() {
-        return "[name=VariationCoefficientBreaker][variationCoefficientThreshold=" + variationCoefficientThreshold + "][iterations=" + noIterations + "]";
+        return "[name=VariationCoefficientBreaker][variationCoefficientThreshold=" + variationCoefficientThreshold + "][iterations=" + noIterations + ']';
     }
 
     @Override
     public boolean isPrematureBreak(SearchStrategy.DiscoveredSolution discoveredSolution) {
         if (discoveredSolution.isAccepted()) {
             lastAccepted = discoveredSolution.getSolution();
-            solutionValues[currentIteration] = discoveredSolution.getSolution().getCost();
+            solutionValues[currentIteration] = discoveredSolution.getSolution().cost();
         } else {
-            if (lastAccepted != null) {
-                solutionValues[currentIteration] = lastAccepted.getCost();
-            } else solutionValues[currentIteration] = Integer.MAX_VALUE;
+            solutionValues[currentIteration] = lastAccepted != null ? lastAccepted.cost() : Integer.MAX_VALUE;
         }
         if (currentIteration == (noIterations - 1)) {
             double mean = StatUtils.mean(solutionValues);
             double stdDev = new StandardDeviation(true).evaluate(solutionValues, mean);
             double variationCoefficient = stdDev / mean;
-            if (variationCoefficient < variationCoefficientThreshold) {
-                return true;
-            }
+            return variationCoefficient < variationCoefficientThreshold;
         }
         return false;
     }
@@ -125,7 +120,7 @@ public class VariationCoefficientTermination implements PrematureAlgorithmTermin
         informIterationEnds(i, problem, toList(solution));
     }
 
-    private List<VehicleRoutingProblemSolution> toList(VehicleRoutingProblemSolution solution) {
+    private static Collection<VehicleRoutingProblemSolution> toList(VehicleRoutingProblemSolution solution) {
         List<VehicleRoutingProblemSolution> solutions = new ArrayList<>();
         solutions.add(solution);
         return solutions;

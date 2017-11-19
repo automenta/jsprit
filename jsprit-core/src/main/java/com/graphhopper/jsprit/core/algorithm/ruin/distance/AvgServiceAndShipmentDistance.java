@@ -34,10 +34,9 @@ import com.graphhopper.jsprit.core.util.EuclideanDistanceCalculator;
  */
 public class AvgServiceAndShipmentDistance implements JobDistance {
 
-    private VehicleRoutingTransportCosts costs;
+    private final VehicleRoutingTransportCosts costs;
 
     public AvgServiceAndShipmentDistance(VehicleRoutingTransportCosts costs) {
-        super();
         this.costs = costs;
 
     }
@@ -65,12 +64,12 @@ public class AvgServiceAndShipmentDistance implements JobDistance {
     }
 
     private double calcDist(Service i, Service j) {
-        return calcDist(i.getLocation(), j.getLocation());
+        return calcDist(i.location, j.location);
     }
 
     private double calcDist(Service i, Shipment j) {
-        double c_ij1 = calcDist(i.getLocation(), j.getPickupLocation());
-        double c_ij2 = calcDist(i.getLocation(), j.getDeliveryLocation());
+        double c_ij1 = calcDist(i.location, j.getPickupLocation());
+        double c_ij2 = calcDist(i.location, j.getDeliveryLocation());
         return (c_ij1 + c_ij2) / 2.0;
     }
 
@@ -84,10 +83,10 @@ public class AvgServiceAndShipmentDistance implements JobDistance {
 
     private double calcDist(Location location_i, Location location_j) {
         try {
-            return costs.getTransportCost(location_i, location_j, 0.0, null, null);
+            return costs.transportCost(location_i, location_j, 0.0, null, null);
         } catch (IllegalStateException e) {
             // now try the euclidean distance between these two services
         }
-        return EuclideanDistanceCalculator.calculateDistance(location_i.getCoordinate(), location_j.getCoordinate());
+        return EuclideanDistanceCalculator.calculateDistance(location_i.coord, location_j.coord);
     }
 }

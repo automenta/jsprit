@@ -21,8 +21,6 @@ import com.graphhopper.jsprit.core.problem.AbstractVehicle;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.Skills;
 import com.graphhopper.jsprit.core.problem.job.Break;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -34,6 +32,8 @@ import org.slf4j.LoggerFactory;
 public class VehicleImpl extends AbstractVehicle {
 
 
+    private final int hash;
+
     /**
      * Extension of {@link VehicleImpl} representing an unspecified vehicle with the id 'noVehicle'
      * (to avoid null).
@@ -42,30 +42,30 @@ public class VehicleImpl extends AbstractVehicle {
      */
     public static class NoVehicle extends AbstractVehicle {
 
-        private String id = "noVehicle";
+        private final String id = "noVehicle";
 
-        private VehicleType type = VehicleTypeImpl.Builder.newInstance("noType").build();
+        private final VehicleType type = VehicleTypeImpl.Builder.the("noType").build();
 
         public NoVehicle() {
         }
 
         @Override
-        public double getEarliestDeparture() {
+        public double earliestDeparture() {
             return 0;
         }
 
         @Override
-        public double getLatestArrival() {
+        public double latestArrival() {
             return 0;
         }
 
         @Override
-        public VehicleType getType() {
+        public final VehicleType type() {
             return type;
         }
 
         @Override
-        public String getId() {
+        public String id() {
             return id;
         }
 
@@ -75,23 +75,23 @@ public class VehicleImpl extends AbstractVehicle {
         }
 
         @Override
-        public Location getStartLocation() {
+        public Location start() {
             return null;
         }
 
         @Override
-        public Location getEndLocation() {
+        public Location end() {
             return null;
         }
 
         @Override
-        public Skills getSkills() {
+        public Skills skills() {
             return null;
         }
 
 
         @Override
-        public Break getBreak() {
+        public Break aBreak() {
             return null;
         }
 
@@ -108,19 +108,19 @@ public class VehicleImpl extends AbstractVehicle {
      */
     public static class Builder {
 
-        static final Logger log = LoggerFactory.getLogger(Builder.class.getName());
+//        static final Logger log = LoggerFactory.getLogger(Builder.class.getName());
 
-        private String id;
+        private final String id;
 
-        private double earliestStart = 0.0;
+        private double earliestStart;
 
         private double latestArrival = Double.MAX_VALUE;
 
         private boolean returnToDepot = true;
 
-        private VehicleType type = VehicleTypeImpl.Builder.newInstance("default").build();
+        private VehicleType type = VehicleTypeImpl.Builder.the("default").build();
 
-        private Skills.Builder skillBuilder = Skills.Builder.newInstance();
+        private final Skills.Builder skillBuilder = Skills.Builder.newInstance();
 
         private Skills skills;
 
@@ -133,7 +133,6 @@ public class VehicleImpl extends AbstractVehicle {
         private Object userData;
 
         private Builder(String id) {
-            super();
             this.id = id;
         }
 
@@ -256,7 +255,7 @@ public class VehicleImpl extends AbstractVehicle {
             if (latestArrival < earliestStart)
                 throw new IllegalArgumentException("latest arrival of vehicle " + id + " must not be smaller than its start time");
             if (startLocation != null && endLocation != null) {
-                if (!startLocation.getId().equals(endLocation.getId()) && !returnToDepot)
+                if (!startLocation.id.equals(endLocation.id) && !returnToDepot)
                     throw new IllegalArgumentException("this must not be. you specified both endLocationId and open-routes. this is contradictory. <br>" +
                         "if you set endLocation, returnToDepot must be true. if returnToDepot is false, endLocationCoord must not be specified.");
             }
@@ -297,41 +296,47 @@ public class VehicleImpl extends AbstractVehicle {
      *
      * @return emptyVehicle
      */
-    public static NoVehicle createNoVehicle() {
+    public static Vehicle get() {
         return new NoVehicle();
     }
 
-    private final String id;
+    public final String id;
 
-    private final VehicleType type;
+    public final VehicleType type;
 
-    private final double earliestDeparture;
+    public final double earliestDeparture;
 
-    private final double latestArrival;
+    public final double latestArrival;
 
-    private final boolean returnToDepot;
+    public final boolean returnToDepot;
 
-    private final Skills skills;
+    public final Skills skills;
 
-    private final Location endLocation;
+    public final Location end;
 
-    private final Location startLocation;
+    public final Location start;
 
-    private final Break aBreak;
+    public final Break aBreak;
 
     private VehicleImpl(Builder builder) {
-        setUserData(builder.userData);
+        data(builder.userData);
         id = builder.id;
         type = builder.type;
         earliestDeparture = builder.earliestStart;
         latestArrival = builder.latestArrival;
         returnToDepot = builder.returnToDepot;
         skills = builder.skills;
-        endLocation = builder.endLocation;
-        startLocation = builder.startLocation;
+        end = builder.endLocation;
+        start = builder.startLocation;
         aBreak = builder.aBreak;
         //        setVehicleIdentifier(new VehicleTypeKey(type.getTypeId(),startLocation.getId(),endLocation.getId(),earliestDeparture,latestArrival,skills));
-        setVehicleIdentifier(new VehicleTypeKey(type.getTypeId(), startLocation.getId(), endLocation.getId(), earliestDeparture, latestArrival, skills, returnToDepot));
+        vehicleType(new VehicleTypeKey(type.type(), start.id, end.id, earliestDeparture, latestArrival, skills, returnToDepot));
+
+        final int prime = 31;
+        int hash = 1;
+        hash = prime * hash + ((id == null) ? 0 : id.hashCode());
+        hash = prime * hash + type.hashCode();
+        this.hash = hash;
     }
 
     /**
@@ -341,57 +346,57 @@ public class VehicleImpl extends AbstractVehicle {
      */
     @Override
     public String toString() {
-        return "[id=" + id + "]" +
-            "[type=" + type + "]" +
-            "[startLocation=" + startLocation + "]" +
-            "[endLocation=" + endLocation + "]" +
-            "[isReturnToDepot=" + isReturnToDepot() + "]" +
-            "[skills=" + skills + "]";
+        return "[id=" + id + ']' +
+            "[type=" + type + ']' +
+            "[startLocation=" + start + ']' +
+            "[endLocation=" + end + ']' +
+            "[isReturnToDepot=" + returnToDepot + ']' +
+            "[skills=" + skills + ']';
     }
 
 
     @Override
-    public double getEarliestDeparture() {
+    public final double earliestDeparture() {
         return earliestDeparture;
     }
 
     @Override
-    public double getLatestArrival() {
+    public final double latestArrival() {
         return latestArrival;
     }
 
     @Override
-    public VehicleType getType() {
+    public final VehicleType type() {
         return type;
     }
 
     @Override
-    public String getId() {
+    public final String id() {
         return id;
     }
 
     @Override
-    public boolean isReturnToDepot() {
+    public final boolean isReturnToDepot() {
         return returnToDepot;
     }
 
     @Override
-    public Location getStartLocation() {
-        return startLocation;
+    public final Location start() {
+        return start;
     }
 
     @Override
-    public Location getEndLocation() {
-        return endLocation;
+    public final Location end() {
+        return end;
     }
 
     @Override
-    public Skills getSkills() {
+    public final Skills skills() {
         return skills;
     }
 
     @Override
-    public Break getBreak() {
+    public final Break aBreak() {
         return aBreak;
     }
 
@@ -400,11 +405,7 @@ public class VehicleImpl extends AbstractVehicle {
      */
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
-        return result;
+        return hash;
     }
 
     /**
@@ -424,12 +425,7 @@ public class VehicleImpl extends AbstractVehicle {
                 return false;
         } else if (!id.equals(other.id))
             return false;
-        if (type == null) {
-            if (other.type != null)
-                return false;
-        } else if (!type.equals(other.type))
-            return false;
-        return true;
+        return type == null ? other.type == null : type.equals(other.type);
     }
 
 }

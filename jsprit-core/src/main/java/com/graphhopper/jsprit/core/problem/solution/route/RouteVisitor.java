@@ -20,6 +20,6 @@ package com.graphhopper.jsprit.core.problem.solution.route;
 
 public interface RouteVisitor {
 
-    public void visit(VehicleRoute route);
+    void visit(VehicleRoute route);
 
 }

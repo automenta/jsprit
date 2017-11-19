@@ -26,7 +26,7 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.FastVehicleRoutingTransportCostsMatrix;
 
 import java.io.*;
@@ -38,9 +38,9 @@ import java.util.Map;
 
 public class TSPLIB95Reader {
 
-    private VehicleRoutingProblem.Builder vrpBuilder;
+    private final VehicleRoutingProblem.Builder vrpBuilder;
 
-    private boolean switchCoordinates = false;
+    private boolean switchCoordinates;
 
     public void setSwitchCoordinates(boolean switchCoordinates) {
         this.switchCoordinates = switchCoordinates;
@@ -53,7 +53,7 @@ public class TSPLIB95Reader {
     public void read(String filename) {
         BufferedReader reader = getBufferedReader(filename);
         String line_;
-        Coordinate[] coords = null;
+        v2[] coords = null;
         int[] demands = null;
         Integer capacity = null;
         String edgeType = null;
@@ -76,7 +76,7 @@ public class TSPLIB95Reader {
                 String[] tokens = line.split(":");
                 String dim = tokens[1].trim();
                 dimensions = Integer.parseInt(dim);
-                coords = new Coordinate[dimensions];
+                coords = new v2[dimensions];
                 demands = new int[dimensions];
                 continue;
             }
@@ -135,9 +135,9 @@ public class TSPLIB95Reader {
                 String[] tokens = line.trim().split("\\s+");
                 Integer id = Integer.parseInt(tokens[0]);
                 if (switchCoordinates) {
-                    coords[coordIndex] = Coordinate.newInstance(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[1]));
+                    coords[coordIndex] = v2.the(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[1]));
                 } else
-                    coords[coordIndex] = Coordinate.newInstance(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]));
+                    coords[coordIndex] = v2.the(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]));
                 indexMap.put(id, coordIndex);
                 coordIndex++;
                 continue;
@@ -167,9 +167,9 @@ public class TSPLIB95Reader {
         close(reader);
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
         for (Integer depotId : depotIds) {
-            VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").addCapacityDimension(0, capacity).build();
+            VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").addCapacityDimension(0, capacity).build();
             VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle")
-                .setStartLocation(Location.Builder.newInstance().setId(depotId.toString()).setCoordinate(coords[depotId - 1]).build())
+                .setStartLocation(Location.Builder.the().setId(depotId.toString()).setCoord(coords[depotId - 1]).build())
                 .setType(type).build();
             vrpBuilder.addVehicle(vehicle);
         }
@@ -180,27 +180,27 @@ public class TSPLIB95Reader {
             if (depotIds.isEmpty()) {
                 if (index == 0) {
                     VehicleImpl vehicle = VehicleImpl.Builder.newInstance("traveling_salesman")
-                        .setStartLocation(Location.Builder.newInstance().setId(id)
-                            .setCoordinate(coords[index]).setIndex(index).build())
+                        .setStartLocation(Location.Builder.the().setId(id)
+                            .setCoord(coords[0]).setIndex(0).build())
                         .build();
                     vrpBuilder.addVehicle(vehicle);
                     continue;
                 }
             }
             Service service = Service.Builder.newInstance(id)
-                .setLocation(Location.Builder.newInstance().setId(id)
-                    .setCoordinate(coords[index]).setIndex(index).build())
-                .addSizeDimension(0, demands[index]).build();
+                .location(Location.Builder.the().setId(id)
+                    .setCoord(coords[index]).setIndex(index).build())
+                .sizeDimension(0, demands[index]).build();
             vrpBuilder.addJob(service);
         }
         if (edgeType.equals("GEO")) {
             List<Location> locations = new ArrayList<Location>();
-            for (Vehicle v : vrpBuilder.getAddedVehicles()) locations.add(v.getStartLocation());
-            for (Job j : vrpBuilder.getAddedJobs()) locations.add(((Service) j).getLocation());
+            for (Vehicle v : vrpBuilder.getAddedVehicles()) locations.add(v.start());
+            for (Job j : vrpBuilder.getAddedJobs()) locations.add(((Service) j).location);
             vrpBuilder.setRoutingCost(getGEOMatrix(locations));
         } else if (edgeType.equals("EXPLICIT")) {
             if (edgeWeightFormat.equals("UPPER_ROW")) {
-                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, true);
+                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.get(dimensions, true);
                 int fromIndex = 0;
                 int toIndex = 1;
                 for (int i = 0; i < edgeWeights.size(); i++) {
@@ -214,7 +214,7 @@ public class TSPLIB95Reader {
                 }
                 vrpBuilder.setRoutingCost(matrixBuilder.build());
             } else if (edgeWeightFormat.equals("UPPER_DIAG_ROW")) {
-                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, true);
+                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.get(dimensions, true);
                 int fromIndex = 0;
                 int toIndex = 0;
                 for (int i = 0; i < edgeWeights.size(); i++) {
@@ -228,7 +228,7 @@ public class TSPLIB95Reader {
                 }
                 vrpBuilder.setRoutingCost(matrixBuilder.build());
             } else if (edgeWeightFormat.equals("LOWER_DIAG_ROW")) {
-                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, true);
+                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.get(dimensions, true);
                 int fromIndex = 0;
                 int toIndex = 0;
                 for (int i = 0; i < edgeWeights.size(); i++) {
@@ -242,7 +242,7 @@ public class TSPLIB95Reader {
                 }
                 vrpBuilder.setRoutingCost(matrixBuilder.build());
             } else if (edgeWeightFormat.equals("FULL_MATRIX")) {
-                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(dimensions, false);
+                FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.get(dimensions, false);
                 int fromIndex = 0;
                 int toIndex = 0;
                 for (int i = 0; i < edgeWeights.size(); i++) {
@@ -264,11 +264,11 @@ public class TSPLIB95Reader {
     }
 
     private VehicleRoutingTransportCosts getGEOMatrix(List<Location> noLocations) {
-        FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(noLocations.size(), true);
+        FastVehicleRoutingTransportCostsMatrix.Builder matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.get(noLocations.size(), true);
         for (Location i : noLocations) {
             for (Location j : noLocations) {
-                matrixBuilder.addTransportDistance(i.getIndex(), j.getIndex(), getDistance(i, j));
-                matrixBuilder.addTransportTime(i.getIndex(), j.getIndex(), getDistance(i, j));
+                matrixBuilder.addTransportDistance(i.index, j.index, getDistance(i, j));
+                matrixBuilder.addTransportTime(i.index, j.index, getDistance(i, j));
             }
         }
         return matrixBuilder.build();
@@ -286,14 +286,14 @@ public class TSPLIB95Reader {
     }
 
     private double getLatitude(Location loc) {
-        int deg = (int) loc.getCoordinate().getX();
-        double min = loc.getCoordinate().getX() - deg;
+        int deg = (int) loc.coord.x;
+        double min = loc.coord.x - deg;
         return Math.PI * (deg + 5. * min / 3.) / 180.;
     }
 
     private double getLongitude(Location loc) {
-        int deg = (int) loc.getCoordinate().getY();
-        double min = loc.getCoordinate().getY() - deg;
+        int deg = (int) loc.coord.y;
+        double min = loc.coord.y - deg;
         return Math.PI * (deg + 5. * min / 3.) / 180.;
     }
 
@@ -304,7 +304,6 @@ public class TSPLIB95Reader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ;
     }
 
     private String getLine(BufferedReader reader) {

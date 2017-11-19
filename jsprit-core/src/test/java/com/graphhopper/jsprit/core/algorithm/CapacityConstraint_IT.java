@@ -38,43 +38,43 @@ public class CapacityConstraint_IT {
     @Test
     public void capacityShouldNotBeExceeded() {
 
-        VehicleTypeImpl type1 = VehicleTypeImpl.Builder.newInstance("type1")
+        VehicleTypeImpl type1 = VehicleTypeImpl.Builder.the("type1")
             .addCapacityDimension(0,1)
             .addCapacityDimension(1,0).addCapacityDimension(2,17).addCapacityDimension(3,18)
             .addCapacityDimension(4,14).addCapacityDimension(5,18).addCapacityDimension(6,20).build();
-        VehicleTypeImpl type2 = VehicleTypeImpl.Builder.newInstance("type2")
+        VehicleTypeImpl type2 = VehicleTypeImpl.Builder.the("type2")
             .addCapacityDimension(0,0)
             .addCapacityDimension(1,0).addCapacityDimension(2,17).addCapacityDimension(3,18)
             .addCapacityDimension(4,13).addCapacityDimension(5,18).addCapacityDimension(6,20).build();
-        VehicleTypeImpl type3 = VehicleTypeImpl.Builder.newInstance("type3")
+        VehicleTypeImpl type3 = VehicleTypeImpl.Builder.the("type3")
             .addCapacityDimension(0,1)
             .addCapacityDimension(1,0).addCapacityDimension(2,17).addCapacityDimension(3,18)
             .addCapacityDimension(4,14).addCapacityDimension(5,18).addCapacityDimension(6,20).build();
-        VehicleTypeImpl type4 = VehicleTypeImpl.Builder.newInstance("type4")
+        VehicleTypeImpl type4 = VehicleTypeImpl.Builder.the("type4")
             .addCapacityDimension(0,0)
             .addCapacityDimension(1,0).addCapacityDimension(2,17).addCapacityDimension(3,18)
             .addCapacityDimension(4,14).addCapacityDimension(5,17).addCapacityDimension(6,20).build();
-        VehicleTypeImpl type5 = VehicleTypeImpl.Builder.newInstance("type5")
+        VehicleTypeImpl type5 = VehicleTypeImpl.Builder.the("type5")
             .addCapacityDimension(0,1)
             .addCapacityDimension(1,0).addCapacityDimension(2,16).addCapacityDimension(3,17)
             .addCapacityDimension(4,14).addCapacityDimension(5,18).addCapacityDimension(6,20).build();
 
-        VehicleImpl v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance(0,0)).setType(type1).setReturnToDepot(true).build();
-        VehicleImpl v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance(0, 0)).setType(type2).setReturnToDepot(true).build();
-        VehicleImpl v3 = VehicleImpl.Builder.newInstance("v3").setStartLocation(Location.newInstance(0, 0)).setType(type3).setReturnToDepot(true).build();
-        VehicleImpl v4 = VehicleImpl.Builder.newInstance("v4").setStartLocation(Location.newInstance(0, 0)).setType(type4).setReturnToDepot(true).build();
-        VehicleImpl v5 = VehicleImpl.Builder.newInstance("v5").setStartLocation(Location.newInstance(0, 0)).setType(type5).setReturnToDepot(true).build();
+        VehicleImpl v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the(0,0)).setType(type1).setReturnToDepot(true).build();
+        VehicleImpl v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the(0, 0)).setType(type2).setReturnToDepot(true).build();
+        VehicleImpl v3 = VehicleImpl.Builder.newInstance("v3").setStartLocation(Location.the(0, 0)).setType(type3).setReturnToDepot(true).build();
+        VehicleImpl v4 = VehicleImpl.Builder.newInstance("v4").setStartLocation(Location.the(0, 0)).setType(type4).setReturnToDepot(true).build();
+        VehicleImpl v5 = VehicleImpl.Builder.newInstance("v5").setStartLocation(Location.the(0, 0)).setType(type5).setReturnToDepot(true).build();
 
-        Delivery d1 = Delivery.Builder.newInstance("d1").setLocation(Location.newInstance(0,10))
-            .addSizeDimension(2,1).build();
-        Delivery d2 = Delivery.Builder.newInstance("d2").setLocation(Location.newInstance(0,12))
-            .addSizeDimension(2,1).addSizeDimension(3,1).build();
-        Delivery d3 = Delivery.Builder.newInstance("d3").setLocation(Location.newInstance(0,15))
-            .addSizeDimension(0,1).addSizeDimension(4,1).build();
-        Delivery d4 = Delivery.Builder.newInstance("d4").setLocation(Location.newInstance(0,20))
-            .addSizeDimension(0,1).addSizeDimension(5,1).build();
+        Delivery d1 = Delivery.Builder.newInstance("d1").location(Location.the(0,10))
+            .sizeDimension(2,1).build();
+        Delivery d2 = Delivery.Builder.newInstance("d2").location(Location.the(0,12))
+            .sizeDimension(2,1).sizeDimension(3,1).build();
+        Delivery d3 = Delivery.Builder.newInstance("d3").location(Location.the(0,15))
+            .sizeDimension(0,1).sizeDimension(4,1).build();
+        Delivery d4 = Delivery.Builder.newInstance("d4").location(Location.the(0,20))
+            .sizeDimension(0,1).sizeDimension(5,1).build();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
             .addJob(d1).addJob(d2).addJob(d3).addJob(d4)
             .addVehicle(v1).addVehicle(v2)
@@ -89,18 +89,18 @@ public class CapacityConstraint_IT {
         vra.setMaxIterations(2000);
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
 
-        SolutionAnalyser sa = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
+        SolutionAnalyser sa = new SolutionAnalyser(vrp, solution, vrp.transportCosts());
 
-        for(VehicleRoute r : solution.getRoutes()){
+        for(VehicleRoute r : solution.routes){
             Capacity loadAtBeginning = sa.getLoadAtBeginning(r);
-            Capacity capacityDimensions = r.getVehicle().getType().getCapacityDimensions();
+            Capacity capacityDimensions = r.vehicle().type().getCapacityDimensions();
 //            System.out.println(r.getVehicle().getId() + " load@beginning: "  + loadAtBeginning);
 //            System.out.println("cap: " + capacityDimensions);
             Assert.assertTrue("capacity has been exceeded",
-            loadAtBeginning.isLessOrEqual(capacityDimensions));
+            loadAtBeginning.lessOrEq(capacityDimensions));
         }
 //
-        Assert.assertTrue(solution.getRoutes().size() != 1);
+        Assert.assertTrue(solution.routes.size() != 1);
 
     }
 

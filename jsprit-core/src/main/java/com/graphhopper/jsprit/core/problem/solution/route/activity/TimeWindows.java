@@ -18,13 +18,52 @@
 
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
- * Created by schroeder on 20/05/15.
+ * Created by schroeder on 26/05/15.
  */
-public interface TimeWindows {
+public class TimeWindows extends ArrayList<TimeWindow>  {
 
-    public Collection<TimeWindow> getTimeWindows();
+    public TimeWindows() {
+        super(1);
+    }
 
+    public TimeWindows(TimeWindow... x) {
+        super(x.length);
+        Collections.addAll(this, x);
+    }
+
+    //public final Collection<TimeWindow> timeWindows = new ArrayList<TimeWindow>();
+
+    @Override
+    public boolean add(TimeWindow timeWindow){
+        this.forEach(tw -> {
+            double tws = tw.start;
+            double TWS = timeWindow.start;
+            double twe = tw.end;
+            if (TWS > tws && TWS < twe) {
+                throw new IllegalArgumentException("time-windows cannot overlap each other. overlap: " + tw + ", " + timeWindow);
+            }
+            double TWE = timeWindow.end;
+            if (TWE > tws && TWE < twe) {
+                throw new IllegalArgumentException("time-windows cannot overlap each other. overlap: " + tw + ", " + timeWindow);
+            }
+            if (TWS <= tws && TWE >= twe) {
+                throw new IllegalArgumentException("time-windows cannot overlap each other. overlap: " + tw + ", " + timeWindow);
+            }
+        });
+        return super.add(timeWindow);
+    }
+
+    @Override
+    public String toString() {
+        int size = this.size();
+        StringBuilder sb = new StringBuilder(size * 32);
+        for (int i = 0; i < size; i++) {
+            sb.append("[timeWindow=").append(this.get(i)).append(']');
+        }
+        return sb.toString();
+    }
 }

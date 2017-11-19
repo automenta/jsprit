@@ -25,12 +25,10 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
-import com.graphhopper.jsprit.core.util.Solutions;
 import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 
 public class ExternalInitialSolutionIsInValidTest {
@@ -38,19 +36,19 @@ public class ExternalInitialSolutionIsInValidTest {
     @Test
     public void itShouldSolveProblemWithIniSolutionExternallyCreated() {
 
-        Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(10, 0)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(0, 10)).build();
+        Service s1 = Service.Builder.newInstance("s1").location(Location.the(10, 0)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(0, 10)).build();
 
-        VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance(0, 0)).build();
+        VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the(0, 0)).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s1).addJob(s2).addVehicle(vehicle).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s1).addJob(s2).addVehicle(vehicle).build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
 
         /*
         create ini sol
          */
-        VehicleRoute route1 = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp.getJobActivityFactory()).addService(s1).build();
+        VehicleRoute route1 = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(vrp.jobActivityFactory()).addService(s1).build();
 
         vra.addInitialSolution(new VehicleRoutingProblemSolution(Arrays.asList(route1), 20.));
 

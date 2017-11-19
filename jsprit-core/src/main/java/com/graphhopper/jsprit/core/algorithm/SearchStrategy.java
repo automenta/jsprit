@@ -35,14 +35,13 @@ public class SearchStrategy {
 
     public static class DiscoveredSolution {
 
-        private VehicleRoutingProblemSolution solution;
+        private final VehicleRoutingProblemSolution solution;
 
-        private boolean accepted;
+        private final boolean accepted;
 
-        private String strategyId;
+        private final String strategyId;
 
         public DiscoveredSolution(VehicleRoutingProblemSolution solution, boolean accepted, String strategyId) {
-            super();
             this.solution = solution;
             this.accepted = accepted;
             this.strategyId = strategyId;
@@ -62,13 +61,13 @@ public class SearchStrategy {
 
         @Override
         public String toString() {
-            return "[strategyId=" + strategyId + "][solution=" + solution + "][accepted=" + accepted + "]";
+            return "[strategyId=" + strategyId + "][solution=" + solution + "][accepted=" + accepted + ']';
         }
     }
 
-    private static Logger logger = LoggerFactory.getLogger(SearchStrategy.class);
+    private static final Logger logger = LoggerFactory.getLogger(SearchStrategy.class);
 
-    private final Collection<SearchStrategyModule> searchStrategyModules = new ArrayList<SearchStrategyModule>();
+    private final Collection<SearchStrategyModule> searchStrategyModules = new ArrayList<>();
 
     private final SolutionSelector solutionSelector;
 
@@ -117,7 +116,7 @@ public class SearchStrategy {
 
     @Override
     public String toString() {
-        return "searchStrategy [#modules=" + searchStrategyModules.size() + "][selector=" + solutionSelector + "][acceptor=" + solutionAcceptor + "]";
+        return "searchStrategy [#modules=" + searchStrategyModules.size() + "][selector=" + solutionSelector + "][acceptor=" + solutionAcceptor + ']';
     }
 
     /**
@@ -147,7 +146,7 @@ public class SearchStrategy {
         return new DiscoveredSolution(lastSolution, solutionAccepted, getId());
     }
 
-    private String getErrMsg() {
+    private static String getErrMsg() {
         return "solution is null. check solutionSelector to return an appropriate solution. " +
             "\nfigure out whether you start with an initial solution. either you set it manually by algorithm.addInitialSolution(...)"
             + " or let the algorithm create an initial solution for you. then add the <construction>...</construction> xml-snippet to your algorithm's config file.";

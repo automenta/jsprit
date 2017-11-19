@@ -33,14 +33,13 @@ import java.util.Set;
 
 public class RuinAndRecreateModule implements SearchStrategyModule {
 
-    private InsertionStrategy insertion;
+    private final InsertionStrategy insertion;
 
-    private RuinStrategy ruin;
+    private final RuinStrategy ruin;
 
-    private String moduleName;
+    private final String moduleName;
 
     public RuinAndRecreateModule(String moduleName, InsertionStrategy insertion, RuinStrategy ruin) {
-        super();
         this.insertion = insertion;
         this.ruin = ruin;
         this.moduleName = moduleName;
@@ -48,13 +47,13 @@ public class RuinAndRecreateModule implements SearchStrategyModule {
 
     @Override
     public VehicleRoutingProblemSolution runAndGetSolution(VehicleRoutingProblemSolution vrpSolution) {
-        Collection<Job> ruinedJobs = ruin.ruin(vrpSolution.getRoutes());
-        Set<Job> ruinedJobSet = new HashSet<Job>();
+        Collection<Job> ruinedJobs = ruin.ruin(vrpSolution.routes);
+        Collection<Job> ruinedJobSet = new HashSet<>();
         ruinedJobSet.addAll(ruinedJobs);
-        ruinedJobSet.addAll(vrpSolution.getUnassignedJobs());
-        Collection<Job> unassignedJobs = insertion.insertJobs(vrpSolution.getRoutes(), ruinedJobSet);
-        vrpSolution.getUnassignedJobs().clear();
-        vrpSolution.getUnassignedJobs().addAll(unassignedJobs);
+        ruinedJobSet.addAll(vrpSolution.jobsUnassigned);
+        Collection<Job> unassignedJobs = insertion.insertJobs(vrpSolution.routes, ruinedJobSet);
+        vrpSolution.jobsUnassigned.clear();
+        vrpSolution.jobsUnassigned.addAll(unassignedJobs);
         return vrpSolution;
 
     }

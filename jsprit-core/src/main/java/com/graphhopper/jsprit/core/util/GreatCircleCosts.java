@@ -52,17 +52,15 @@ public class GreatCircleCosts extends AbstractForwardVehicleRoutingTransportCost
     private DistanceUnit distanceUnit = DistanceUnit.Kilometer;
 
    public GreatCircleCosts() {
-        super();
-    }
+   }
 
     public GreatCircleCosts(DistanceUnit distanceUnit) {
-        super();
         this.distanceUnit = distanceUnit;
     }
 
 
     @Override
-    public double getTransportCost(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
+    public double transportCost(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
         double distance;
         try {
             distance = calculateDistance(from, to);
@@ -71,31 +69,31 @@ public class GreatCircleCosts extends AbstractForwardVehicleRoutingTransportCost
         }
         double costs = distance;
         if (vehicle != null) {
-            if (vehicle.getType() != null) {
-                costs = distance * vehicle.getType().getVehicleCostParams().perDistanceUnit;
+            if (vehicle.type() != null) {
+                costs = distance * vehicle.type().getVehicleCostParams().perDistanceUnit;
             }
         }
         return costs;
     }
 
     private double calculateDistance(Location fromLocation, Location toLocation) {
-        Coordinate from = null;
-        Coordinate to = null;
-        if (fromLocation.getCoordinate() != null && toLocation.getCoordinate() != null) {
-            from = fromLocation.getCoordinate();
-            to = toLocation.getCoordinate();
+        v2 from = null;
+        v2 to = null;
+        if (fromLocation.coord != null && toLocation.coord != null) {
+            from = fromLocation.coord;
+            to = toLocation.coord;
         }
         if (from == null || to == null) throw new NullPointerException("either from or to location is null");
         return GreatCircleDistanceCalculator.calculateDistance(from, to, distanceUnit) * detour;
     }
 
     @Override
-    public double getTransportTime(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
+    public double transportTime(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
         return calculateDistance(from, to) / speed;
     }
 
     @Override
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
+    public double distance(Location from, Location to, double departureTime, Vehicle vehicle) {
         return calculateDistance(from, to);
     }
 }

@@ -54,17 +54,17 @@ public class MeetTimeWindowConstraint_IT {
 
     @Before
     public void doBefore(){
-        VehicleType type1 = VehicleTypeImpl.Builder.newInstance("5").build();
-        VehicleType type2 = VehicleTypeImpl.Builder.newInstance("3.5").build();
-        VehicleImpl vehicle1 = VehicleImpl.Builder.newInstance("21").setStartLocation(Location.newInstance(0,0))
+        VehicleType type1 = VehicleTypeImpl.Builder.the("5").build();
+        VehicleType type2 = VehicleTypeImpl.Builder.the("3.5").build();
+        VehicleImpl vehicle1 = VehicleImpl.Builder.newInstance("21").setStartLocation(Location.the(0,0))
             .setEarliestStart(14400).setLatestArrival(46800).setType(type1).build();
-        VehicleImpl vehicle2 = VehicleImpl.Builder.newInstance("19").setStartLocation(Location.newInstance(0,0))
+        VehicleImpl vehicle2 = VehicleImpl.Builder.newInstance("19").setStartLocation(Location.the(0,0))
             .setEarliestStart(39600).setLatestArrival(64800).setType(type2).build();
-        Service service1 = Service.Builder.newInstance("2").setLocation(Location.newInstance(2000, 0))
-            .setTimeWindow(TimeWindow.newInstance(54000,54000)).build();
-        Service service2 = Service.Builder.newInstance("1").setLocation(Location.newInstance(1000, 1000))
-            .setTimeWindow(TimeWindow.newInstance(19800,21600)).build();
-        vrp = VehicleRoutingProblem.Builder.newInstance().addVehicle(vehicle1).addVehicle(vehicle2)
+        Service service1 = Service.Builder.newInstance("2").location(Location.the(2000, 0))
+            .timeWindowSet(TimeWindow.the(54000,54000)).build();
+        Service service2 = Service.Builder.newInstance("1").location(Location.the(1000, 1000))
+            .timeWindowSet(TimeWindow.the(19800,21600)).build();
+        vrp = VehicleRoutingProblem.Builder.get().addVehicle(vehicle1).addVehicle(vehicle2)
             .addJob(service1).addJob(service2).setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).build();
     }
 
@@ -73,7 +73,7 @@ public class MeetTimeWindowConstraint_IT {
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-        Assert.assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        Assert.assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
     @Test
@@ -85,13 +85,13 @@ public class MeetTimeWindowConstraint_IT {
 
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-                if (job2insert.getId().equals("1")) {
-                    if (inRoute.getVehicle().getId().equals("19")) {
+                if (job2insert.id().equals("1")) {
+                    if (inRoute.vehicle().id().equals("19")) {
                         testFailed.add(true);
                     }
                 }
-                if (job2insert.getId().equals("2")) {
-                    if (inRoute.getVehicle().getId().equals("21")) {
+                if (job2insert.id().equals("2")) {
+                    if (inRoute.vehicle().id().equals("21")) {
                         testFailed.add(true);
                     }
                 }
@@ -113,16 +113,16 @@ public class MeetTimeWindowConstraint_IT {
             @Override
             public void vehicleSwitched(VehicleRoute vehicleRoute, Vehicle oldVehicle, Vehicle newVehicle) {
                 if (oldVehicle == null) return;
-                if (oldVehicle.getId().equals("21") && newVehicle.getId().equals("19")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("1")) {
+                if (oldVehicle.id().equals("21") && newVehicle.id().equals("19")) {
+                    for (Job j : vehicleRoute.tourActivities().jobs()) {
+                        if (j.id().equals("1")) {
                             testFailed.add(true);
                         }
                     }
                 }
-                if (oldVehicle.getId().equals("19") && newVehicle.getId().equals("21")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("2")) {
+                if (oldVehicle.id().equals("19") && newVehicle.id().equals("21")) {
+                    for (Job j : vehicleRoute.tourActivities().jobs()) {
+                        if (j.id().equals("2")) {
                             testFailed.add(true);
                         }
                     }
@@ -143,7 +143,7 @@ public class MeetTimeWindowConstraint_IT {
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
     @Test
@@ -151,7 +151,7 @@ public class MeetTimeWindowConstraint_IT {
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-        assertTrue(containsJob(vrp.getJobs().get("1"), getRoute("21", Solutions.bestOf(solutions))));
+        assertTrue(containsJob(vrp.jobs().get("1"), getRoute("21", Solutions.bestOf(solutions))));
     }
 
     @Test
@@ -159,7 +159,7 @@ public class MeetTimeWindowConstraint_IT {
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-        assertTrue(containsJob(vrp.getJobs().get("2"), getRoute("19", Solutions.bestOf(solutions))));
+        assertTrue(containsJob(vrp.jobs().get("2"), getRoute("19", Solutions.bestOf(solutions))));
     }
 
 
@@ -169,7 +169,7 @@ public class MeetTimeWindowConstraint_IT {
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
     @Test
@@ -181,13 +181,13 @@ public class MeetTimeWindowConstraint_IT {
 
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-                if (job2insert.getId().equals("1")) {
-                    if (inRoute.getVehicle().getId().equals("19")) {
+                if (job2insert.id().equals("1")) {
+                    if (inRoute.vehicle().id().equals("19")) {
                         testFailed.add(true);
                     }
                 }
-                if (job2insert.getId().equals("2")) {
-                    if (inRoute.getVehicle().getId().equals("21")) {
+                if (job2insert.id().equals("2")) {
+                    if (inRoute.vehicle().id().equals("21")) {
                         testFailed.add(true);
                     }
                 }
@@ -210,16 +210,16 @@ public class MeetTimeWindowConstraint_IT {
             @Override
             public void vehicleSwitched(VehicleRoute vehicleRoute, Vehicle oldVehicle, Vehicle newVehicle) {
                 if (oldVehicle == null) return;
-                if (oldVehicle.getId().equals("21") && newVehicle.getId().equals("19")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("1")) {
+                if (oldVehicle.id().equals("21") && newVehicle.id().equals("19")) {
+                    for (Job j : vehicleRoute.tourActivities().jobs()) {
+                        if (j.id().equals("1")) {
                             testFailed.add(true);
                         }
                     }
                 }
-                if (oldVehicle.getId().equals("19") && newVehicle.getId().equals("21")) {
-                    for (Job j : vehicleRoute.getTourActivities().getJobs()) {
-                        if (j.getId().equals("2")) {
+                if (oldVehicle.id().equals("19") && newVehicle.id().equals("21")) {
+                    for (Job j : vehicleRoute.tourActivities().jobs()) {
+                        if (j.id().equals("2")) {
                             testFailed.add(true);
                         }
                     }
@@ -240,7 +240,7 @@ public class MeetTimeWindowConstraint_IT {
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
     @Test
@@ -249,8 +249,8 @@ public class MeetTimeWindowConstraint_IT {
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
-        assertTrue(containsJob(vrp.getJobs().get("1"), getRoute("21", Solutions.bestOf(solutions))));
+        assertEquals(2, Solutions.bestOf(solutions).routes.size());
+        assertTrue(containsJob(vrp.jobs().get("1"), getRoute("21", Solutions.bestOf(solutions))));
     }
 
     @Test
@@ -259,8 +259,8 @@ public class MeetTimeWindowConstraint_IT {
         vra.setMaxIterations(100);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
-        assertTrue(containsJob(vrp.getJobs().get("2"), getRoute("19", Solutions.bestOf(solutions))));
+        assertEquals(2, Solutions.bestOf(solutions).routes.size());
+        assertTrue(containsJob(vrp.jobs().get("2"), getRoute("19", Solutions.bestOf(solutions))));
     }
 
     @Test
@@ -269,16 +269,16 @@ public class MeetTimeWindowConstraint_IT {
         VehicleRoutingAlgorithm algorithm = Jsprit.createAlgorithm(vrp);
         algorithm.setMaxIterations(1000);
         VehicleRoutingProblemSolution solution = Solutions.bestOf(algorithm.searchSolutions());
-        for (VehicleRoute r : solution.getRoutes()) {
-            assertTrue(r.getVehicle().getEarliestDeparture() <= r.getDepartureTime());
-            assertTrue(r.getVehicle().getLatestArrival() >= r.getEnd().getArrTime());
+        for (VehicleRoute r : solution.routes) {
+            assertTrue(r.vehicle().earliestDeparture() <= r.getDepartureTime());
+            assertTrue(r.vehicle().latestArrival() >= r.end.arrTime());
         }
     }
 
     private FastVehicleRoutingTransportCostsMatrix createMatrix() throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("matrix.txt")));
         String line;
-        FastVehicleRoutingTransportCostsMatrix.Builder builder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(11, false);
+        FastVehicleRoutingTransportCostsMatrix.Builder builder = FastVehicleRoutingTransportCostsMatrix.Builder.get(11, false);
         while ((line = reader.readLine()) != null) {
             String[] split = line.split("\t");
             builder.addTransportDistance(Integer.parseInt(split[0]), Integer.parseInt(split[1]), Double.parseDouble(split[2]));
@@ -290,7 +290,7 @@ public class MeetTimeWindowConstraint_IT {
 
     private boolean containsJob(Job job, VehicleRoute route) {
         if (route == null) return false;
-        for (Job j : route.getTourActivities().getJobs()) {
+        for (Job j : route.tourActivities().jobs()) {
             if (job == j) {
                 return true;
             }
@@ -299,8 +299,8 @@ public class MeetTimeWindowConstraint_IT {
     }
 
     private VehicleRoute getRoute(String vehicleId, VehicleRoutingProblemSolution vehicleRoutingProblemSolution) {
-        for (VehicleRoute r : vehicleRoutingProblemSolution.getRoutes()) {
-            if (r.getVehicle().getId().equals(vehicleId)) {
+        for (VehicleRoute r : vehicleRoutingProblemSolution.routes) {
+            if (r.vehicle().id().equals(vehicleId)) {
                 return r;
             }
         }
@@ -308,69 +308,69 @@ public class MeetTimeWindowConstraint_IT {
     }
 
     private VehicleRoutingProblem createTWBugProblem() throws IOException {
-        VehicleType type = VehicleTypeImpl.Builder.newInstance("type").addCapacityDimension(0,20)
+        VehicleType type = VehicleTypeImpl.Builder.the("type").addCapacityDimension(0,20)
             .setCostPerTransportTime(1.).setCostPerDistance(0).build();
-        VehicleImpl v0 = VehicleImpl.Builder.newInstance("vehicle0").setStartLocation(Location.newInstance(0))
+        VehicleImpl v0 = VehicleImpl.Builder.newInstance("vehicle0").setStartLocation(Location.the(0))
             .setEarliestStart(60).setLatestArrival(18060).setType(type).build();
-        VehicleImpl v1 = VehicleImpl.Builder.newInstance("vehicle1").setStartLocation(Location.newInstance(0))
+        VehicleImpl v1 = VehicleImpl.Builder.newInstance("vehicle1").setStartLocation(Location.the(0))
             .setEarliestStart(60).setLatestArrival(18060).setType(type).build();
-        VehicleImpl v2 = VehicleImpl.Builder.newInstance("vehicle2").setStartLocation(Location.newInstance(0))
+        VehicleImpl v2 = VehicleImpl.Builder.newInstance("vehicle2").setStartLocation(Location.the(0))
             .setEarliestStart(7200).setLatestArrival(36060).setType(type).build();
-        VehicleImpl v3 = VehicleImpl.Builder.newInstance("vehicle3").setStartLocation(Location.newInstance(0))
+        VehicleImpl v3 = VehicleImpl.Builder.newInstance("vehicle3").setStartLocation(Location.the(0))
             .setEarliestStart(36000).setLatestArrival(54060).setType(type).build();
-        VehicleImpl v4 = VehicleImpl.Builder.newInstance("vehicle4").setStartLocation(Location.newInstance(0))
+        VehicleImpl v4 = VehicleImpl.Builder.newInstance("vehicle4").setStartLocation(Location.the(0))
             .setEarliestStart(36000).setLatestArrival(54060).setType(type).build();
 
-        Service s1 = Service.Builder.newInstance("1").setLocation(Location.Builder.newInstance().setIndex(1).setId("js0").build())
-            .setServiceTime(600).setTimeWindow(TimeWindow.newInstance(0,1800)).addSizeDimension(0,1).build();
-        Service s2 = Service.Builder.newInstance("2").setLocation(Location.Builder.newInstance().setIndex(2).setId("js2").build())
-            .setServiceTime(600).setTimeWindow(TimeWindow.newInstance(5400, 7200)).addSizeDimension(0, 2).build();
-        Service s3 = Service.Builder.newInstance("3").setLocation(Location.Builder.newInstance().setIndex(3).setId("js5").build())
-            .setServiceTime(1800).setTimeWindow(TimeWindow.newInstance(17100, 18000)).addSizeDimension(0, 10).build();
-        Service s4 = Service.Builder.newInstance("4").setLocation(Location.Builder.newInstance().setIndex(4).setId("js4").build())
-            .setServiceTime(900).addSizeDimension(0, 2).build();
-        Service s5 = Service.Builder.newInstance("5").setLocation(Location.Builder.newInstance().setIndex(5).setId("js8").build())
-            .setServiceTime(600).addSizeDimension(0, 4).build();
-        Service s6 = Service.Builder.newInstance("6").setLocation(Location.Builder.newInstance().setIndex(6).setId("js10").build())
-            .setServiceTime(1500).setTimeWindow(TimeWindow.newInstance(29700,32400)).addSizeDimension(0, 10).build();
-        Service s7 = Service.Builder.newInstance("7").setLocation(Location.Builder.newInstance().setIndex(7).setId("jsp3").build())
-            .setServiceTime(5594).build();
+        Service s1 = Service.Builder.newInstance("1").location(Location.Builder.the().setIndex(1).setId("js0").build())
+            .serviceTime(600).timeWindowSet(TimeWindow.the(0,1800)).sizeDimension(0,1).build();
+        Service s2 = Service.Builder.newInstance("2").location(Location.Builder.the().setIndex(2).setId("js2").build())
+            .serviceTime(600).timeWindowSet(TimeWindow.the(5400, 7200)).sizeDimension(0, 2).build();
+        Service s3 = Service.Builder.newInstance("3").location(Location.Builder.the().setIndex(3).setId("js5").build())
+            .serviceTime(1800).timeWindowSet(TimeWindow.the(17100, 18000)).sizeDimension(0, 10).build();
+        Service s4 = Service.Builder.newInstance("4").location(Location.Builder.the().setIndex(4).setId("js4").build())
+            .serviceTime(900).sizeDimension(0, 2).build();
+        Service s5 = Service.Builder.newInstance("5").location(Location.Builder.the().setIndex(5).setId("js8").build())
+            .serviceTime(600).sizeDimension(0, 4).build();
+        Service s6 = Service.Builder.newInstance("6").location(Location.Builder.the().setIndex(6).setId("js10").build())
+            .serviceTime(1500).timeWindowSet(TimeWindow.the(29700,32400)).sizeDimension(0, 10).build();
+        Service s7 = Service.Builder.newInstance("7").location(Location.Builder.the().setIndex(7).setId("jsp3").build())
+            .serviceTime(5594).build();
 
         Shipment shipment1 = Shipment.Builder.newInstance("shipment1")
             .setPickupServiceTime(900)
-            .setPickupLocation(Location.Builder.newInstance().setId("jsp1").setIndex(1).build())
-            .setDeliveryLocation(Location.Builder.newInstance().setId("jsd1").setIndex(8).build())
+            .setPickupLocation(Location.Builder.the().setId("jsp1").setIndex(1).build())
+            .setDeliveryLocation(Location.Builder.the().setId("jsd1").setIndex(8).build())
             .setDeliveryServiceTime(900).build();
 
         Shipment shipment2 = Shipment.Builder.newInstance("shipment2")
-            .setPickupLocation(Location.Builder.newInstance().setId("jsp4").setIndex(9).build())
+            .setPickupLocation(Location.Builder.the().setId("jsp4").setIndex(9).build())
             .setPickupServiceTime(1200)
             .addPickupTimeWindow(21600,23400)
-            .setDeliveryLocation(Location.Builder.newInstance().setId("jsd4").setIndex(8).build())
+            .setDeliveryLocation(Location.Builder.the().setId("jsd4").setIndex(8).build())
             .setDeliveryServiceTime(900)
             .addDeliveryTimeWindow(25200,27000)
             .build();
 
         Shipment shipment3 = Shipment.Builder.newInstance("shipment3")
-            .setPickupLocation(Location.Builder.newInstance().setId("jsp7").setIndex(9).build())
+            .setPickupLocation(Location.Builder.the().setId("jsp7").setIndex(9).build())
             .setPickupServiceTime(1200)
             .addPickupTimeWindow(37800,41400)
-            .setDeliveryLocation(Location.Builder.newInstance().setId("jsd7").setIndex(8).build())
+            .setDeliveryLocation(Location.Builder.the().setId("jsd7").setIndex(8).build())
             .setDeliveryServiceTime(1800)
             .addDeliveryTimeWindow(43200,45900)
             .build();
 
         Shipment shipment4 = Shipment.Builder.newInstance("shipment4")
-            .setPickupLocation(Location.Builder.newInstance().setId("jsp9").setIndex(10).build())
+            .setPickupLocation(Location.Builder.the().setId("jsp9").setIndex(10).build())
             .setPickupServiceTime(300)
             .addPickupTimeWindow(45000,48600)
-            .setDeliveryLocation(Location.Builder.newInstance().setId("jsd9").setIndex(8).build())
+            .setDeliveryLocation(Location.Builder.the().setId("jsd9").setIndex(8).build())
             .setDeliveryServiceTime(300)
             .addDeliveryTimeWindow(50400,52200)
             .build();
 
         FastVehicleRoutingTransportCostsMatrix matrix = createMatrix();
-        return VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
+        return VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
             .addJob(s1).addJob(s2).addJob(s3).addJob(s4).addJob(s5).addJob(s6).addJob(s7)
             .addJob(shipment1).addJob(shipment2).addJob(shipment3).addJob(shipment4)
             .addVehicle(v0).addVehicle(v1).addVehicle(v2).addVehicle(v3).addVehicle(v4)

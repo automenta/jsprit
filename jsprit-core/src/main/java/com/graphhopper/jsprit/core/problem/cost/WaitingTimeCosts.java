@@ -18,8 +18,8 @@
 
 package com.graphhopper.jsprit.core.problem.cost;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 /**
@@ -28,18 +28,18 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 public class WaitingTimeCosts implements VehicleRoutingActivityCosts {
 
     @Override
-    public double getActivityCost(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
+    public double getActivityCost(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
         if (vehicle != null) {
-            double waiting = vehicle.getType().getVehicleCostParams().perWaitingTimeUnit * Math.max(0., tourAct.getTheoreticalEarliestOperationStartTime() - arrivalTime);
-            double servicing = vehicle.getType().getVehicleCostParams().perServiceTimeUnit * getActivityDuration(tourAct,arrivalTime,driver,vehicle);
+            double waiting = vehicle.type().getVehicleCostParams().perWaitingTimeUnit * Math.max(0., tourAct.startEarliest() - arrivalTime);
+            double servicing = vehicle.type().getVehicleCostParams().perServiceTimeUnit * getActivityDuration(tourAct,arrivalTime,driver,vehicle);
             return waiting + servicing;
         }
         return 0;
     }
 
     @Override
-    public double getActivityDuration(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
-        return tourAct.getOperationTime();
+    public double getActivityDuration(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
+        return tourAct.operationTime();
     }
 
 }

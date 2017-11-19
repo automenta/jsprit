@@ -19,6 +19,7 @@
 package com.graphhopper.jsprit.core.problem;
 
 import com.graphhopper.jsprit.core.problem.job.Job;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 
 import java.util.List;
 
@@ -27,6 +28,6 @@ import java.util.List;
  */
 public interface JobActivityFactory {
 
-    public List<AbstractActivity> createActivities(Job job);
+    List<JobActivity> the(Job job);
 
 }

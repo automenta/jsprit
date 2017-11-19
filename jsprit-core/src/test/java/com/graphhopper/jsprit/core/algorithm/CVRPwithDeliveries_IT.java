@@ -24,7 +24,6 @@ import com.graphhopper.jsprit.core.util.ChristofidesReader;
 import com.graphhopper.jsprit.core.util.JobType;
 import com.graphhopper.jsprit.core.util.Solutions;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.Collection;
 
@@ -34,13 +33,13 @@ public class CVRPwithDeliveries_IT {
 
     @Test
     public void whenSolvingVRPNC1withDeliveriesWithJsprit_solutionsMustNoBeWorseThan5PercentOfBestKnownSolution() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new ChristofidesReader(vrpBuilder).setJobType(JobType.DELIVERY).read(getClass().getResourceAsStream("vrpnc1.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-        assertEquals(530.0, Solutions.bestOf(solutions).getCost(), 50.0);
-        assertEquals(5, Solutions.bestOf(solutions).getRoutes().size());
+        assertEquals(530.0, Solutions.bestOf(solutions).cost(), 50.0);
+        assertEquals(5, Solutions.bestOf(solutions).routes.size());
     }
 
 }

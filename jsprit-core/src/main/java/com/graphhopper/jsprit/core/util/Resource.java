@@ -36,42 +36,42 @@ import java.net.URL;
  */
 public class Resource {
 
-    private static Logger log = LoggerFactory.getLogger(Resource.class);
+    private static final Logger log = LoggerFactory.getLogger(Resource.class);
 
-    public final static URL getAsURL(final String filename) {
+    public static URL getAsURL(final String filename) {
         URL url = Resource.class.getClassLoader().getResource(filename);
         if (url != null) {
             return url;
         }
-        log.debug("resource: " + filename + " is unreachable by the current class loader, try the filesystem");
+        log.debug("resource: {} is unreachable by the current class loader, try the filesystem", filename);
         File file = new File(filename);
         if (!file.exists()) {
-            log.debug("resource: " + filename + " do not exists on the filesystem");
+            log.debug("resource: {} do not exists on the filesystem", filename);
             return null;
         }
         try {
             return file.toURI().toURL();
         } catch (MalformedURLException e) {
-            log.debug("resource: " + filename + " exists on the filesystem, but its URL is invalid: " + e.getMessage());
+            log.debug("resource: {} exists on the filesystem, but its URL is invalid: {}", filename, e.getMessage());
             return null;
         }
     }
 
-    public final static InputStream getAsInputStream(final String filename) {
+    public static InputStream getAsInputStream(final String filename) {
         InputStream stream = Resource.class.getClassLoader().getResourceAsStream(filename);
         if (stream != null) {
             return stream;
         }
-        log.debug("resource: " + filename + " is unreachable by the current class loader, try the filesystem");
+        log.debug("resource: {} is unreachable by the current class loader, try the filesystem", filename);
         File file = new File(filename);
         if (!file.exists()) {
-            log.debug("resource: " + filename + " do not exists on the filesystem");
+            log.debug("resource: {} do not exists on the filesystem", filename);
             return null;
         }
         try {
             return new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            log.debug("resource: " + filename + " exists on the filesystem, but its URL is invalid: " + e.getMessage());
+            log.debug("resource: {} exists on the filesystem, but its URL is invalid: {}", filename, e.getMessage());
             return null;
         }
     }

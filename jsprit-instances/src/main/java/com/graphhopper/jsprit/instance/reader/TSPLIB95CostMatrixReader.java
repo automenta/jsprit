@@ -25,7 +25,7 @@ import java.io.*;
 
 public class TSPLIB95CostMatrixReader {
 
-    private VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder;
+    private final VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder;
 
     public TSPLIB95CostMatrixReader(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder) {
         this.costMatrixBuilder = costMatrixBuilder;

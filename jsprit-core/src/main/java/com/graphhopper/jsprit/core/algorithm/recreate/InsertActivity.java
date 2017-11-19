@@ -18,8 +18,8 @@
 
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 /**
@@ -27,15 +27,15 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 class InsertActivity implements Event {
 
-    private VehicleRoute vehicleRoute;
+    private final VehicleRoute vehicleRoute;
 
-    private Vehicle newVehicle;
+    private final Vehicle newVehicle;
 
-    private TourActivity activity;
+    private final AbstractActivity activity;
 
-    private int index;
+    private final int index;
 
-    public InsertActivity(VehicleRoute vehicleRoute, Vehicle newVehicle, TourActivity activity, int index) {
+    public InsertActivity(VehicleRoute vehicleRoute, Vehicle newVehicle, AbstractActivity activity, int index) {
         this.vehicleRoute = vehicleRoute;
         this.newVehicle = newVehicle;
         this.activity = activity;
@@ -50,7 +50,7 @@ class InsertActivity implements Event {
         return vehicleRoute;
     }
 
-    public TourActivity getActivity() {
+    public AbstractActivity getActivity() {
         return activity;
     }
 

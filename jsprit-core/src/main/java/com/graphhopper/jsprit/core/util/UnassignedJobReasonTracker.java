@@ -45,13 +45,13 @@ public class UnassignedJobReasonTracker implements JobUnassignedListener {
         return mostLikely;
     }
 
-    Map<String, Frequency> failedConstraintNamesFrequencyMapping = new HashMap<>();
+    final Map<String, Frequency> failedConstraintNamesFrequencyMapping = new HashMap<>();
 
-    Map<Integer, String> codesToHumanReadableReason = new HashMap<>();
+    final Map<Integer, String> codesToHumanReadableReason = new HashMap<>();
 
-    Map<String, Integer> failedConstraintNamesToCode = new HashMap<>();
+    final Map<String, Integer> failedConstraintNamesToCode = new HashMap<>();
 
-    Set<String> failedConstraintNamesToBeIgnored = new HashSet<>();
+    final Collection<String> failedConstraintNamesToBeIgnored = new HashSet<>();
 
     public UnassignedJobReasonTracker() {
         codesToHumanReadableReason.put(1, "cannot serve required skill");
@@ -73,12 +73,12 @@ public class UnassignedJobReasonTracker implements JobUnassignedListener {
 
     @Override
     public void informJobUnassigned(Job unassigned, Collection<String> failedConstraintNames) {
-        if (!this.failedConstraintNamesFrequencyMapping.containsKey(unassigned.getId())) {
-            this.failedConstraintNamesFrequencyMapping.put(unassigned.getId(), new Frequency());
+        if (!this.failedConstraintNamesFrequencyMapping.containsKey(unassigned.id())) {
+            this.failedConstraintNamesFrequencyMapping.put(unassigned.id(), new Frequency());
         }
         for (String r : failedConstraintNames) {
             if (failedConstraintNamesToBeIgnored.contains(r)) continue;
-            this.failedConstraintNamesFrequencyMapping.get(unassigned.getId()).addValue(r);
+            this.failedConstraintNamesFrequencyMapping.get(unassigned.id()).addValue(r);
         }
     }
 
@@ -169,14 +169,11 @@ public class UnassignedJobReasonTracker implements JobUnassignedListener {
         Frequency reasons = this.failedConstraintNamesFrequencyMapping.get(jobId);
         String mostLikelyReason = getMostLikelyFailedConstraintName(reasons);
         int code = toCode(mostLikelyReason);
-        if (code == -1) return mostLikelyReason;
-        else return codesToHumanReadableReason.get(code);
+        return code == -1 ? mostLikelyReason : codesToHumanReadableReason.get(code);
     }
 
     private int toCode(String mostLikelyReason) {
-        if (failedConstraintNamesToCode.containsKey(mostLikelyReason))
-            return failedConstraintNamesToCode.get(mostLikelyReason);
-        else return -1;
+        return failedConstraintNamesToCode.getOrDefault(mostLikelyReason, -1);
     }
 
 

@@ -17,116 +17,114 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
-import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
 
-public final class DeliverService extends AbstractActivity implements DeliveryActivity {
+public final class DeliverService extends DeliveryActivity {
 
-    private Delivery delivery;
+    private final Delivery delivery;
 
-    private Capacity capacity;
+    private final Capacity capacity;
 
     private double arrTime;
 
     private double endTime;
 
-    private double theoreticalEarliest = 0;
+    private double theoreticalEarliest;
 
     private double theoreticalLatest = Double.MAX_VALUE;
 
     public DeliverService(Delivery delivery) {
-        super();
         this.delivery = delivery;
-        capacity = Capacity.invert(delivery.getSize());
+        capacity = Capacity.invert(delivery.size());
     }
 
     private DeliverService(DeliverService deliveryActivity) {
-        this.delivery = deliveryActivity.getJob();
-        this.arrTime = deliveryActivity.getArrTime();
-        this.endTime = deliveryActivity.getEndTime();
-        capacity = deliveryActivity.getSize();
-        setIndex(deliveryActivity.getIndex());
-        this.theoreticalEarliest = deliveryActivity.getTheoreticalEarliestOperationStartTime();
-        this.theoreticalLatest = deliveryActivity.getTheoreticalLatestOperationStartTime();
+        this.delivery = deliveryActivity.job();
+        this.arrTime = deliveryActivity.arrTime();
+        this.endTime = deliveryActivity.end();
+        capacity = deliveryActivity.size();
+        index(deliveryActivity.index());
+        this.theoreticalEarliest = deliveryActivity.startEarliest();
+        this.theoreticalLatest = deliveryActivity.startLatest();
     }
 
     @Override
-    public String getName() {
-        return delivery.getType();
+    public String name() {
+        return delivery.type;
     }
 
     @Override
-    public Location getLocation() {
-        return delivery.getLocation();
+    public Location location() {
+        return delivery.location;
     }
 
     @Override
-    public void setTheoreticalEarliestOperationStartTime(double earliest) {
+    public void startEarliest(double earliest) {
         theoreticalEarliest = earliest;
     }
 
     @Override
-    public void setTheoreticalLatestOperationStartTime(double latest) {
+    public void startLatest(double latest) {
         theoreticalLatest = latest;
     }
 
 
     @Override
-    public double getTheoreticalEarliestOperationStartTime() {
+    public double startEarliest() {
         return theoreticalEarliest;
     }
 
     @Override
-    public double getTheoreticalLatestOperationStartTime() {
+    public double startLatest() {
         return theoreticalLatest;
     }
 
     @Override
-    public double getOperationTime() {
-        return delivery.getServiceDuration();
+    public double operationTime() {
+        return delivery.serviceTime;
     }
 
     @Override
-    public double getArrTime() {
+    public double arrTime() {
         return arrTime;
     }
 
     @Override
-    public double getEndTime() {
+    public double end() {
         return endTime;
     }
 
     @Override
-    public void setArrTime(double arrTime) {
+    public void arrTime(double arrTime) {
         this.arrTime = arrTime;
     }
 
     @Override
-    public void setEndTime(double endTime) {
+    public void end(double endTime) {
         this.endTime = endTime;
     }
 
     @Override
-    public TourActivity duplicate() {
+    public DeliverService clone() {
         return new DeliverService(this);
     }
 
     @Override
-    public Delivery getJob() {
+    public Delivery job() {
         return delivery;
     }
 
     public String toString() {
-        return "[type=" + getName() + "][locationId=" + getLocation().getId()
-            + "][size=" + getSize().toString()
-            + "][twStart=" + Activities.round(getTheoreticalEarliestOperationStartTime())
-            + "][twEnd=" + Activities.round(getTheoreticalLatestOperationStartTime()) + "]";
+        return "[type=" + name() + "][locationId=" + location().id
+            + "][size=" + size()
+            + "][twStart=" + Activities.round(startEarliest())
+            + "][twEnd=" + Activities.round(startLatest()) + ']';
     }
 
     @Override
-    public Capacity getSize() {
+    public Capacity size() {
         return capacity;
     }
 }

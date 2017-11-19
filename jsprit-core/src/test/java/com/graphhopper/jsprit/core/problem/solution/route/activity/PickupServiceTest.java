@@ -33,58 +33,58 @@ public class PickupServiceTest {
 
     @Before
     public void doBefore() {
-        service = Service.Builder.newInstance("service").setLocation(Location.newInstance("loc")).
-            setTimeWindow(TimeWindow.newInstance(1., 2.)).
-            addSizeDimension(0, 10).addSizeDimension(1, 100).addSizeDimension(2, 1000).build();
+        service = Service.Builder.newInstance("service").location(Location.the("loc")).
+                timeWindowSet(TimeWindow.the(1., 2.)).
+                sizeDimension(0, 10).sizeDimension(1, 100).sizeDimension(2, 1000).build();
         pickup = new PickupService(service);
-        pickup.setTheoreticalEarliestOperationStartTime(service.getTimeWindow().getStart());
-        pickup.setTheoreticalLatestOperationStartTime(service.getTimeWindow().getEnd());
+        pickup.startEarliest(service.timeWindow().start);
+        pickup.startLatest(service.timeWindow().end);
     }
 
     @Test
     public void whenCallingCapacity_itShouldReturnCorrectCapacity() {
-        assertEquals(10, pickup.getSize().get(0));
-        assertEquals(100, pickup.getSize().get(1));
-        assertEquals(1000, pickup.getSize().get(2));
+        assertEquals(10, pickup.size().get(0));
+        assertEquals(100, pickup.size().get(1));
+        assertEquals(1000, pickup.size().get(2));
     }
 
 
     @Test
     public void whenStartIsIniWithEarliestStart_itShouldBeSetCorrectly() {
-        assertEquals(1., pickup.getTheoreticalEarliestOperationStartTime(), 0.01);
+        assertEquals(1., pickup.startEarliest(), 0.01);
     }
 
     @Test
     public void whenStartIsIniWithLatestStart_itShouldBeSetCorrectly() {
-        assertEquals(2., pickup.getTheoreticalLatestOperationStartTime(), 0.01);
+        assertEquals(2., pickup.startLatest(), 0.01);
     }
 
     @Test
     public void whenSettingArrTime_itShouldBeSetCorrectly() {
-        pickup.setArrTime(4.0);
-        assertEquals(4., pickup.getArrTime(), 0.01);
+        pickup.arrTime(4.0);
+        assertEquals(4., pickup.arrTime(), 0.01);
     }
 
     @Test
     public void whenSettingEndTime_itShouldBeSetCorrectly() {
-        pickup.setEndTime(5.0);
-        assertEquals(5., pickup.getEndTime(), 0.01);
+        pickup.end(5.0);
+        assertEquals(5., pickup.end(), 0.01);
     }
 
     @Test
     public void whenIniLocationId_itShouldBeSetCorrectly() {
-        assertEquals("loc", pickup.getLocation().getId());
+        assertEquals("loc", pickup.location().id);
     }
 
     @Test
     public void whenCopyingStart_itShouldBeDoneCorrectly() {
-        PickupService copy = (PickupService) pickup.duplicate();
-        assertEquals(1., copy.getTheoreticalEarliestOperationStartTime(), 0.01);
-        assertEquals(2., copy.getTheoreticalLatestOperationStartTime(), 0.01);
-        assertEquals("loc", copy.getLocation().getId());
-        assertEquals(10, copy.getSize().get(0));
-        assertEquals(100, copy.getSize().get(1));
-        assertEquals(1000, copy.getSize().get(2));
+        PickupService copy = pickup.clone();
+        assertEquals(1., copy.startEarliest(), 0.01);
+        assertEquals(2., copy.startLatest(), 0.01);
+        assertEquals("loc", copy.location().id);
+        assertEquals(10, copy.size().get(0));
+        assertEquals(100, copy.size().get(1));
+        assertEquals(1000, copy.size().get(2));
         assertTrue(copy != pickup);
     }
 

@@ -30,7 +30,7 @@ public class HardSkillConstraint implements HardRouteConstraint {
 
     private static final Skills defaultSkills = Skills.Builder.newInstance().build();
 
-    private RouteAndActivityStateGetter states;
+    private final RouteAndActivityStateGetter states;
 
     public HardSkillConstraint(RouteAndActivityStateGetter states) {
         this.states = states;
@@ -38,15 +38,15 @@ public class HardSkillConstraint implements HardRouteConstraint {
 
     @Override
     public boolean fulfilled(JobInsertionContext insertionContext) {
-        for (String skill : insertionContext.getJob().getRequiredSkills().values()) {
-            if (!insertionContext.getNewVehicle().getSkills().containsSkill(skill)) {
+        for (String skill : insertionContext.getJob().skillsRequired().values()) {
+            if (!insertionContext.getNewVehicle().skills().containsSkill(skill)) {
                 return false;
             }
         }
         Skills requiredSkillsForRoute = states.getRouteState(insertionContext.getRoute(), InternalStates.SKILLS, Skills.class);
         if (requiredSkillsForRoute == null) requiredSkillsForRoute = defaultSkills;
         for (String skill : requiredSkillsForRoute.values()) {
-            if (!insertionContext.getNewVehicle().getSkills().containsSkill(skill)) {
+            if (!insertionContext.getNewVehicle().skills().containsSkill(skill)) {
                 return false;
             }
         }

@@ -31,7 +31,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl.Builder;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Resource;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -40,9 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -57,36 +55,36 @@ public class VrpXMLReader {
         @Override
         public Service.Builder createBuilder(String serviceType, String id, Integer size) {
             if (serviceType.equals("pickup")) {
-                if (size != null) return Pickup.Builder.newInstance(id).addSizeDimension(0, size);
-                else return Pickup.Builder.newInstance(id);
+                if (size != null) return Pickup.Builder.the(id).sizeDimension(0, size);
+                else return Pickup.Builder.the(id);
             } else if (serviceType.equals("delivery")) {
-                if (size != null) return Delivery.Builder.newInstance(id).addSizeDimension(0, size);
+                if (size != null) return Delivery.Builder.newInstance(id).sizeDimension(0, size);
                 else return Delivery.Builder.newInstance(id);
             } else {
-                if (size != null) return Service.Builder.newInstance(id).addSizeDimension(0, size);
+                if (size != null) return Service.Builder.newInstance(id).sizeDimension(0, size);
                 else return Service.Builder.newInstance(id);
 
             }
         }
     }
 
-    private static Logger logger = LoggerFactory.getLogger(VrpXMLReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(VrpXMLReader.class);
 
-    private VehicleRoutingProblem.Builder vrpBuilder;
+    private final VehicleRoutingProblem.Builder vrpBuilder;
 
-    private Map<String, Vehicle> vehicleMap;
+    private final Map<String, Vehicle> vehicleMap;
 
-    private Map<String, Service> serviceMap;
+    private final Map<String, Service> serviceMap;
 
-    private Map<String, Shipment> shipmentMap;
+    private final Map<String, Shipment> shipmentMap;
 
-    private Set<String> freezedJobIds = new HashSet<String>();
+    private final Set<String> freezedJobIds = new HashSet<String>();
 
     private boolean schemaValidation = true;
 
-    private Collection<VehicleRoutingProblemSolution> solutions;
+    private final Collection<VehicleRoutingProblemSolution> solutions;
 
-    private ServiceBuilderFactory serviceBuilderFactory = new DefaultServiceBuilderFactory();
+    private final ServiceBuilderFactory serviceBuilderFactory = new DefaultServiceBuilderFactory();
 
 
 
@@ -146,11 +144,9 @@ public class VrpXMLReader {
                 EntityResolver resolver = new EntityResolver() {
 
                     @Override
-                    public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-                        {
-                            InputSource is = new InputSource(resource);
-                            return is;
-                        }
+                    public InputSource resolveEntity(String publicId, String systemId) {
+                        InputSource is = new InputSource(resource);
+                        return is;
                     }
                 };
                 xmlConfig.setEntityResolver(resolver);
@@ -177,12 +173,12 @@ public class VrpXMLReader {
 
     private void addJobsAndTheirLocationsToVrp() {
         for (Service service : serviceMap.values()) {
-            if (!freezedJobIds.contains(service.getId())) {
+            if (!freezedJobIds.contains(service.id)) {
                 vrpBuilder.addJob(service);
             }
         }
         for (Shipment shipment : shipmentMap.values()) {
-            if (!freezedJobIds.contains(shipment.getId())) {
+            if (!freezedJobIds.contains(shipment.id())) {
                 vrpBuilder.addJob(shipment);
             }
         }
@@ -317,7 +313,7 @@ public class VrpXMLReader {
                 Job job = getShipment(jobId);
                 if (job == null) job = getService(jobId);
                 if (job == null) throw new IllegalArgumentException("cannot find unassignedJob with id " + jobId);
-                solution.getUnassignedJobs().add(job);
+                solution.jobsUnassigned.add(job);
             }
 
             solutions.add(solution);
@@ -337,7 +333,7 @@ public class VrpXMLReader {
     }
 
     private Break getBreak(String vehicleId) {
-        return vehicleMap.get(vehicleId).getBreak();
+        return vehicleMap.get(vehicleId).aBreak();
     }
 
     private void readProblemType(XMLConfiguration vrpProblem) {
@@ -382,7 +378,7 @@ public class VrpXMLReader {
 
             //pickup location
             //pickup-locationId
-            Location.Builder pickupLocationBuilder = Location.Builder.newInstance();
+            Location.Builder pickupLocationBuilder = Location.Builder.the();
             String pickupLocationId = shipmentConfig.getString("pickup.locationId");
             if (pickupLocationId == null) pickupLocationId = shipmentConfig.getString("pickup.location.id");
             if (pickupLocationId != null) {
@@ -390,10 +386,10 @@ public class VrpXMLReader {
             }
 
             //pickup-coord
-            Coordinate pickupCoord = getCoord(shipmentConfig, "pickup.");
+            v2 pickupCoord = getCoord(shipmentConfig, "pickup.");
             if (pickupCoord == null) pickupCoord = getCoord(shipmentConfig, "pickup.location.");
             if (pickupCoord != null) {
-                pickupLocationBuilder.setCoordinate(pickupCoord);
+                pickupLocationBuilder.setCoord(pickupCoord);
             }
 
             //pickup.location.index
@@ -409,13 +405,13 @@ public class VrpXMLReader {
             List<HierarchicalConfiguration> pickupTWConfigs = shipmentConfig.configurationsAt("pickup.timeWindows.timeWindow");
             if (!pickupTWConfigs.isEmpty()) {
                 for (HierarchicalConfiguration pu_twConfig : pickupTWConfigs) {
-                    builder.addPickupTimeWindow(TimeWindow.newInstance(pu_twConfig.getDouble("start"), pu_twConfig.getDouble("end")));
+                    builder.addPickupTimeWindow(TimeWindow.the(pu_twConfig.getDouble("start"), pu_twConfig.getDouble("end")));
                 }
             }
 
             //delivery location
             //delivery-locationId
-            Location.Builder deliveryLocationBuilder = Location.Builder.newInstance();
+            Location.Builder deliveryLocationBuilder = Location.Builder.the();
             String deliveryLocationId = shipmentConfig.getString("delivery.locationId");
             if (deliveryLocationId == null) deliveryLocationId = shipmentConfig.getString("delivery.location.id");
             if (deliveryLocationId != null) {
@@ -424,10 +420,10 @@ public class VrpXMLReader {
             }
 
             //delivery-coord
-            Coordinate deliveryCoord = getCoord(shipmentConfig, "delivery.");
+            v2 deliveryCoord = getCoord(shipmentConfig, "delivery.");
             if (deliveryCoord == null) deliveryCoord = getCoord(shipmentConfig, "delivery.location.");
             if (deliveryCoord != null) {
-                deliveryLocationBuilder.setCoordinate(deliveryCoord);
+                deliveryLocationBuilder.setCoord(deliveryCoord);
             }
 
             String deliveryLocationIndex = shipmentConfig.getString("delivery.location.index");
@@ -443,7 +439,7 @@ public class VrpXMLReader {
             List<HierarchicalConfiguration> deliveryTWConfigs = shipmentConfig.configurationsAt("delivery.timeWindows.timeWindow");
             if (!deliveryTWConfigs.isEmpty()) {
                 for (HierarchicalConfiguration dl_twConfig : deliveryTWConfigs) {
-                    builder.addDeliveryTimeWindow(TimeWindow.newInstance(dl_twConfig.getDouble("start"), dl_twConfig.getDouble("end")));
+                    builder.addDeliveryTimeWindow(TimeWindow.the(dl_twConfig.getDouble("start"), dl_twConfig.getDouble("end")));
                 }
             }
 
@@ -458,16 +454,16 @@ public class VrpXMLReader {
             //build shipment
             Shipment shipment = builder.build();
 //			vrpBuilder.addJob(shipment);
-            shipmentMap.put(shipment.getId(), shipment);
+            shipmentMap.put(shipment.id(), shipment);
         }
     }
 
-    private static Coordinate getCoord(HierarchicalConfiguration serviceConfig, String prefix) {
-        Coordinate pickupCoord = null;
+    private static v2 getCoord(HierarchicalConfiguration serviceConfig, String prefix) {
+        v2 pickupCoord = null;
         if (serviceConfig.getString(prefix + "coord[@x]") != null && serviceConfig.getString(prefix + "coord[@y]") != null) {
             double x = Double.parseDouble(serviceConfig.getString(prefix + "coord[@x]"));
             double y = Double.parseDouble(serviceConfig.getString(prefix + "coord[@y]"));
-            pickupCoord = Coordinate.newInstance(x, y);
+            pickupCoord = v2.the(x, y);
         }
         return pickupCoord;
     }
@@ -498,39 +494,39 @@ public class VrpXMLReader {
                 for (HierarchicalConfiguration dimension : dimensionConfigs) {
                     Integer index = dimension.getInt("[@index]");
                     Integer value = dimension.getInt("");
-                    builder.addSizeDimension(index, value);
+                    builder.sizeDimension(index, value);
                 }
             }
 
             //name
             String name = serviceConfig.getString("name");
-            if (name != null) builder.setName(name);
+            if (name != null) builder.name(name);
 
             //location
-            Location.Builder locationBuilder = Location.Builder.newInstance();
+            Location.Builder locationBuilder = Location.Builder.the();
             String serviceLocationId = serviceConfig.getString("locationId");
             if (serviceLocationId == null) {
                 serviceLocationId = serviceConfig.getString("location.id");
             }
             if (serviceLocationId != null) locationBuilder.setId(serviceLocationId);
 
-            Coordinate serviceCoord = getCoord(serviceConfig, "");
+            v2 serviceCoord = getCoord(serviceConfig, "");
             if (serviceCoord == null) serviceCoord = getCoord(serviceConfig, "location.");
             if (serviceCoord != null) {
-                locationBuilder.setCoordinate(serviceCoord);
+                locationBuilder.setCoord(serviceCoord);
             }
 
             String locationIndex = serviceConfig.getString("location.index");
             if (locationIndex != null) locationBuilder.setIndex(Integer.parseInt(locationIndex));
-            builder.setLocation(locationBuilder.build());
+            builder.location(locationBuilder.build());
 
             if (serviceConfig.containsKey("duration")) {
-                builder.setServiceTime(serviceConfig.getDouble("duration"));
+                builder.serviceTime(serviceConfig.getDouble("duration"));
             }
             List<HierarchicalConfiguration> deliveryTWConfigs = serviceConfig.configurationsAt("timeWindows.timeWindow");
             if (!deliveryTWConfigs.isEmpty()) {
                 for (HierarchicalConfiguration twConfig : deliveryTWConfigs) {
-                    builder.addTimeWindow(TimeWindow.newInstance(twConfig.getDouble("start"), twConfig.getDouble("end")));
+                    builder.timeWindowAdd(TimeWindow.the(twConfig.getDouble("start"), twConfig.getDouble("end")));
                 }
             }
 
@@ -539,12 +535,12 @@ public class VrpXMLReader {
             if (skillString != null) {
                 String cleaned = skillString.replaceAll("\\s", "");
                 String[] skillTokens = cleaned.split("[,;]");
-                for (String skill : skillTokens) builder.addRequiredSkill(skill.toLowerCase());
+                for (String skill : skillTokens) builder.skillRequired(skill.toLowerCase());
             }
 
             //build service
             Service service = builder.build();
-            serviceMap.put(service.getId(), service);
+            serviceMap.put(service.id, service);
 //			vrpBuilder.addJob(service);
 
         }
@@ -570,9 +566,9 @@ public class VrpXMLReader {
 
             VehicleTypeImpl.Builder typeBuilder;
             if (capacityString != null) {
-                typeBuilder = VehicleTypeImpl.Builder.newInstance(typeId).addCapacityDimension(0, Integer.parseInt(capacityString));
+                typeBuilder = VehicleTypeImpl.Builder.the(typeId).addCapacityDimension(0, Integer.parseInt(capacityString));
             } else {
-                typeBuilder = VehicleTypeImpl.Builder.newInstance(typeId);
+                typeBuilder = VehicleTypeImpl.Builder.the(typeId);
                 List<HierarchicalConfiguration> dimensionConfigs = typeConfig.configurationsAt("capacity-dimensions.dimension");
                 for (HierarchicalConfiguration dimension : dimensionConfigs) {
                     Integer index = dimension.getInt("[@index]");
@@ -598,7 +594,7 @@ public class VrpXMLReader {
             if (timeC != null) typeBuilder.setCostPerTransportTime(timeC);
             if (distC != null) typeBuilder.setCostPerDistance(distC);
             VehicleType type = typeBuilder.build();
-            String id = type.getTypeId();
+            String id = type.type();
             types.put(id, type);
         }
 
@@ -622,7 +618,7 @@ public class VrpXMLReader {
             builder.setType(type);
 
             //read startlocation
-            Location.Builder startLocationBuilder = Location.Builder.newInstance();
+            Location.Builder startLocationBuilder = Location.Builder.the();
             String locationId = vehicleConfig.getString("location.id");
             if (locationId == null) {
                 locationId = vehicleConfig.getString("startLocation.id");
@@ -640,8 +636,8 @@ public class VrpXMLReader {
                     doNotWarnAgain = true;
                 }
             } else {
-                Coordinate coordinate = Coordinate.newInstance(Double.parseDouble(coordX), Double.parseDouble(coordY));
-                startLocationBuilder.setCoordinate(coordinate);
+                v2 coordinate = v2.the(Double.parseDouble(coordX), Double.parseDouble(coordY));
+                startLocationBuilder.setCoord(coordinate);
             }
             String index = vehicleConfig.getString("startLocation.index");
             if (index == null) index = vehicleConfig.getString("location.index");
@@ -651,7 +647,7 @@ public class VrpXMLReader {
             builder.setStartLocation(startLocationBuilder.build());
 
             //read endlocation
-            Location.Builder endLocationBuilder = Location.Builder.newInstance();
+            Location.Builder endLocationBuilder = Location.Builder.the();
             boolean hasEndLocation = false;
             String endLocationId = vehicleConfig.getString("endLocation.id");
             if (endLocationId != null) {
@@ -666,9 +662,9 @@ public class VrpXMLReader {
                     doNotWarnAgain = true;
                 }
             } else {
-                Coordinate coordinate = Coordinate.newInstance(Double.parseDouble(endCoordX), Double.parseDouble(endCoordY));
+                v2 coordinate = v2.the(Double.parseDouble(endCoordX), Double.parseDouble(endCoordY));
                 hasEndLocation = true;
-                endLocationBuilder.setCoordinate(coordinate);
+                endLocationBuilder.setCoord(coordinate);
             }
             String endLocationIndex = vehicleConfig.getString("endLocation.index");
             if (endLocationIndex != null) {
@@ -703,9 +699,9 @@ public class VrpXMLReader {
                 String breakDurationString = vehicleConfig.getString("breaks.duration");
                 String id = vehicleConfig.getString("breaks.id");
                 Break.Builder current_break = Break.Builder.newInstance(id);
-                current_break.setServiceTime(Double.parseDouble(breakDurationString));
+                current_break.serviceTime(Double.parseDouble(breakDurationString));
                 for (HierarchicalConfiguration twConfig : breakTWConfigs) {
-                	current_break.addTimeWindow(TimeWindow.newInstance(twConfig.getDouble("start"), twConfig.getDouble("end")));
+                	current_break.timeWindowAdd(TimeWindow.the(twConfig.getDouble("start"), twConfig.getDouble("end")));
                 }
                 builder.setBreak(current_break.build());
             }

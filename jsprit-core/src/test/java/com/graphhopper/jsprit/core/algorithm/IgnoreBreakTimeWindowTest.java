@@ -19,6 +19,7 @@
 package com.graphhopper.jsprit.core.algorithm;
 
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Break;
@@ -26,7 +27,6 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.BreakActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
@@ -41,7 +41,7 @@ public class IgnoreBreakTimeWindowTest {
 
     @Test
     public void doNotIgnoreBreakTW(){
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType");
+        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.the("vehicleType");
         VehicleType vehicleType = vehicleTypeBuilder.setCostPerWaitingTime(0.8).build();
 
 		/*
@@ -49,38 +49,36 @@ public class IgnoreBreakTimeWindowTest {
 		 */
 
         VehicleImpl vehicle2;
-        {
-            VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("v2");
-            vehicleBuilder.setStartLocation(Location.newInstance(0, 0));
-            vehicleBuilder.setType(vehicleType);
-            vehicleBuilder.setEarliestStart(10).setLatestArrival(50);
-            vehicleBuilder.setBreak(Break.Builder.newInstance("lunch").setTimeWindow(TimeWindow.newInstance(14, 14)).setServiceTime(1.).build());
-            vehicle2 = vehicleBuilder.build();
-        }
-		/*
+        VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("v2");
+        vehicleBuilder.setStartLocation(Location.the(0, 0));
+        vehicleBuilder.setType(vehicleType);
+        vehicleBuilder.setEarliestStart(10).setLatestArrival(50);
+        vehicleBuilder.setBreak(Break.Builder.newInstance("lunch").timeWindowSet(TimeWindow.the(14, 14)).serviceTime(1.).build());
+        vehicle2 = vehicleBuilder.build();
+        /*
          * build services at the required locations, each with a capacity-demand of 1.
 		 */
 
 
-        Service service4 = Service.Builder.newInstance("2").setLocation(Location.newInstance(0, 0))
-            .setServiceTime(1.).setTimeWindow(TimeWindow.newInstance(17,17)).build();
+        Service service4 = Service.Builder.newInstance("2").location(Location.the(0, 0))
+            .serviceTime(1.).timeWindowSet(TimeWindow.the(17,17)).build();
 
-        Service service5 = Service.Builder.newInstance("3").setLocation(Location.newInstance(0, 0))
-            .setServiceTime(1.).setTimeWindow(TimeWindow.newInstance(18, 18)).build();
+        Service service5 = Service.Builder.newInstance("3").location(Location.the(0, 0))
+            .serviceTime(1.).timeWindowSet(TimeWindow.the(18, 18)).build();
 
-        Service service7 = Service.Builder.newInstance("4").setLocation(Location.newInstance(0, 0))
-            .setServiceTime(1.).setTimeWindow(TimeWindow.newInstance(10, 10)).build();
+        Service service7 = Service.Builder.newInstance("4").location(Location.the(0, 0))
+            .serviceTime(1.).timeWindowSet(TimeWindow.the(10, 10)).build();
 
-        Service service8 = Service.Builder.newInstance("5").setLocation(Location.newInstance(0, 0))
-            .setServiceTime(1.).setTimeWindow(TimeWindow.newInstance(12, 12)).build();
+        Service service8 = Service.Builder.newInstance("5").location(Location.the(0, 0))
+            .serviceTime(1.).timeWindowSet(TimeWindow.the(12, 12)).build();
 
-        Service service10 = Service.Builder.newInstance("6").setLocation(Location.newInstance(0, 0))
-            .setServiceTime(1.).setTimeWindow(TimeWindow.newInstance(16, 16)).build();
+        Service service10 = Service.Builder.newInstance("6").location(Location.the(0, 0))
+            .serviceTime(1.).timeWindowSet(TimeWindow.the(16, 16)).build();
 
-        Service service11 = Service.Builder.newInstance("7").setLocation(Location.newInstance(0, 0))
-            .setServiceTime(1.).setTimeWindow(TimeWindow.newInstance(13, 13)).build();
+        Service service11 = Service.Builder.newInstance("7").location(Location.the(0, 0))
+            .serviceTime(1.).timeWindowSet(TimeWindow.the(13, 13)).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get()
             .addVehicle(vehicle2)
             .addJob(service4)
             .addJob(service5).addJob(service7)
@@ -99,12 +97,12 @@ public class IgnoreBreakTimeWindowTest {
 
     private boolean breakShouldBeTime(VehicleRoutingProblemSolution solution) {
         boolean inTime = true;
-        for(TourActivity act : solution.getRoutes().iterator().next().getActivities()){
+        for(AbstractActivity act : solution.routes.iterator().next().activities()){
             if(act instanceof BreakActivity){
-                if(act.getEndTime() < ((BreakActivity) act).getJob().getTimeWindow().getStart()){
+                if(act.end() < ((BreakActivity) act).job().timeWindow().start){
                     inTime = false;
                 }
-                if(act.getArrTime() > ((BreakActivity) act).getJob().getTimeWindow().getEnd()){
+                if(act.arrTime() > ((BreakActivity) act).job().timeWindow().end){
                     inTime = false;
                 }
             }

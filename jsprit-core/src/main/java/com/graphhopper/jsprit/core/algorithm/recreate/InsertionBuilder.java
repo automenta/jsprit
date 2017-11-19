@@ -38,21 +38,21 @@ public class InsertionBuilder {
         REGRET, BEST
     }
 
-    private VehicleRoutingProblem vrp;
+    private final VehicleRoutingProblem vrp;
 
-    private StateManager stateManager;
+    private final StateManager stateManager;
 
     private boolean local = true;
 
-    private ConstraintManager constraintManager;
+    private final ConstraintManager constraintManager;
 
-    private VehicleFleetManager fleetManager;
+    private final VehicleFleetManager fleetManager;
 
     private double weightOfFixedCosts;
 
-    private boolean considerFixedCosts = false;
+    private boolean considerFixedCosts;
 
-    private ActivityInsertionCostsCalculator actInsertionCostsCalculator = null;
+    private ActivityInsertionCostsCalculator actInsertionCostsCalculator;
 
     private int forwaredLooking;
 
@@ -62,11 +62,11 @@ public class InsertionBuilder {
 
     private int nuOfThreads;
 
-    private double timeSlice;
+//    private double timeSlice;
 
-    private int nNeighbors;
+//    private int nNeighbors;
 
-    private boolean timeScheduling = false;
+//    private final boolean timeScheduling;
 
     private boolean allowVehicleSwitch = true;
 
@@ -74,10 +74,9 @@ public class InsertionBuilder {
 
     private Strategy strategy = Strategy.BEST;
 
-    private boolean isFastRegret = false;
+    private boolean isFastRegret;
 
     public InsertionBuilder(VehicleRoutingProblem vrp, VehicleFleetManager vehicleFleetManager, StateManager stateManager, ConstraintManager constraintManager) {
-        super();
         this.vrp = vrp;
         this.stateManager = stateManager;
         this.constraintManager = constraintManager;
@@ -147,8 +146,8 @@ public class InsertionBuilder {
 
 
     public InsertionStrategy build() {
-        List<InsertionListener> iListeners = new ArrayList<InsertionListener>();
-        List<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener> algorithmListeners = new ArrayList<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener>();
+        List<InsertionListener> iListeners = new ArrayList<>();
+        List<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener> algorithmListeners = new ArrayList<>();
         JobInsertionCostsCalculatorBuilder calcBuilder = new JobInsertionCostsCalculatorBuilder(iListeners, algorithmListeners);
         if (local) {
             calcBuilder.setLocalLevel(addDefaultCostCalc);
@@ -163,44 +162,47 @@ public class InsertionBuilder {
         if (considerFixedCosts) {
             calcBuilder.considerFixedCosts(weightOfFixedCosts);
         }
-        if (timeScheduling) {
-            calcBuilder.experimentalTimeScheduler(timeSlice, nNeighbors);
-        }
+//        if (timeScheduling) {
+//            calcBuilder.experimentalTimeScheduler(timeSlice, nNeighbors);
+//        }
         calcBuilder.setAllowVehicleSwitch(allowVehicleSwitch);
         JobInsertionCostsCalculator costCalculator = calcBuilder.build();
 
         InsertionStrategy insertion;
-        if (strategy.equals(Strategy.BEST)) {
-            if (executor == null) {
-                insertion = new BestInsertion(costCalculator, vrp);
-            } else {
-                insertion = new BestInsertionConcurrent(costCalculator, executor, nuOfThreads, vrp);
-            }
-        } else if (strategy.equals(Strategy.REGRET)) {
-            if (executor == null) {
-                if(isFastRegret){
-                    RegretInsertionFast regret = new RegretInsertionFast(costCalculator, vrp, fleetManager);
-                    regret.setSwitchAllowed(allowVehicleSwitch);
-                    insertion = regret;
+        switch (strategy) {
+            case BEST:
+                if (executor == null) {
+                    insertion = new BestInsertion(costCalculator, vrp);
+                } else {
+                    insertion = new BestInsertionConcurrent(costCalculator, executor, nuOfThreads, vrp);
                 }
-                else {
-                    RegretInsertion regret = new RegretInsertion(costCalculator, vrp);
-                    insertion = regret;
-                }
+                break;
+            case REGRET:
+                if (executor == null) {
+                    if (isFastRegret) {
+                        RegretInsertionFast regret = new RegretInsertionFast(costCalculator, vrp, fleetManager);
+                        regret.setSwitchAllowed(allowVehicleSwitch);
+                        insertion = regret;
+                    } else {
+                        RegretInsertion regret = new RegretInsertion(costCalculator, vrp);
+                        insertion = regret;
+                    }
 
-            } else {
-                if(isFastRegret){
-                    RegretInsertionConcurrentFast regret = new RegretInsertionConcurrentFast(costCalculator, vrp, executor, fleetManager);
-                    regret.setSwitchAllowed(allowVehicleSwitch);
-                    insertion = regret;
-                }
-                else{
-                    RegretInsertionConcurrent regret = new RegretInsertionConcurrent(costCalculator, vrp, executor);
-                    insertion = regret;
-                }
+                } else {
+                    if (isFastRegret) {
+                        RegretInsertionConcurrentFast regret = new RegretInsertionConcurrentFast(costCalculator, vrp, executor, fleetManager);
+                        regret.setSwitchAllowed(allowVehicleSwitch);
+                        insertion = regret;
+                    } else {
+                        RegretInsertionConcurrent regret = new RegretInsertionConcurrent(costCalculator, vrp, executor);
+                        insertion = regret;
+                    }
 
-            }
-        } else throw new IllegalStateException("you should never get here");
+                }
+                break;
+            default:
+                throw new IllegalStateException("you should never get here");
+        }
         for (InsertionListener l : iListeners) insertion.addListener(l);
         return insertion;
     }

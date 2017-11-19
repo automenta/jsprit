@@ -31,7 +31,7 @@ import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolutio
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.io.problem.VrpXMLReader;
 import com.graphhopper.jsprit.util.Examples;
@@ -48,7 +48,7 @@ public class MultipleDepotExample {
 		 */
         Examples.createOutputFolder();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         /*
          * Read cordeau-instance p01, BUT only its services without any vehicles
 		 */
@@ -66,16 +66,16 @@ public class MultipleDepotExample {
 		 */
         int nuOfVehicles = 4;
         int capacity = 80;
-        Coordinate firstDepotCoord = Coordinate.newInstance(20, 20);
-        Coordinate second = Coordinate.newInstance(30, 40);
-        Coordinate third = Coordinate.newInstance(50, 30);
-        Coordinate fourth = Coordinate.newInstance(60, 50);
+        v2 firstDepotCoord = v2.the(20, 20);
+        v2 second = v2.the(30, 40);
+        v2 third = v2.the(50, 30);
+        v2 fourth = v2.the(60, 50);
 
         int depotCounter = 1;
-        for (Coordinate depotCoord : Arrays.asList(firstDepotCoord, second, third, fourth)) {
+        for (v2 depotCoord : Arrays.asList(firstDepotCoord, second, third, fourth)) {
             for (int i = 0; i < nuOfVehicles; i++) {
-                VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.newInstance(depotCounter + "_type").addCapacityDimension(0, capacity).setCostPerDistance(1.0).build();
-                VehicleImpl vehicle = VehicleImpl.Builder.newInstance(depotCounter + "_" + (i + 1) + "_vehicle").setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY())).setType(vehicleType).build();
+                VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.the(depotCounter + "_type").addCapacityDimension(0, capacity).setCostPerDistance(1.0).build();
+                VehicleImpl vehicle = VehicleImpl.Builder.newInstance(depotCounter + "_" + (i + 1) + "_vehicle").setStartLocation(Location.the(depotCoord.x, depotCoord.y)).setType(vehicleType).build();
                 vrpBuilder.addVehicle(vehicle);
             }
             depotCounter++;

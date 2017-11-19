@@ -19,6 +19,7 @@ package com.graphhopper.jsprit.core.algorithm.state;
 
 import com.graphhopper.jsprit.core.algorithm.recreate.listener.InsertionStartsListener;
 import com.graphhopper.jsprit.core.algorithm.recreate.listener.JobInsertedListener;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
 import com.graphhopper.jsprit.core.problem.job.Job;
@@ -26,7 +27,6 @@ import com.graphhopper.jsprit.core.problem.job.Pickup;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 import java.util.Collection;
 
@@ -43,33 +43,32 @@ import java.util.Collection;
  */
 class UpdateLoads implements ActivityVisitor, StateUpdater, InsertionStartsListener, JobInsertedListener {
 
-    private StateManager stateManager;
+    private final StateManager stateManager;
 
     /*
      * default has one dimension with a value of zero
      */
     private Capacity currentLoad;
 
-    private Capacity defaultValue;
+    private final Capacity defaultValue;
 
-    private VehicleRoute route;
+//    private VehicleRoute route;
 
     public UpdateLoads(StateManager stateManager) {
-        super();
         this.stateManager = stateManager;
-        defaultValue = Capacity.Builder.newInstance().build();
+        defaultValue = Capacity.Builder.get().build();
     }
 
     @Override
     public void begin(VehicleRoute route) {
         currentLoad = stateManager.getRouteState(route, InternalStates.LOAD_AT_BEGINNING, Capacity.class);
         if (currentLoad == null) currentLoad = defaultValue;
-        this.route = route;
+//        this.route = route;
     }
 
     @Override
-    public void visit(TourActivity act) {
-        currentLoad = Capacity.addup(currentLoad, act.getSize());
+    public void visit(AbstractActivity act) {
+        currentLoad = Capacity.addup(currentLoad, act.size());
         stateManager.putInternalTypedActivityState(act, InternalStates.LOAD, currentLoad);
 //		assert currentLoad.isLessOrEqual(route.getVehicle().getType().getCapacityDimensions()) : "currentLoad at activity must not be > vehicleCapacity";
 //		assert currentLoad.isGreaterOrEqual(Capacity.Builder.newInstance().build()) : "currentLoad at act must not be < 0 in one of the applied dimensions";
@@ -77,17 +76,17 @@ class UpdateLoads implements ActivityVisitor, StateUpdater, InsertionStartsListe
 
     @Override
     public void finish() {
-        currentLoad = Capacity.Builder.newInstance().build();
+        currentLoad = Capacity.Builder.get().build();
     }
 
     void insertionStarts(VehicleRoute route) {
-        Capacity loadAtDepot = Capacity.Builder.newInstance().build();
-        Capacity loadAtEnd = Capacity.Builder.newInstance().build();
-        for (Job j : route.getTourActivities().getJobs()) {
+        Capacity loadAtDepot = Capacity.Builder.get().build();
+        Capacity loadAtEnd = Capacity.Builder.get().build();
+        for (Job j : route.tourActivities().jobs()) {
             if (j instanceof Delivery) {
-                loadAtDepot = Capacity.addup(loadAtDepot, j.getSize());
+                loadAtDepot = Capacity.addup(loadAtDepot, j.size());
             } else if (j instanceof Pickup || j instanceof Service) {
-                loadAtEnd = Capacity.addup(loadAtEnd, j.getSize());
+                loadAtEnd = Capacity.addup(loadAtEnd, j.size());
             }
         }
         stateManager.putTypedInternalRouteState(route, InternalStates.LOAD_AT_BEGINNING, loadAtDepot);
@@ -106,11 +105,11 @@ class UpdateLoads implements ActivityVisitor, StateUpdater, InsertionStartsListe
         if (job2insert instanceof Delivery) {
             Capacity loadAtDepot = stateManager.getRouteState(inRoute, InternalStates.LOAD_AT_BEGINNING, Capacity.class);
             if (loadAtDepot == null) loadAtDepot = defaultValue;
-            stateManager.putTypedInternalRouteState(inRoute, InternalStates.LOAD_AT_BEGINNING, Capacity.addup(loadAtDepot, job2insert.getSize()));
+            stateManager.putTypedInternalRouteState(inRoute, InternalStates.LOAD_AT_BEGINNING, Capacity.addup(loadAtDepot, job2insert.size()));
         } else if (job2insert instanceof Pickup || job2insert instanceof Service) {
             Capacity loadAtEnd = stateManager.getRouteState(inRoute, InternalStates.LOAD_AT_END, Capacity.class);
             if (loadAtEnd == null) loadAtEnd = defaultValue;
-            stateManager.putTypedInternalRouteState(inRoute, InternalStates.LOAD_AT_END, Capacity.addup(loadAtEnd, job2insert.getSize()));
+            stateManager.putTypedInternalRouteState(inRoute, InternalStates.LOAD_AT_END, Capacity.addup(loadAtEnd, job2insert.size()));
         }
     }
 

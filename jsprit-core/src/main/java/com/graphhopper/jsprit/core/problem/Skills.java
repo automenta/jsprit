@@ -39,7 +39,7 @@ public class Skills {
             return new Builder();
         }
 
-        private Set<String> skills = new HashSet<String>();
+        private final Collection<String> skills = new HashSet<>();
 
         /**
          * Adds skill. Skill is transformed into lowerCase.
@@ -58,7 +58,7 @@ public class Skills {
          * @param skills collection of skills to be added
          * @return builder
          */
-        public Builder addAllSkills(Collection<String> skills) {
+        public Builder addAllSkills(Iterable<String> skills) {
             for (String skill : skills) addSkill(skill);
             return this;
         }
@@ -74,7 +74,7 @@ public class Skills {
 
     }
 
-    private Set<String> skills = new HashSet<String>();
+    private final Set<String> skills = new HashSet<>();
 
     private Skills(Builder builder) {
         skills.addAll(builder.skills);
@@ -119,9 +119,7 @@ public class Skills {
 
         Skills skills1 = (Skills) o;
 
-        if (skills != null ? !skills.equals(skills1.skills) : skills1.skills != null) return false;
-
-        return true;
+        return skills != null ? skills.equals(skills1.skills) : skills1.skills == null;
     }
 
     @Override

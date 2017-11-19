@@ -26,11 +26,11 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 class SwitchVehicle implements Event {
 
-    private VehicleRoute route;
+    private final VehicleRoute route;
 
-    private Vehicle vehicle;
+    private final Vehicle vehicle;
 
-    private double departureTime;
+    private final double departureTime;
 
     public SwitchVehicle(VehicleRoute route, Vehicle vehicle, double departureTime) {
         this.route = route;

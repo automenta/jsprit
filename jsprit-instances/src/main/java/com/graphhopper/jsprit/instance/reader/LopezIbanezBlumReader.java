@@ -37,9 +37,9 @@ import java.io.IOException;
  */
 public class LopezIbanezBlumReader {
 
-    private static Logger logger = LoggerFactory.getLogger(LopezIbanezBlumReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(LopezIbanezBlumReader.class);
 
-    private VehicleRoutingProblem.Builder builder;
+    private final VehicleRoutingProblem.Builder builder;
 
     public LopezIbanezBlumReader(VehicleRoutingProblem.Builder builder) {
         this.builder = builder;
@@ -56,7 +56,7 @@ public class LopezIbanezBlumReader {
             if (line.startsWith("#")) continue;
             if (lineCount == 1) {
                 noNodes = Integer.parseInt(line);
-                matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.newInstance(noNodes, false);
+                matrixBuilder = FastVehicleRoutingTransportCostsMatrix.Builder.get(noNodes, false);
                 lineCount++;
                 continue;
             } else if (lineCount <= 1 + noNodes) {
@@ -72,12 +72,12 @@ public class LopezIbanezBlumReader {
                 int nodeIndex = lineCount - 2 - noNodes;
                 String[] twTokens = line.split("\\s+");
                 if (nodeIndex == 0) {
-                    VehicleImpl travelingSalesman = VehicleImpl.Builder.newInstance("traveling_salesman").setStartLocation(Location.newInstance(nodeIndex))
+                    VehicleImpl travelingSalesman = VehicleImpl.Builder.newInstance("traveling_salesman").setStartLocation(Location.the(0))
                         .setEarliestStart(Double.parseDouble(twTokens[0])).setLatestArrival(Double.parseDouble(twTokens[1])).build();
                     builder.addVehicle(travelingSalesman);
                 } else {
-                    Service s = Service.Builder.newInstance("" + nodeIndex).setLocation(Location.newInstance(nodeIndex))
-                        .setTimeWindow(TimeWindow.newInstance(Double.parseDouble(twTokens[0]), Double.parseDouble(twTokens[1]))).build();
+                    Service s = Service.Builder.newInstance("" + nodeIndex).location(Location.the(nodeIndex))
+                        .timeWindowSet(TimeWindow.the(Double.parseDouble(twTokens[0]), Double.parseDouble(twTokens[1]))).build();
                     builder.addJob(s);
                 }
                 lineCount++;
@@ -88,16 +88,16 @@ public class LopezIbanezBlumReader {
     }
 
     public static void main(String[] args) {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new LopezIbanezBlumReader(builder).read("input/Dumas/n20w20.001.txt");
         VehicleRoutingProblem vrp = builder.build();
-        System.out.println("0->1: " + vrp.getTransportCosts().getTransportCost(Location.newInstance(0), Location.newInstance(1), 0, null, null));
-        System.out.println("0->20: " + vrp.getTransportCosts().getTransportCost(Location.newInstance(0), Location.newInstance(20), 0, null, null));
-        System.out.println("4->18: " + vrp.getTransportCosts().getTransportCost(Location.newInstance(4), Location.newInstance(18), 0, null, null));
-        System.out.println("20->8: " + vrp.getTransportCosts().getTransportCost(Location.newInstance(20), Location.newInstance(8), 0, null, null));
-        System.out.println("18: " + ((Service) vrp.getJobs().get("" + 18)).getTimeWindow().getStart() + " " + ((Service) vrp.getJobs().get("" + 18)).getTimeWindow().getEnd());
-        System.out.println("20: " + ((Service) vrp.getJobs().get("" + 20)).getTimeWindow().getStart() + " " + ((Service) vrp.getJobs().get("" + 20)).getTimeWindow().getEnd());
-        System.out.println("1: " + ((Service) vrp.getJobs().get("" + 1)).getTimeWindow().getStart() + " " + ((Service) vrp.getJobs().get("" + 1)).getTimeWindow().getEnd());
+        System.out.println("0->1: " + vrp.transportCosts().transportCost(Location.the(0), Location.the(1), 0, null, null));
+        System.out.println("0->20: " + vrp.transportCosts().transportCost(Location.the(0), Location.the(20), 0, null, null));
+        System.out.println("4->18: " + vrp.transportCosts().transportCost(Location.the(4), Location.the(18), 0, null, null));
+        System.out.println("20->8: " + vrp.transportCosts().transportCost(Location.the(20), Location.the(8), 0, null, null));
+        System.out.println("18: " + ((Service) vrp.jobs().get("" + 18)).timeWindow().start + " " + ((Service) vrp.jobs().get("" + 18)).timeWindow().end);
+        System.out.println("20: " + ((Service) vrp.jobs().get("" + 20)).timeWindow().start + " " + ((Service) vrp.jobs().get("" + 20)).timeWindow().end);
+        System.out.println("1: " + ((Service) vrp.jobs().get("" + 1)).timeWindow().start + " " + ((Service) vrp.jobs().get("" + 1)).timeWindow().end);
     }
 
     private void close(BufferedReader reader) {

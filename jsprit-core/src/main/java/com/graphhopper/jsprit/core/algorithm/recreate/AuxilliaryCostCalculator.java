@@ -17,13 +17,14 @@
  */
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,7 +36,6 @@ final class AuxilliaryCostCalculator {
     private final VehicleRoutingActivityCosts activityCosts;
 
     public AuxilliaryCostCalculator(final VehicleRoutingTransportCosts routingCosts, final VehicleRoutingActivityCosts actCosts) {
-        super();
         this.routingCosts = routingCosts;
         this.activityCosts = actCosts;
     }
@@ -47,28 +47,28 @@ final class AuxilliaryCostCalculator {
      * @param vehicle vehicle running the path
      * @return cost of path
      */
-    public double costOfPath(final List<TourActivity> path, final double depTime, final Driver driver, final Vehicle vehicle) {
+    public double costOfPath(final Collection<AbstractActivity> path, final double depTime, final Driver driver, final Vehicle vehicle) {
         if (path.isEmpty()) {
             return 0.0;
         }
         double cost = 0.0;
-        Iterator<TourActivity> actIter = path.iterator();
-        TourActivity prevAct = actIter.next();
+        Iterator<AbstractActivity> actIter = path.iterator();
+        AbstractActivity prevAct = actIter.next();
         double startCost = 0.0;
         cost += startCost;
         double departureTimePrevAct = depTime;
         while (actIter.hasNext()) {
-            TourActivity act = actIter.next();
+            AbstractActivity act = actIter.next();
             if (act instanceof End) {
                 if (!vehicle.isReturnToDepot()) {
                     return cost;
                 }
             }
-            double transportCost = routingCosts.getTransportCost(prevAct.getLocation(), act.getLocation(), departureTimePrevAct, driver, vehicle);
-            double transportTime = routingCosts.getTransportTime(prevAct.getLocation(), act.getLocation(), departureTimePrevAct, driver, vehicle);
+            double transportCost = routingCosts.transportCost(prevAct.location(), act.location(), departureTimePrevAct, driver, vehicle);
+            double transportTime = routingCosts.transportTime(prevAct.location(), act.location(), departureTimePrevAct, driver, vehicle);
             cost += transportCost;
             double actStartTime = departureTimePrevAct + transportTime;
-            departureTimePrevAct = Math.max(actStartTime, act.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(act,actStartTime,driver,vehicle);
+            departureTimePrevAct = Math.max(actStartTime, act.startEarliest()) + activityCosts.getActivityDuration(act,actStartTime,driver,vehicle);
             cost += activityCosts.getActivityCost(act, actStartTime, driver, vehicle);
             prevAct = act;
         }

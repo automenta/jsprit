@@ -23,10 +23,11 @@ import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.Skills;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindows;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindowsImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 
 import java.util.Collection;
+
+import static com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow.ALL;
 
 /**
  * Service implementation of a job.
@@ -62,21 +63,21 @@ public class Service extends AbstractJob {
             return new Builder(id);
         }
 
-        private String id;
+        private final String id;
 
         protected String locationId;
 
         private String type = "service";
 
-        protected Coordinate coord;
+        protected v2 coord;
 
         protected double serviceTime;
 
-        protected Capacity.Builder capacityBuilder = Capacity.Builder.newInstance();
+        protected final Capacity.Builder capacityBuilder = Capacity.Builder.get();
 
         protected Capacity capacity;
 
-        protected Skills.Builder skillBuilder = Skills.Builder.newInstance();
+        protected final Skills.Builder skillBuilder = Skills.Builder.newInstance();
 
         protected Skills skills;
 
@@ -84,9 +85,9 @@ public class Service extends AbstractJob {
 
         protected Location location;
 
-        protected TimeWindowsImpl timeWindows;
+        protected TimeWindows timeWindows;
 
-        private boolean twAdded = false;
+        private boolean twAdded;
 
         private int priority = 2;
         protected Object userData;
@@ -95,8 +96,7 @@ public class Service extends AbstractJob {
 		
 		Builder(String id){
 			this.id = id;
-			timeWindows = new TimeWindowsImpl();
-			timeWindows.add(TimeWindow.newInstance(0.0, Double.MAX_VALUE));
+			timeWindows = new TimeWindows( ALL );
 		}
 
         /**
@@ -107,7 +107,7 @@ public class Service extends AbstractJob {
          * @param name the name of service
          * @return the builder
          */
-        protected Builder<T> setType(String name) {
+        protected Builder<T> type(String name) {
             this.type = name;
             return this;
         }
@@ -118,7 +118,7 @@ public class Service extends AbstractJob {
          * @param location location
          * @return builder
          */
-        public Builder<T> setLocation(Location location) {
+        public Builder<T> location(Location location) {
             this.location = location;
             return this;
         }
@@ -133,7 +133,7 @@ public class Service extends AbstractJob {
          * @return builder
          * @throws IllegalArgumentException if serviceTime < 0
          */
-        public Builder<T> setServiceTime(double serviceTime) {
+        public Builder<T> serviceTime(double serviceTime) {
             if (serviceTime < 0)
                 throw new IllegalArgumentException("serviceTime must be greater than or equal to zero");
             this.serviceTime = serviceTime;
@@ -153,7 +153,7 @@ public class Service extends AbstractJob {
          *            associated with the object.
          * @return builder
          */
-        public Builder<T> setUserData(Object userData) {
+        public Builder<T> userData(Object userData) {
             this.userData = userData;
             return this;
         }
@@ -166,35 +166,34 @@ public class Service extends AbstractJob {
          * @return the builder
          * @throws IllegalArgumentException if dimensionValue < 0
          */
-        public Builder<T> addSizeDimension(int dimensionIndex, int dimensionValue) {
+        public Builder<T> sizeDimension(int dimensionIndex, int dimensionValue) {
             if (dimensionValue < 0) throw new IllegalArgumentException("capacity value cannot be negative");
             capacityBuilder.addDimension(dimensionIndex, dimensionValue);
             return this;
         }
 
-        public Builder<T> setTimeWindow(TimeWindow tw){
+        public Builder<T> timeWindowSet(TimeWindow tw){
             if(tw == null) throw new IllegalArgumentException("time-window arg must not be null");
-            this.timeWindows = new TimeWindowsImpl();
-            timeWindows.add(tw);
+            this.timeWindows = new TimeWindows(tw);
             return this;
         }
 
-        public Builder<T> addTimeWindow(TimeWindow timeWindow) {
+        public Builder<T> timeWindowAdd(TimeWindow timeWindow) {
             if(timeWindow == null) throw new IllegalArgumentException("time-window arg must not be null");
             if(!twAdded){
-                timeWindows = new TimeWindowsImpl();
+                timeWindows = new TimeWindows();
                 twAdded = true;
             }
             timeWindows.add(timeWindow);
             return this;
         }
 
-        public Builder<T> addTimeWindow(double earliest, double latest) {
-            return addTimeWindow(TimeWindow.newInstance(earliest, latest));
+        public Builder<T> timeWindowAdd(double earliest, double latest) {
+            return timeWindowAdd(TimeWindow.the(earliest, latest));
         }
 
-        public Builder<T> addAllTimeWindows(Collection<TimeWindow> timeWindows) {
-            for (TimeWindow tw : timeWindows) addTimeWindow(tw);
+        public Builder<T> timeWindowAdd(Iterable<TimeWindow> timeWindows) {
+            for (TimeWindow tw : timeWindows) timeWindowAdd(tw);
             return this;
         }
 
@@ -206,32 +205,32 @@ public class Service extends AbstractJob {
          */
         public T build() {
             if (location == null) throw new IllegalArgumentException("location is missing");
-            this.setType("service");
+            this.type("service");
             capacity = capacityBuilder.build();
             skills = skillBuilder.build();
             return (T) new Service(this);
         }
 
-        public Builder<T> addRequiredSkill(String skill) {
+        public Builder<T> skillRequired(String skill) {
             skillBuilder.addSkill(skill);
             return this;
         }
 
-        public Builder<T> setName(String name) {
+        public Builder<T> name(String name) {
             this.name = name;
             return this;
         }
 
-        public Builder<T> addAllRequiredSkills(Skills skills){
+        public Builder<T> skillsRequired(Skills skills){
             for(String s : skills.values()){
                 skillBuilder.addSkill(s);
             }
             return this;
         }
 
-        public Builder<T> addAllSizeDimensions(Capacity size){
-            for(int i=0;i<size.getNuOfDimensions();i++){
-                addSizeDimension(i, size.get(i));
+        public Builder<T> sizeDimensions(Capacity size){
+            for(int i = 0; i<size.dim(); i++){
+                sizeDimension(i, size.get(i));
             }
             return this;
         }
@@ -259,25 +258,25 @@ public class Service extends AbstractJob {
         }
     }
 
-    private final String id;
+    public final String id;
 
-    private final String type;
+    public final String type;
 
-    private final double serviceTime;
+    public final double serviceTime;
 
-    private final Capacity size;
+    public final Capacity size;
 
-    private final Skills skills;
+    public final Skills skills;
 
-    private final String name;
+    public final String name;
 
-    private final Location location;
+    public final Location location;
 
-    private final TimeWindows timeWindows;
+    public final TimeWindows timeWindows;
 
-    private final int priority;
+    public final int priority;
 
-    private final double maxTimeInVehicle;
+    public final double maxTimeInVehicle;
 
     Service(Builder<?> builder) {
         setUserData(builder.userData);
@@ -293,12 +292,12 @@ public class Service extends AbstractJob {
 	    maxTimeInVehicle = builder.maxTimeInVehicle;
 	}
 
-    public Collection<TimeWindow> getTimeWindows(){
-        return timeWindows.getTimeWindows();
+    public final TimeWindows timeWindows(){
+        return timeWindows;
     }
 
     @Override
-    public String getId() {
+    public final String id() {
         return id;
     }
 
@@ -307,7 +306,7 @@ public class Service extends AbstractJob {
      *
      * @return location
      */
-    public Location getLocation() {
+    public Location location() {
         return location;
     }
 
@@ -317,7 +316,7 @@ public class Service extends AbstractJob {
      *
      * @return service duration
      */
-    public double getServiceDuration() {
+    public double serviceDuration() {
         return serviceTime;
     }
 
@@ -328,14 +327,14 @@ public class Service extends AbstractJob {
      * @return time window
      *
      */
-    public TimeWindow getTimeWindow() {
-        return timeWindows.getTimeWindows().iterator().next();
+    public TimeWindow timeWindow() {
+        return timeWindows.iterator().next();
     }
 
     /**
      * @return the name
      */
-    public String getType() {
+    public final String type() {
         return type;
     }
 
@@ -348,7 +347,7 @@ public class Service extends AbstractJob {
     public String toString() {
         return "[id=" + id + "][name=" + name + "][type=" + type + "][location=" + location
                 + "][capacity=" + size + "][serviceTime=" + serviceTime + "][timeWindows="
-                + timeWindows + "]";
+                + timeWindows + ']';
     }
 
     @Override
@@ -371,26 +370,21 @@ public class Service extends AbstractJob {
         if (getClass() != obj.getClass())
             return false;
         Service other = (Service) obj;
-        if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
-        return true;
+        return id == null ? other.id == null : id.equals(other.id);
     }
 
     @Override
-    public Capacity getSize() {
+    public Capacity size() {
         return size;
     }
 
     @Override
-    public Skills getRequiredSkills() {
+    public final Skills skillsRequired() {
         return skills;
     }
 
     @Override
-    public String getName() {
+    public final String name() {
         return name;
     }
 
@@ -402,12 +396,12 @@ public class Service extends AbstractJob {
      * @return priority
      */
     @Override
-    public int getPriority() {
+    public final int pri() {
         return priority;
     }
 
     @Override
-    public double getMaxTimeInVehicle() {
+    public final double vehicleTimeInMax() {
         return this.maxTimeInVehicle;
     }
 

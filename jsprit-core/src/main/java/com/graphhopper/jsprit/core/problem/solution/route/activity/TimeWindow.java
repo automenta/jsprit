@@ -17,6 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
+import static java.lang.Double.MAX_VALUE;
+
 /**
  * TimeWindow consists of a startTime and endTime.
  *
@@ -33,12 +35,19 @@ public class TimeWindow {
      * @return TimeWindow
      * @throw IllegalArgumentException either if start or end < 0.0 or end < start
      */
-    public static TimeWindow newInstance(double start, double end) {
+    public static TimeWindow the(double start, double end) {
+        if (start == 0 && end == MAX_VALUE)
+            return ALL;
+
+
         return new TimeWindow(start, end);
     }
 
-    private final double start;
-    private final double end;
+    /** shared */
+    final public static TimeWindow ALL = new TimeWindow(0, MAX_VALUE);
+
+    public final double start;
+    public final double end;
 
     /**
      * Constructs the timeWindow
@@ -47,12 +56,11 @@ public class TimeWindow {
      * @param end
      * @throw IllegalArgumentException either if start or end < 0.0 or end < start
      */
-    public TimeWindow(double start, double end) {
-        super();
+    private TimeWindow(double start, double end) {
         if (start < 0.0 || end < 0.0)
-            throw new IllegalArgumentException("neither time window start nor end must be < 0.0: " + "[start=" + start + "][end=" + end + "]");
+            throw new IllegalArgumentException("neither time window start nor end must be < 0.0: " + "[start=" + start + "][end=" + end + ']');
         if (end < start)
-            throw new IllegalArgumentException("time window end cannot be smaller than its start: " + "[start=" + start + "][end=" + end + "]");
+            throw new IllegalArgumentException("time window end cannot be smaller than its start: " + "[start=" + start + "][end=" + end + ']');
         this.start = start;
         this.end = end;
     }
@@ -62,7 +70,7 @@ public class TimeWindow {
      *
      * @return startTime
      */
-    public double getStart() {
+    public double start() {
         return start;
     }
 
@@ -71,13 +79,13 @@ public class TimeWindow {
      *
      * @return endTime
      */
-    public double getEnd() {
+    public double end() {
         return end;
     }
 
     @Override
     public String toString() {
-        return "[start=" + start + "][end=" + end + "]";
+        return "[start=" + start + "][end=" + end + ']';
     }
 
     @Override
@@ -106,10 +114,8 @@ public class TimeWindow {
         TimeWindow other = (TimeWindow) obj;
         if (Double.doubleToLongBits(end) != Double.doubleToLongBits(other.end))
             return false;
-        if (Double.doubleToLongBits(start) != Double
-            .doubleToLongBits(other.start))
-            return false;
-        return true;
+        return Double.doubleToLongBits(start) == Double
+                .doubleToLongBits(other.start);
     }
 
 

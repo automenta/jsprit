@@ -32,9 +32,9 @@ import java.net.URL;
 
 public class AlgorithmConfigXmlReader {
 
-    private static Logger log = LoggerFactory.getLogger(AlgorithmConfigXmlReader.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(AlgorithmConfigXmlReader.class.getName());
 
-    private AlgorithmConfig algorithmConfig;
+    private final AlgorithmConfig algorithmConfig;
 
     private boolean schemaValidation = true;
 
@@ -62,11 +62,9 @@ public class AlgorithmConfigXmlReader {
                 EntityResolver resolver = new EntityResolver() {
 
                     @Override
-                    public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-                        {
-                            InputSource is = new InputSource(resource);
-                            return is;
-                        }
+                    public InputSource resolveEntity(String publicId, String systemId) {
+                        InputSource is = new InputSource(resource);
+                        return is;
                     }
                 };
                 algorithmConfig.getXMLConfiguration().setEntityResolver(resolver);

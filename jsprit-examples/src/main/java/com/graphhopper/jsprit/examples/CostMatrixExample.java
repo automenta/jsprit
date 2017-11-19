@@ -50,13 +50,13 @@ public class CostMatrixExample {
 		 */
         Examples.createOutputFolder();
 
-        VehicleType type = VehicleTypeImpl.Builder.newInstance("type").addCapacityDimension(0, 2).setCostPerDistance(1).setCostPerTime(2).build();
+        VehicleType type = VehicleTypeImpl.Builder.the("type").addCapacityDimension(0, 2).setCostPerDistance(1).setCostPerTime(2).build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle")
-            .setStartLocation(Location.newInstance("0")).setType(type).build();
+            .setStartLocation(Location.the("0")).setType(type).build();
 
-        Service s1 = Service.Builder.newInstance("1").addSizeDimension(0, 1).setLocation(Location.newInstance("1")).build();
-        Service s2 = Service.Builder.newInstance("2").addSizeDimension(0, 1).setLocation(Location.newInstance("2")).build();
-        Service s3 = Service.Builder.newInstance("3").addSizeDimension(0, 1).setLocation(Location.newInstance("3")).build();
+        Service s1 = Service.Builder.newInstance("1").sizeDimension(0, 1).location(Location.the("1")).build();
+        Service s2 = Service.Builder.newInstance("2").sizeDimension(0, 1).location(Location.the("2")).build();
+        Service s3 = Service.Builder.newInstance("3").sizeDimension(0, 1).location(Location.the("3")).build();
 
 
 		/*
@@ -95,7 +95,7 @@ public class CostMatrixExample {
 
         VehicleRoutingTransportCosts costMatrix = costMatrixBuilder.build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().setFleetSize(FleetSize.INFINITE).setRoutingCost(costMatrix)
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().setFleetSize(FleetSize.INFINITE).setRoutingCost(costMatrix)
             .addVehicle(vehicle).addJob(s1).addJob(s2).addJob(s3).build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);

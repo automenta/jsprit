@@ -29,16 +29,15 @@ import java.util.Iterator;
  */
 class NearestNeighborhoodIterator implements Iterator<Job> {
 
-    private static Logger log = LoggerFactory.getLogger(NearestNeighborhoodIterator.class);
+    private static final Logger log = LoggerFactory.getLogger(NearestNeighborhoodIterator.class);
 
-    private Iterator<ReferencedJob> jobIter;
+    private final Iterator<ReferencedJob> jobIter;
 
-    private int nJobs;
+    private final int nJobs;
 
-    private int jobCount = 0;
+    private int jobCount;
 
     public NearestNeighborhoodIterator(Iterator<ReferencedJob> jobIter, int nJobs) {
-        super();
         this.jobIter = jobIter;
         this.nJobs = nJobs;
     }
@@ -58,7 +57,7 @@ class NearestNeighborhoodIterator implements Iterator<Job> {
     public Job next() {
         ReferencedJob next = jobIter.next();
         jobCount++;
-        return next.getJob();
+        return next.job;
     }
 
     @Override

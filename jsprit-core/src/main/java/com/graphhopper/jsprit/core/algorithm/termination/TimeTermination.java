@@ -41,24 +41,17 @@ import java.util.Collection;
  */
 public class TimeTermination implements PrematureAlgorithmTermination, AlgorithmStartsListener {
 
-    public static interface TimeGetter {
+    public interface TimeGetter {
 
-        public long getCurrentTime();
+        long getCurrentTime();
 
     }
 
-    private static Logger logger = LoggerFactory.getLogger(TimeTermination.class);
+    private static final Logger logger = LoggerFactory.getLogger(TimeTermination.class);
 
     private final long timeThreshold;
 
-    private TimeGetter timeGetter = new TimeGetter() {
-
-        @Override
-        public long getCurrentTime() {
-            return System.currentTimeMillis();
-        }
-
-    };
+    private TimeGetter timeGetter = () -> System.currentTimeMillis();
 
     private long startTime;
 
@@ -68,7 +61,6 @@ public class TimeTermination implements PrematureAlgorithmTermination, Algorithm
      * @param timeThreshold_in_milliseconds the computation time [in ms] after which the algorithm terminates
      */
     public TimeTermination(long timeThreshold_in_milliseconds) {
-        super();
         this.timeThreshold = timeThreshold_in_milliseconds;
         logger.debug("initialise {}", this);
     }

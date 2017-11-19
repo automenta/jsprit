@@ -17,15 +17,15 @@
  */
 package com.graphhopper.jsprit.core.problem.constraint;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliverShipment;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.PickupShipment;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 public class ShipmentPickupsFirstConstraint implements HardActivityConstraint {
 
     @Override
-    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
         if (newAct instanceof DeliverShipment && nextAct instanceof PickupShipment) {
             return ConstraintsStatus.NOT_FULFILLED;
         }

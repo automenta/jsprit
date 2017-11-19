@@ -21,6 +21,6 @@ import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 
 public interface SoftRouteConstraint extends SoftConstraint {
 
-    public double getCosts(JobInsertionContext insertionContext);
+    double getCosts(JobInsertionContext insertionContext);
 
 }

@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.constraint;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -51,9 +51,9 @@ public class SoftActivityConstraintManagerTest {
     public void whenAddingTwoSoftConstrainta_managerShouldSumCostsCorrectly() {
         SoftActivityConstraint c1 = mock(SoftActivityConstraint.class);
         JobInsertionContext iContext = mock(JobInsertionContext.class);
-        TourActivity act_i = mock(TourActivity.class);
-        TourActivity act_k = mock(TourActivity.class);
-        TourActivity act_j = mock(TourActivity.class);
+        AbstractActivity act_i = mock(AbstractActivity.class);
+        AbstractActivity act_k = mock(AbstractActivity.class);
+        AbstractActivity act_j = mock(AbstractActivity.class);
         when(c1.getCosts(iContext, act_i, act_k, act_j, 0.0)).thenReturn(1.0);
         SoftActivityConstraint c2 = mock(SoftActivityConstraint.class);
         when(c2.getCosts(iContext, act_i, act_k, act_j, 0.0)).thenReturn(2.0);

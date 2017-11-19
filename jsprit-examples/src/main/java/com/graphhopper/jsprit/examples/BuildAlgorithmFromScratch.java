@@ -57,7 +57,7 @@ public class BuildAlgorithmFromScratch {
 
     public static class MyBestStrategy extends AbstractInsertionStrategy {
 
-        private JobInsertionCostsCalculatorLight insertionCalculator;
+        private final JobInsertionCostsCalculatorLight insertionCalculator;
 
 
         public MyBestStrategy(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
@@ -107,7 +107,7 @@ public class BuildAlgorithmFromScratch {
     public static void main(String[] args) {
         Examples.createOutputFolder();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new CordeauReader(vrpBuilder).read("input/p08");
         final VehicleRoutingProblem vrp = vrpBuilder.build();
 
@@ -130,7 +130,7 @@ public class BuildAlgorithmFromScratch {
 
     public static VehicleRoutingAlgorithm createAlgorithm(final VehicleRoutingProblem vrp) {
 
-        VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
+        VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(vrp.vehicles()).createFleetManager();
         StateManager stateManager = new StateManager(vrp);
         ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);
 
@@ -154,7 +154,7 @@ public class BuildAlgorithmFromScratch {
          * ruin strategies
 		 */
         RuinStrategy randomRuin = new RandomRuinStrategyFactory(0.5).createStrategy(vrp);
-        RuinStrategy radialRuin = new RadialRuinStrategyFactory(0.3, new AvgServiceAndShipmentDistance(vrp.getTransportCosts())).createStrategy(vrp);
+        RuinStrategy radialRuin = new RadialRuinStrategyFactory(0.3, new AvgServiceAndShipmentDistance(vrp.transportCosts())).createStrategy(vrp);
 
 		/*
          * objective function
@@ -204,8 +204,8 @@ public class BuildAlgorithmFromScratch {
 
             @Override
             public double getCosts(VehicleRoutingProblemSolution solution) {
-                SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
-                return analyser.getVariableTransportCosts() + solution.getUnassignedJobs().size() * 500.;
+                SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.transportCosts());
+                return analyser.getVariableTransportCosts() + solution.jobsUnassigned.size() * 500.;
             }
 
         };

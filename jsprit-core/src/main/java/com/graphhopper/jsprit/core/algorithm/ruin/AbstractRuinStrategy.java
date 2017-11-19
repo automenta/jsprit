@@ -21,6 +21,7 @@ package com.graphhopper.jsprit.core.algorithm.ruin;
 
 import com.graphhopper.jsprit.core.algorithm.ruin.listener.RuinListener;
 import com.graphhopper.jsprit.core.algorithm.ruin.listener.RuinListeners;
+import com.graphhopper.jsprit.core.problem.HasId;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
@@ -35,11 +36,11 @@ public abstract class AbstractRuinStrategy implements RuinStrategy {
 
     private final static Logger logger = LoggerFactory.getLogger(AbstractRuinStrategy.class);
 
-    private RuinListeners ruinListeners;
+    private final RuinListeners ruinListeners;
 
     protected Random random = RandomNumberGeneration.getRandom();
 
-    protected VehicleRoutingProblem vrp;
+    protected final VehicleRoutingProblem vrp;
 
     public void setRandom(Random random) {
         this.random = random;
@@ -86,7 +87,7 @@ public abstract class AbstractRuinStrategy implements RuinStrategy {
         return ruinListeners.getListeners();
     }
 
-    protected boolean removeJob(Job job, Collection<VehicleRoute> vehicleRoutes) {
+    protected boolean removeJob(Job job, Iterable<VehicleRoute> vehicleRoutes) {
         if (jobIsInitial(job)) return false;
         for (VehicleRoute route : vehicleRoutes) {
             if (removeJob(job, route)) {
@@ -96,15 +97,15 @@ public abstract class AbstractRuinStrategy implements RuinStrategy {
         return false;
     }
 
-    private boolean jobIsInitial(Job job) {
-        return !vrp.getJobs().containsKey(job.getId()); //for initial jobs (being not contained in problem
+    private boolean jobIsInitial(HasId job) {
+        return !vrp.jobs().containsKey(job.id()); //for initial jobs (being not contained in problem
     }
 
     protected boolean removeJob(Job job, VehicleRoute route) {
         if (jobIsInitial(job)) return false;
-        boolean removed = route.getTourActivities().removeJob(job);
+        boolean removed = route.tourActivities().removeJob(job);
         if (removed) {
-            logger.trace("ruin: {}", job.getId());
+            logger.trace("ruin: {}", job.id());
             ruinListeners.removed(job, route);
             return true;
         }

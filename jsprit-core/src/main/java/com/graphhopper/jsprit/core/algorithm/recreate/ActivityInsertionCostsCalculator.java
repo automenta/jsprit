@@ -18,18 +18,17 @@
 
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 public interface ActivityInsertionCostsCalculator {
 
-    public class ActivityInsertionCosts {
+    class ActivityInsertionCosts {
 
-        private double additionalCosts;
-        private double additionalTime;
+        private final double additionalCosts;
+        private final double additionalTime;
 
         public ActivityInsertionCosts(double additionalCosts, double additionalTime) {
-            super();
             this.additionalCosts = additionalCosts;
             this.additionalTime = additionalTime;
         }
@@ -51,6 +50,6 @@ public interface ActivityInsertionCostsCalculator {
 
     }
 
-    public double getCosts(JobInsertionContext iContext, TourActivity prevAct, TourActivity nextAct, TourActivity newAct, double depTimeAtPrevAct);
+    double getCosts(JobInsertionContext iContext, AbstractActivity prevAct, AbstractActivity nextAct, AbstractActivity newAct, double depTimeAtPrevAct);
 
 }

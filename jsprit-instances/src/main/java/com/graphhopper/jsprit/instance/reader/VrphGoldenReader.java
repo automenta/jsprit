@@ -25,7 +25,7 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem.FleetSize;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 
 import java.io.*;
 
@@ -62,7 +62,6 @@ public class VrphGoldenReader {
     private final VrphType vrphType;
 
     public VrphGoldenReader(Builder vrpBuilder, VrphType vrphType) {
-        super();
         this.vrpBuilder = vrpBuilder;
         this.vrphType = vrphType;
     }
@@ -71,7 +70,7 @@ public class VrphGoldenReader {
         BufferedReader reader = getReader(filename);
         String line;
         boolean firstline = true;
-        Coordinate depotCoord = null;
+        v2 depotCoord = null;
         int customerCount = 0;
         Integer nuOfCustomer = 0;
         while ((line = readLine(reader)) != null) {
@@ -84,15 +83,15 @@ public class VrphGoldenReader {
                 firstline = false;
             } else if (customerCount <= nuOfCustomer) {
                 if (customerCount == 0) {
-                    depotCoord = Coordinate.newInstance(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]));
+                    depotCoord = v2.the(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]));
                 } else {
-                    Service.Builder serviceBuilder = Service.Builder.newInstance(tokens[0]).addSizeDimension(0, Integer.parseInt(tokens[3]));
-                    serviceBuilder.setLocation(Location.newInstance(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2])));
+                    Service.Builder serviceBuilder = Service.Builder.newInstance(tokens[0]).sizeDimension(0, Integer.parseInt(tokens[3]));
+                    serviceBuilder.location(Location.the(Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2])));
                     vrpBuilder.addJob(serviceBuilder.build());
                 }
                 customerCount++;
             } else if (trimedLine.startsWith("v")) {
-                VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("type_" + tokens[1]).addCapacityDimension(0, Integer.parseInt(tokens[2]));
+                VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("type_" + tokens[1]).addCapacityDimension(0, Integer.parseInt(tokens[2]));
                 int nuOfVehicles = 1;
                 if (vrphType.equals(VrphType.FSMF)) {
                     typeBuilder.setFixedCost(Double.parseDouble(tokens[3]));
@@ -126,7 +125,7 @@ public class VrphGoldenReader {
                 for (int i = 0; i < nuOfVehicles; i++) {
                     VehicleTypeImpl type = typeBuilder.build();
                     VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle_" + tokens[1] + "_" + i)
-                        .setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY())).setType(type).build();
+                        .setStartLocation(Location.the(depotCoord.x, depotCoord.y)).setType(type).build();
                     vrpBuilder.addVehicle(vehicle);
                 }
             }

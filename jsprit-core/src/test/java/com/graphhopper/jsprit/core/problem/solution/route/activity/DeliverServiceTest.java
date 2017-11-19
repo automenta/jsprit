@@ -33,57 +33,57 @@ public class DeliverServiceTest {
 
     @Before
     public void doBefore() {
-        service = Delivery.Builder.newInstance("service").setLocation(Location.newInstance("loc")).
-            setTimeWindow(TimeWindow.newInstance(1., 2.)).
-            addSizeDimension(0, 10).addSizeDimension(1, 100).addSizeDimension(2, 1000).build();
+        service = Delivery.Builder.newInstance("service").location(Location.the("loc")).
+                timeWindowSet(TimeWindow.the(1., 2.)).
+                sizeDimension(0, 10).sizeDimension(1, 100).sizeDimension(2, 1000).build();
         deliver = new DeliverService(service);
-        deliver.setTheoreticalEarliestOperationStartTime(service.getTimeWindow().getStart());
-        deliver.setTheoreticalLatestOperationStartTime(service.getTimeWindow().getEnd());
+        deliver.startEarliest(service.timeWindow().start);
+        deliver.startLatest(service.timeWindow().end);
     }
 
     @Test
     public void whenCallingCapacity_itShouldReturnCorrectCapacity() {
-        assertEquals(-10, deliver.getSize().get(0));
-        assertEquals(-100, deliver.getSize().get(1));
-        assertEquals(-1000, deliver.getSize().get(2));
+        assertEquals(-10, deliver.size().get(0));
+        assertEquals(-100, deliver.size().get(1));
+        assertEquals(-1000, deliver.size().get(2));
     }
 
     @Test
     public void whenStartIsIniWithEarliestStart_itShouldBeSetCorrectly() {
-        assertEquals(1., deliver.getTheoreticalEarliestOperationStartTime(), 0.01);
+        assertEquals(1., deliver.startEarliest(), 0.01);
     }
 
     @Test
     public void whenStartIsIniWithLatestStart_itShouldBeSetCorrectly() {
-        assertEquals(2., deliver.getTheoreticalLatestOperationStartTime(), 0.01);
+        assertEquals(2., deliver.startLatest(), 0.01);
     }
 
     @Test
     public void whenSettingArrTime_itShouldBeSetCorrectly() {
-        deliver.setArrTime(4.0);
-        assertEquals(4., deliver.getArrTime(), 0.01);
+        deliver.arrTime(4.0);
+        assertEquals(4., deliver.arrTime(), 0.01);
     }
 
     @Test
     public void whenSettingEndTime_itShouldBeSetCorrectly() {
-        deliver.setEndTime(5.0);
-        assertEquals(5., deliver.getEndTime(), 0.01);
+        deliver.end(5.0);
+        assertEquals(5., deliver.end(), 0.01);
     }
 
     @Test
     public void whenIniLocationId_itShouldBeSetCorrectly() {
-        assertEquals("loc", deliver.getLocation().getId());
+        assertEquals("loc", deliver.location().id);
     }
 
     @Test
     public void whenCopyingStart_itShouldBeDoneCorrectly() {
-        DeliverService copy = (DeliverService) deliver.duplicate();
-        assertEquals(1., copy.getTheoreticalEarliestOperationStartTime(), 0.01);
-        assertEquals(2., copy.getTheoreticalLatestOperationStartTime(), 0.01);
-        assertEquals("loc", copy.getLocation().getId());
-        assertEquals(-10, copy.getSize().get(0));
-        assertEquals(-100, copy.getSize().get(1));
-        assertEquals(-1000, copy.getSize().get(2));
+        DeliverService copy = deliver.clone();
+        assertEquals(1., copy.startEarliest(), 0.01);
+        assertEquals(2., copy.startLatest(), 0.01);
+        assertEquals("loc", copy.location().id);
+        assertEquals(-10, copy.size().get(0));
+        assertEquals(-100, copy.size().get(1));
+        assertEquals(-1000, copy.size().get(2));
         assertTrue(copy != deliver);
     }
 

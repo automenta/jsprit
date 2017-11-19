@@ -22,6 +22,7 @@ package com.graphhopper.jsprit.core.algorithm;
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.analysis.SolutionAnalyser;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
@@ -31,7 +32,6 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.util.CostFactory;
@@ -39,14 +39,13 @@ import com.graphhopper.jsprit.core.util.Solutions;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
  * Created by schroeder on 22/07/15.
  */
 public class VariableDepartureAndWaitingTime_IT {
 
-    static interface AlgorithmFactory {
+    interface AlgorithmFactory {
         VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp);
     }
 
@@ -59,13 +58,13 @@ public class VariableDepartureAndWaitingTime_IT {
         activityCosts = new VehicleRoutingActivityCosts() {
 
             @Override
-            public double getActivityCost(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
-                return vehicle.getType().getVehicleCostParams().perWaitingTimeUnit * Math.max(0, tourAct.getTheoreticalEarliestOperationStartTime() - arrivalTime);
+            public double getActivityCost(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
+                return vehicle.type().getVehicleCostParams().perWaitingTimeUnit * Math.max(0, tourAct.startEarliest() - arrivalTime);
             }
 
             @Override
-            public double getActivityDuration(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
-                return tourAct.getOperationTime();
+            public double getActivityDuration(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
+                return tourAct.operationTime();
             }
 
         };
@@ -81,7 +80,7 @@ public class VariableDepartureAndWaitingTime_IT {
                     .setObjectiveFunction(new SolutionCostCalculator() {
                         @Override
                         public double getCosts(VehicleRoutingProblemSolution solution) {
-                            SolutionAnalyser sa = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
+                            SolutionAnalyser sa = new SolutionAnalyser(vrp, solution, vrp.transportCosts());
                             return sa.getWaitingTime() + sa.getDistance();
                         }
                     })
@@ -92,10 +91,10 @@ public class VariableDepartureAndWaitingTime_IT {
 
     @Test
     public void plainSetupShouldWork() {
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(10, 0)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(20, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        Service s1 = Service.Builder.newInstance("s1").location(Location.the(10, 0)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(20, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get()
             .addJob(s1).addJob(s2).addVehicle(v)
             .setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
             .setRoutingCost(CostFactory.createManhattanCosts())
@@ -103,15 +102,15 @@ public class VariableDepartureAndWaitingTime_IT {
             .build();
         VehicleRoutingAlgorithm vra = algorithmFactory.createAlgorithm(vrp);
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        Assert.assertEquals(40., solution.getCost());
+        Assert.assertEquals(40., solution.cost());
     }
 
     @Test
     public void withTimeWindowsShouldWork() {
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        Service s1 = Service.Builder.newInstance("s1").setTimeWindow(TimeWindow.newInstance(1010, 1100)).setLocation(Location.newInstance(10, 0)).build();
-        Service s2 = Service.Builder.newInstance("s2").setTimeWindow(TimeWindow.newInstance(1020, 1100)).setLocation(Location.newInstance(20, 0)).build();
-        final VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        Service s1 = Service.Builder.newInstance("s1").timeWindowSet(TimeWindow.the(1010, 1100)).location(Location.the(10, 0)).build();
+        Service s2 = Service.Builder.newInstance("s2").timeWindowSet(TimeWindow.the(1020, 1100)).location(Location.the(20, 0)).build();
+        final VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get()
             .addJob(s1).addJob(s2).addVehicle(v)
             .setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
             .setRoutingCost(CostFactory.createManhattanCosts())
@@ -119,7 +118,7 @@ public class VariableDepartureAndWaitingTime_IT {
             .build();
         VehicleRoutingAlgorithm vra = algorithmFactory.createAlgorithm(vrp);
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());
-        Assert.assertEquals(40. + 1000., solution.getCost());
+        Assert.assertEquals(40. + 1000., solution.cost());
     }
 
 

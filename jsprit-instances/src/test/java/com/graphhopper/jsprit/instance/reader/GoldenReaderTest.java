@@ -22,7 +22,7 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.instance.reader.VrphGoldenReader.VrphType;
 import org.junit.Test;
 
@@ -34,11 +34,11 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_itShouldReadCorrectNuOfVehicles() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        assertEquals(17, vrp.getVehicles().size());
+        assertEquals(17, vrp.vehicles().size());
     }
 
     private String getPath(String string) {
@@ -49,13 +49,13 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_itShouldReadCorrectNuOfType1Vehicles() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_1")) {
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_1")) {
                 nuOfType1Vehicles++;
             }
         }
@@ -64,14 +64,14 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_theSumOfType1VehicleShouldHvTheCorrectCapacity() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_1")) {
-                sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_1")) {
+                sumOfType1Cap += v.type().getCapacityDimensions().get(0);
             }
         }
         assertEquals(80, sumOfType1Cap);
@@ -79,13 +79,13 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_itShouldReadCorrectNuOfType2Vehicles() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_2")) {
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_2")) {
                 nuOfType1Vehicles++;
             }
         }
@@ -94,14 +94,14 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_theSumOfType2VehicleShouldHvTheCorrectCapacity() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_2")) {
-                sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_2")) {
+                sumOfType1Cap += v.type().getCapacityDimensions().get(0);
             }
         }
         assertEquals(60, sumOfType1Cap);
@@ -109,13 +109,13 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_itShouldReadCorrectNuOfType3Vehicles() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_3")) {
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_3")) {
                 nuOfType1Vehicles++;
             }
         }
@@ -124,14 +124,14 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_theSumOfType3VehicleShouldHvTheCorrectCapacity() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_3")) {
-                sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_3")) {
+                sumOfType1Cap += v.type().getCapacityDimensions().get(0);
             }
         }
         assertEquals(160, sumOfType1Cap);
@@ -139,13 +139,13 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_itShouldReadCorrectNuOfType4Vehicles() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_4")) {
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_4")) {
                 nuOfType1Vehicles++;
             }
         }
@@ -154,14 +154,14 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_theSumOfType4VehicleShouldHvTheCorrectCapacity() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_4")) {
-                sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_4")) {
+                sumOfType1Cap += v.type().getCapacityDimensions().get(0);
             }
         }
         assertEquals(280, sumOfType1Cap);
@@ -169,13 +169,13 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_itShouldReadCorrectNuOfType5Vehicles() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_5")) {
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_5")) {
                 nuOfType1Vehicles++;
             }
         }
@@ -184,14 +184,14 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_theSumOfType5VehicleShouldHvTheCorrectCapacity() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_5")) {
-                sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_5")) {
+                sumOfType1Cap += v.type().getCapacityDimensions().get(0);
             }
         }
         assertEquals(240, sumOfType1Cap);
@@ -199,13 +199,13 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_itShouldReadCorrectNuOfType6Vehicles() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int nuOfType1Vehicles = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_6")) {
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_6")) {
                 nuOfType1Vehicles++;
             }
         }
@@ -214,14 +214,14 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_theSumOfType6VehicleShouldHvTheCorrectCapacity() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         int sumOfType1Cap = 0;
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getType().getTypeId().equals("type_6")) {
-                sumOfType1Cap += v.getType().getCapacityDimensions().get(0);
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.type().type().equals("type_6")) {
+                sumOfType1Cap += v.type().getCapacityDimensions().get(0);
             }
         }
         assertEquals(200, sumOfType1Cap);
@@ -229,15 +229,15 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_vehicleShouldHvTheCorrectCoord() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        for (Vehicle v : vrp.getVehicles()) {
-            if (v.getStartLocation().getCoordinate().getX() != 40.0) {
+        for (Vehicle v : vrp.vehicles()) {
+            if (v.start().coord.x != 40.0) {
                 assertFalse(true);
             }
-            if (v.getStartLocation().getCoordinate().getY() != 40.0) {
+            if (v.start().coord.y != 40.0) {
                 assertFalse(true);
             }
         }
@@ -246,76 +246,76 @@ public class GoldenReaderTest {
 
     @Test
     public void whenReadingInstance_service1MustHaveCorrectDemand() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         Job job = getJob("1", vrp);
-        assertEquals(18, job.getSize().get(0));
+        assertEquals(18, job.size().get(0));
     }
 
     @Test
     public void whenReadingInstance_service1MustHaveCorrectCoordinate() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        Coordinate coord = getCoord("1", vrp);
-        assertEquals(22.0, coord.getX(), 0.01);
-        assertEquals(22.0, coord.getY(), 0.01);
+        v2 coord = getCoord("1", vrp);
+        assertEquals(22.0, coord.x, 0.01);
+        assertEquals(22.0, coord.y, 0.01);
     }
 
     @Test
     public void whenReadingInstance_service15MustHaveCorrectCoordinate() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        Coordinate coord = getCoord("15", vrp);
-        assertEquals(62.0, coord.getX(), 0.01);
-        assertEquals(24.0, coord.getY(), 0.01);
+        v2 coord = getCoord("15", vrp);
+        assertEquals(62.0, coord.x, 0.01);
+        assertEquals(24.0, coord.y, 0.01);
     }
 
 
     @Test
     public void whenReadingInstance_service50MustHaveCorrectCoordinate() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
-        Coordinate coord = getCoord("50", vrp);
-        assertEquals(15.0, coord.getX(), 0.01);
-        assertEquals(56.0, coord.getY(), 0.01);
+        v2 coord = getCoord("50", vrp);
+        assertEquals(15.0, coord.x, 0.01);
+        assertEquals(56.0, coord.y, 0.01);
     }
 
-    private Coordinate getCoord(String string, VehicleRoutingProblem vrp) {
+    private v2 getCoord(String string, VehicleRoutingProblem vrp) {
         Job j = getJob(string, vrp);
-        return ((Service) j).getLocation().getCoordinate();
+        return ((Service) j).location.coord;
     }
 
     @Test
     public void whenReadingInstance_service4MustHaveCorrectDemand() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         Job job = getJob("4", vrp);
-        assertEquals(30, job.getSize().get(0));
+        assertEquals(30, job.size().get(0));
     }
 
     @Test
     public void whenReadingInstance_service50MustHaveCorrectDemand() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrphGoldenReader(vrpBuilder, VrphType.HVRPD)
             .read(getPath("cn_13mix.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         Job job = getJob("50", vrp);
-        assertEquals(22, job.getSize().get(0));
+        assertEquals(22, job.size().get(0));
     }
 
     private Job getJob(String string, VehicleRoutingProblem vrp) {
-        for (Job j : vrp.getJobs().values()) {
-            if (j.getId().equals(string)) {
+        for (Job j : vrp.jobs().values()) {
+            if (j.id().equals(string)) {
                 return j;
             }
         }

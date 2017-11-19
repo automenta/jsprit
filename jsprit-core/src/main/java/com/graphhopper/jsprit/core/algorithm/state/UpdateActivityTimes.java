@@ -17,11 +17,11 @@
  */
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.cost.ForwardTransportTime;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
 
 
@@ -34,7 +34,7 @@ import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
  */
 public class UpdateActivityTimes implements ActivityVisitor, StateUpdater {
 
-    private ActivityTimeTracker timeTracker;
+    private final ActivityTimeTracker timeTracker;
 
     private VehicleRoute route;
 
@@ -48,7 +48,6 @@ public class UpdateActivityTimes implements ActivityVisitor, StateUpdater {
      * <code>activity.getEndTime()</code>
      */
     public UpdateActivityTimes(ForwardTransportTime transportTime, VehicleRoutingActivityCosts activityCosts) {
-        super();
         timeTracker = new ActivityTimeTracker(transportTime,activityCosts );
     }
 
@@ -60,20 +59,20 @@ public class UpdateActivityTimes implements ActivityVisitor, StateUpdater {
     public void begin(VehicleRoute route) {
         timeTracker.begin(route);
         this.route = route;
-        route.getStart().setEndTime(timeTracker.getActEndTime());
+        route.start.end(timeTracker.getActEndTime());
     }
 
     @Override
-    public void visit(TourActivity activity) {
+    public void visit(AbstractActivity activity) {
         timeTracker.visit(activity);
-        activity.setArrTime(timeTracker.getActArrTime());
-        activity.setEndTime(timeTracker.getActEndTime());
+        activity.arrTime(timeTracker.getActArrTime());
+        activity.end(timeTracker.getActEndTime());
     }
 
     @Override
     public void finish() {
         timeTracker.finish();
-        route.getEnd().setArrTime(timeTracker.getActArrTime());
+        route.end.arrTime(timeTracker.getActArrTime());
     }
 
 }

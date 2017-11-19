@@ -44,17 +44,17 @@ public final class IncreasingAbsoluteFixedCosts extends SolutionCompletenessRati
 
     @Override
     public String toString() {
-        return "[name=IncreasingAbsoluteFixedCosts][weightOfFixedCostSavings=" + weightDeltaFixCost + "]";
+        return "[name=IncreasingAbsoluteFixedCosts][weightOfFixedCostSavings=" + weightDeltaFixCost + ']';
     }
 
     @Override
     public double getCosts(JobInsertionContext insertionContext) {
         final VehicleRoute currentRoute = insertionContext.getRoute();
         double currentFix = 0d;
-        if (currentRoute.getVehicle() != null && !(currentRoute.getVehicle() instanceof VehicleImpl.NoVehicle)) {
-            currentFix = currentRoute.getVehicle().getType().getVehicleCostParams().fix;
+        if (currentRoute.vehicle() != null && !(currentRoute.vehicle() instanceof VehicleImpl.NoVehicle)) {
+            currentFix = currentRoute.vehicle().type().getVehicleCostParams().fix;
         }
-        double increasingAbsoluteFixedCosts = solutionCompletenessRatio * (insertionContext.getNewVehicle().getType().getVehicleCostParams().fix - currentFix);
+        double increasingAbsoluteFixedCosts = solutionCompletenessRatio * (insertionContext.getNewVehicle().type().getVehicleCostParams().fix - currentFix);
         return weightDeltaFixCost * solutionCompletenessRatio * increasingAbsoluteFixedCosts;
     }
 

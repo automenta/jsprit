@@ -22,6 +22,6 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 public interface VehicleSwitchedListener extends InsertionListener {
 
-    public void vehicleSwitched(VehicleRoute vehicleRoute, Vehicle oldVehicle, Vehicle newVehicle);
+    void vehicleSwitched(VehicleRoute vehicleRoute, Vehicle oldVehicle, Vehicle newVehicle);
 
 }

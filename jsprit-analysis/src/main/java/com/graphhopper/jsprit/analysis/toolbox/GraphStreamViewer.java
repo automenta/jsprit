@@ -18,6 +18,7 @@
 package com.graphhopper.jsprit.analysis.toolbox;
 
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Service;
@@ -26,8 +27,7 @@ import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolutio
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliveryActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.PickupActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity.JobActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.util.Time;
 import org.graphstream.graph.Edge;
@@ -236,7 +236,7 @@ public class GraphStreamViewer {
             "	arrow-size: 6px,3px;" +
             "}";
 
-    public static enum Label {
+    public enum Label {
         NO_LABEL, ID, JOB_NAME, ARRIVAL_TIME, DEPARTURE_TIME, ACTIVITY
     }
 
@@ -245,7 +245,6 @@ public class GraphStreamViewer {
         final double y;
 
         public Center(double x, double y) {
-            super();
             this.x = x;
             this.y = y;
         }
@@ -254,13 +253,13 @@ public class GraphStreamViewer {
 
     private Label label = Label.NO_LABEL;
 
-    private long renderDelay_in_ms = 0;
+    private long renderDelay_in_ms;
 
-    private boolean renderShipments = false;
+    private boolean renderShipments;
 
     private Center center;
 
-    private VehicleRoutingProblem vrp;
+    private final VehicleRoutingProblem vrp;
 
     private VehicleRoutingProblemSolution solution;
 
@@ -270,12 +269,10 @@ public class GraphStreamViewer {
 
 
     public GraphStreamViewer(VehicleRoutingProblem vrp) {
-        super();
         this.vrp = vrp;
     }
 
     public GraphStreamViewer(VehicleRoutingProblem vrp, VehicleRoutingProblemSolution solution) {
-        super();
         this.vrp = vrp;
         this.solution = solution;
     }
@@ -379,12 +376,12 @@ public class GraphStreamViewer {
             alignCamera(view);
         }
 
-        for (Vehicle vehicle : vrp.getVehicles()) {
+        for (Vehicle vehicle : vrp.vehicles()) {
             renderVehicle(g, vehicle, label);
             sleep(renderDelay_in_ms);
         }
 
-        for (Job j : vrp.getJobs().values()) {
+        for (Job j : vrp.jobs().values()) {
             if (j instanceof Service) {
                 renderService(g, (Service) j, label);
             } else if (j instanceof Shipment) {
@@ -395,7 +392,7 @@ public class GraphStreamViewer {
 
         if (solution != null) {
             int routeId = 1;
-            for (VehicleRoute route : solution.getRoutes()) {
+            for (VehicleRoute route : solution.routes) {
                 renderRoute(g, route, routeId, renderDelay_in_ms, label);
                 sleep(renderDelay_in_ms);
                 routeId++;
@@ -436,7 +433,7 @@ public class GraphStreamViewer {
         jobs.setPreferredSize(new Dimension((int) (40 * scaling), (int) (25 * scaling)));
 
         int noJobs = 0;
-        if (this.vrp != null) noJobs = this.vrp.getJobs().values().size();
+        if (this.vrp != null) noJobs = this.vrp.jobs().values().size();
 
         JFormattedTextField nJobs = new JFormattedTextField(noJobs);
         nJobs.setFont(font);
@@ -492,32 +489,32 @@ public class GraphStreamViewer {
     }
 
     private Integer getNoRoutes() {
-        if (solution != null) return solution.getRoutes().size();
+        if (solution != null) return solution.routes.size();
         return 0;
     }
 
     private Double getSolutionCosts() {
-        if (solution != null) return solution.getCost();
+        if (solution != null) return solution.cost();
         return 0.0;
     }
 
     private void renderShipment(Graph g, Shipment shipment, Label label, boolean renderShipments) {
 
-        Node n1 = g.addNode(makeId(shipment.getId(), shipment.getPickupLocation().getId()));
-        if (label.equals(Label.ID)) n1.addAttribute("ui.label", shipment.getId());
-        n1.addAttribute("x", shipment.getPickupLocation().getCoordinate().getX());
-        n1.addAttribute("y", shipment.getPickupLocation().getCoordinate().getY());
+        Node n1 = g.addNode(makeId(shipment.id(), shipment.getPickupLocation().id));
+        if (label.equals(Label.ID)) n1.addAttribute("ui.label", shipment.id());
+        n1.addAttribute("x", shipment.getPickupLocation().coord.x);
+        n1.addAttribute("y", shipment.getPickupLocation().coord.y);
         n1.setAttribute("ui.class", "pickup");
 
-        Node n2 = g.addNode(makeId(shipment.getId(), shipment.getDeliveryLocation().getId()));
-        if (label.equals(Label.ID)) n2.addAttribute("ui.label", shipment.getId());
-        n2.addAttribute("x", shipment.getDeliveryLocation().getCoordinate().getX());
-        n2.addAttribute("y", shipment.getDeliveryLocation().getCoordinate().getY());
+        Node n2 = g.addNode(makeId(shipment.id(), shipment.getDeliveryLocation().id));
+        if (label.equals(Label.ID)) n2.addAttribute("ui.label", shipment.id());
+        n2.addAttribute("x", shipment.getDeliveryLocation().coord.x);
+        n2.addAttribute("y", shipment.getDeliveryLocation().coord.y);
         n2.setAttribute("ui.class", "delivery");
 
         if (renderShipments) {
-            Edge s = g.addEdge(shipment.getId(), makeId(shipment.getId(), shipment.getPickupLocation().getId()),
-                makeId(shipment.getId(), shipment.getDeliveryLocation().getId()), true);
+            Edge s = g.addEdge(shipment.id(), makeId(shipment.id(), shipment.getPickupLocation().id),
+                makeId(shipment.id(), shipment.getDeliveryLocation().id), true);
             s.addAttribute("ui.class", "shipment");
         }
 
@@ -533,12 +530,12 @@ public class GraphStreamViewer {
     }
 
     private void renderService(Graph g, Service service, Label label) {
-        Node n = g.addNode(makeId(service.getId(), service.getLocation().getId()));
-        if (label.equals(Label.ID)) n.addAttribute("ui.label", service.getId());
-        n.addAttribute("x", service.getLocation().getCoordinate().getX());
-        n.addAttribute("y", service.getLocation().getCoordinate().getY());
-        if (service.getType().equals("pickup")) n.setAttribute("ui.class", "pickup");
-        if (service.getType().equals("delivery")) n.setAttribute("ui.class", "delivery");
+        Node n = g.addNode(makeId(service.id, service.location.id));
+        if (label.equals(Label.ID)) n.addAttribute("ui.label", service.id);
+        n.addAttribute("x", service.location.coord.x);
+        n.addAttribute("y", service.location.coord.y);
+        if (service.type.equals("pickup")) n.setAttribute("ui.class", "pickup");
+        if (service.type.equals("delivery")) n.setAttribute("ui.class", "delivery");
     }
 
     private String makeId(String id, String locationId) {
@@ -546,19 +543,19 @@ public class GraphStreamViewer {
     }
 
     private void renderVehicle(Graph g, Vehicle vehicle, Label label) {
-        String nodeId = makeId(vehicle.getId(), vehicle.getStartLocation().getId());
+        String nodeId = makeId(vehicle.id(), vehicle.start().id);
         Node vehicleStart = g.addNode(nodeId);
         if (label.equals(Label.ID)) vehicleStart.addAttribute("ui.label", "depot");
 //		if(label.equals(Label.ACTIVITY)) n.addAttribute("ui.label", "start");
-        vehicleStart.addAttribute("x", vehicle.getStartLocation().getCoordinate().getX());
-        vehicleStart.addAttribute("y", vehicle.getStartLocation().getCoordinate().getY());
+        vehicleStart.addAttribute("x", vehicle.start().coord.x);
+        vehicleStart.addAttribute("y", vehicle.start().coord.y);
         vehicleStart.setAttribute("ui.class", "depot");
 
-        if (!vehicle.getStartLocation().getId().equals(vehicle.getEndLocation().getId())) {
-            Node vehicleEnd = g.addNode(makeId(vehicle.getId(), vehicle.getEndLocation().getId()));
+        if (!vehicle.start().id.equals(vehicle.end().id)) {
+            Node vehicleEnd = g.addNode(makeId(vehicle.id(), vehicle.end().id));
             if (label.equals(Label.ID)) vehicleEnd.addAttribute("ui.label", "depot");
-            vehicleEnd.addAttribute("x", vehicle.getEndLocation().getCoordinate().getX());
-            vehicleEnd.addAttribute("y", vehicle.getEndLocation().getCoordinate().getY());
+            vehicleEnd.addAttribute("x", vehicle.end().coord.x);
+            vehicleEnd.addAttribute("y", vehicle.end().coord.y);
             vehicleEnd.setAttribute("ui.class", "depot");
 
         }
@@ -566,26 +563,26 @@ public class GraphStreamViewer {
 
     private void renderRoute(Graph g, VehicleRoute route, int routeId, long renderDelay_in_ms, Label label) {
         int vehicle_edgeId = 1;
-        String prevIdentifier = makeId(route.getVehicle().getId(), route.getVehicle().getStartLocation().getId());
+        String prevIdentifier = makeId(route.vehicle().id(), route.vehicle().start().id);
         if (label.equals(Label.ACTIVITY) || label.equals(Label.JOB_NAME)) {
             Node n = g.getNode(prevIdentifier);
             n.addAttribute("ui.label", "start");
         }
-        for (TourActivity act : route.getActivities()) {
-            Job job = ((JobActivity) act).getJob();
-            String currIdentifier = makeId(job.getId(), act.getLocation().getId());
+        for (AbstractActivity act : route.activities()) {
+            Job job = ((JobActivity) act).job();
+            String currIdentifier = makeId(job.id(), act.location().id);
             if (label.equals(Label.ACTIVITY)) {
                 Node actNode = g.getNode(currIdentifier);
-                actNode.addAttribute("ui.label", act.getName());
+                actNode.addAttribute("ui.label", act.name());
             } else if (label.equals(Label.JOB_NAME)) {
                 Node actNode = g.getNode(currIdentifier);
-                actNode.addAttribute("ui.label", job.getName());
+                actNode.addAttribute("ui.label", job.name());
             } else if (label.equals(Label.ARRIVAL_TIME)) {
                 Node actNode = g.getNode(currIdentifier);
-                actNode.addAttribute("ui.label", Time.parseSecondsToTime(act.getArrTime()));
+                actNode.addAttribute("ui.label", Time.parseSecondsToTime(act.arrTime()));
             } else if (label.equals(Label.DEPARTURE_TIME)) {
                 Node actNode = g.getNode(currIdentifier);
-                actNode.addAttribute("ui.label", Time.parseSecondsToTime(act.getEndTime()));
+                actNode.addAttribute("ui.label", Time.parseSecondsToTime(act.end()));
             }
             g.addEdge(makeEdgeId(routeId, vehicle_edgeId), prevIdentifier, currIdentifier, true);
             if (act instanceof PickupActivity) g.getNode(currIdentifier).addAttribute("ui.class", "pickupInRoute");
@@ -595,14 +592,14 @@ public class GraphStreamViewer {
             vehicle_edgeId++;
             sleep(renderDelay_in_ms);
         }
-        if (route.getVehicle().isReturnToDepot()) {
-            String lastIdentifier = makeId(route.getVehicle().getId(), route.getVehicle().getEndLocation().getId());
+        if (route.vehicle().isReturnToDepot()) {
+            String lastIdentifier = makeId(route.vehicle().id(), route.vehicle().end().id);
             g.addEdge(makeEdgeId(routeId, vehicle_edgeId), prevIdentifier, lastIdentifier, true);
         }
     }
 
     private String makeEdgeId(int routeId, int vehicle_edgeId) {
-        return Integer.valueOf(routeId).toString() + "." + Integer.valueOf(vehicle_edgeId).toString();
+        return Integer.valueOf(routeId) + "." + Integer.valueOf(vehicle_edgeId);
     }
 
     //	public void saveAsPNG(String filename){

@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,13 +26,13 @@ import java.util.Collection;
 
 public class RouteActivityVisitor implements RouteVisitor {
 
-    private Collection<ActivityVisitor> visitors = new ArrayList<ActivityVisitor>();
+    private final Collection<ActivityVisitor> visitors = new ArrayList<>();
 
     @Override
     public void visit(VehicleRoute route) {
         if (visitors.isEmpty()) return;
         begin(route);
-        for (TourActivity act : route.getTourActivities().getActivities()) {
+        for (AbstractActivity act : route.tourActivities().activities()) {
             visit(act);
         }
         end(route);
@@ -45,7 +45,7 @@ public class RouteActivityVisitor implements RouteVisitor {
 
     }
 
-    private void visit(TourActivity act) {
+    private void visit(AbstractActivity act) {
         for (ActivityVisitor visitor : visitors) {
             visitor.visit(act);
         }

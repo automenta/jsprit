@@ -17,15 +17,14 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
-import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.job.Break;
 import com.graphhopper.jsprit.core.problem.job.Service;
 
-public class BreakActivity extends AbstractActivity implements TourActivity.JobActivity {
+public class BreakActivity extends JobActivity {
 
-    public static int counter = 0;
+    public static int counter;
 
     public double arrTime;
 
@@ -38,28 +37,32 @@ public class BreakActivity extends AbstractActivity implements TourActivity.JobA
     /**
      * @return the arrTime
      */
-    public double getArrTime() {
+    @Override
+    public double arrTime() {
         return arrTime;
     }
 
     /**
      * @param arrTime the arrTime to set
      */
-    public void setArrTime(double arrTime) {
+    @Override
+    public void arrTime(double arrTime) {
         this.arrTime = arrTime;
     }
 
     /**
      * @return the endTime
      */
-    public double getEndTime() {
+    @Override
+    public double end() {
         return endTime;
     }
 
     /**
      * @param endTime the endTime to set
      */
-    public void setEndTime(double endTime) {
+    @Override
+    public void end(double endTime) {
         this.endTime = endTime;
     }
 
@@ -67,32 +70,32 @@ public class BreakActivity extends AbstractActivity implements TourActivity.JobA
         return new BreakActivity(breakActivity);
     }
 
-    public static BreakActivity newInstance(Break aBreak) {
+    public static BreakActivity the(Break aBreak) {
         return new BreakActivity(aBreak);
     }
 
     private final Break aBreak;
 
-    private double earliest = 0;
+    private double earliest;
 
     private double latest = Double.MAX_VALUE;
 
     protected BreakActivity(Break aBreak) {
         counter++;
         this.aBreak = aBreak;
-        this.duration = aBreak.getServiceDuration();
+        this.duration = aBreak.serviceTime;
     }
 
     protected BreakActivity(BreakActivity breakActivity) {
         counter++;
-        this.aBreak = (Break) breakActivity.getJob();
-        this.arrTime = breakActivity.getArrTime();
-        this.endTime = breakActivity.getEndTime();
-        this.location = breakActivity.getLocation();
-        setIndex(breakActivity.getIndex());
-        this.earliest = breakActivity.getTheoreticalEarliestOperationStartTime();
-        this.latest = breakActivity.getTheoreticalLatestOperationStartTime();
-        this.duration = breakActivity.getOperationTime();
+        this.aBreak = (Break) breakActivity.job();
+        this.arrTime = breakActivity.arrTime();
+        this.endTime = breakActivity.end();
+        this.location = breakActivity.location();
+        index(breakActivity.index());
+        this.earliest = breakActivity.startEarliest();
+        this.latest = breakActivity.startLatest();
+        this.duration = breakActivity.operationTime();
     }
 
 
@@ -119,77 +122,74 @@ public class BreakActivity extends AbstractActivity implements TourActivity.JobA
         if (getClass() != obj.getClass())
             return false;
         BreakActivity other = (BreakActivity) obj;
-        if (aBreak == null) {
-            if (other.aBreak != null)
-                return false;
-        } else if (!aBreak.equals(other.aBreak))
-            return false;
-        return true;
+        return aBreak == null ? other.aBreak == null : aBreak.equals(other.aBreak);
     }
 
-    public double getTheoreticalEarliestOperationStartTime() {
+    @Override
+    public double startEarliest() {
         return earliest;
     }
 
-    public double getTheoreticalLatestOperationStartTime() {
+    @Override
+    public double startLatest() {
         return latest;
     }
 
     @Override
-    public double getOperationTime() {
+    public double operationTime() {
         return duration;
     }
 
-    public void setOperationTime(double duration){
+    public void operationTime(double duration){
         this.duration = duration;
     }
 
     @Override
-    public Location getLocation() {
+    public Location location() {
         return location;
     }
 
-    public void setLocation(Location breakLocation) {
+    public void location(Location breakLocation) {
         this.location = breakLocation;
     }
 
     @Override
-    public Service getJob() {
+    public Service job() {
         return aBreak;
     }
 
 
     @Override
     public String toString() {
-        return "[type=" + getName() + "][location=" + getLocation()
-            + "][size=" + getSize().toString()
-            + "][twStart=" + Activities.round(getTheoreticalEarliestOperationStartTime())
-            + "][twEnd=" + Activities.round(getTheoreticalLatestOperationStartTime()) + "]";
+        return "[type=" + name() + "][location=" + location()
+            + "][size=" + size()
+            + "][twStart=" + Activities.round(startEarliest())
+            + "][twEnd=" + Activities.round(startLatest()) + ']';
     }
 
     @Override
-    public void setTheoreticalEarliestOperationStartTime(double earliest) {
+    public void startEarliest(double earliest) {
         this.earliest = earliest;
     }
 
     @Override
-    public void setTheoreticalLatestOperationStartTime(double latest) {
+    public void startLatest(double latest) {
         this.latest = latest;
     }
 
     @Override
-    public String getName() {
-        return aBreak.getType();
+    public String name() {
+        return aBreak.type;
     }
 
     @Override
-    public TourActivity duplicate() {
+    public BreakActivity clone() {
         return new BreakActivity(this);
     }
 
     @Override
-    public Capacity getSize() {
-        return aBreak.getSize();
+    public Capacity size() {
+        return aBreak.size;
     }
 
 

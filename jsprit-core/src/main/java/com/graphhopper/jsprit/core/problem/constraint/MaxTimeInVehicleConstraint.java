@@ -18,18 +18,16 @@
 
 package com.graphhopper.jsprit.core.problem.constraint;
 
-import com.graphhopper.jsprit.core.algorithm.state.StateId;
+import com.graphhopper.jsprit.core.algorithm.state.State;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.cost.TransportTime;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliveryActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.PickupActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.*;
 
 import java.util.Collections;
 import java.util.Map;
@@ -45,13 +43,13 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
 
     private final VehicleRoutingActivityCosts activityCosts;
 
-    private final StateId minSlackId;
+    private final State minSlackId;
 
-    private final StateId openJobsId;
+    private final State openJobsId;
 
     private final StateManager stateManager;
 
-    public MaxTimeInVehicleConstraint(TransportTime transportTime, VehicleRoutingActivityCosts activityCosts, StateId minSlackId, StateManager stateManager, VehicleRoutingProblem vrp, StateId openJobsId) {
+    public MaxTimeInVehicleConstraint(TransportTime transportTime, VehicleRoutingActivityCosts activityCosts, State minSlackId, StateManager stateManager, VehicleRoutingProblem vrp, State openJobsId) {
         this.transportTime = transportTime;
         this.minSlackId = minSlackId;
         this.stateManager = stateManager;
@@ -61,7 +59,7 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
     }
 
     @Override
-    public ConstraintsStatus fulfilled(final JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+    public ConstraintsStatus fulfilled(final JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
         boolean newActIsPickup = newAct instanceof PickupActivity;
         boolean newActIsDelivery = newAct instanceof DeliveryActivity;
 
@@ -70,27 +68,22 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
         2. check whether insertion of new shipment satisfies all other max-in-vehicle-constraints
          */
         //************ 1. check whether insertion of new shipment satisfies own max-in-vehicle-constraint
-        double newActArrival = prevActDepTime + transportTime.getTransportTime(prevAct.getLocation(),newAct.getLocation(),prevActDepTime,iFacts.getNewDriver(),iFacts.getNewVehicle());
-        double newActStart = Math.max(newActArrival, newAct.getTheoreticalEarliestOperationStartTime());
+        double newActArrival = prevActDepTime + transportTime.transportTime(prevAct.location(),newAct.location(),prevActDepTime,iFacts.getNewDriver(),iFacts.getNewVehicle());
+        double newActStart = Math.max(newActArrival, newAct.startEarliest());
         double newActDeparture = newActStart + activityCosts.getActivityDuration(newAct, newActArrival, iFacts.getNewDriver(), iFacts.getNewVehicle());
-        double nextActArrival = newActDeparture + transportTime.getTransportTime(newAct.getLocation(),nextAct.getLocation(),newActDeparture,iFacts.getNewDriver(),iFacts.getNewVehicle());
-        double nextActStart = Math.max(nextActArrival,nextAct.getTheoreticalEarliestOperationStartTime());
+        double nextActArrival = newActDeparture + transportTime.transportTime(newAct.location(),nextAct.location(),newActDeparture,iFacts.getNewDriver(),iFacts.getNewVehicle());
+        double nextActStart = Math.max(nextActArrival,nextAct.startEarliest());
         if(newAct instanceof DeliveryActivity){
             double pickupEnd;
-            if(iFacts.getAssociatedActivities().size() == 1){
-                pickupEnd = iFacts.getNewDepTime();
-            }
-            else {
-                pickupEnd = iFacts.getRelatedActivityContext().getEndTime();
-            }
+            pickupEnd = iFacts.getAssociatedActivities().size() == 1 ? iFacts.getNewDepTime() : iFacts.getRelatedActivityContext().getEndTime();
             double timeInVehicle = newActStart - pickupEnd;
-            double maxTimeInVehicle = ((TourActivity.JobActivity)newAct).getJob().getMaxTimeInVehicle();
+            double maxTimeInVehicle = ((JobActivity)newAct).job().vehicleTimeInMax();
             if(timeInVehicle > maxTimeInVehicle) return ConstraintsStatus.NOT_FULFILLED;
 
         }
         else if(newActIsPickup){
             if(iFacts.getAssociatedActivities().size() == 1){
-                double maxTimeInVehicle = ((TourActivity.JobActivity)newAct).getJob().getMaxTimeInVehicle();
+                double maxTimeInVehicle = ((JobActivity)newAct).job().vehicleTimeInMax();
                 //ToDo - estimate in vehicle time of pickups here - This seems to trickier than I thought
                 double nextActDeparture = nextActStart + activityCosts.getActivityDuration(nextAct, nextActArrival, iFacts.getNewDriver(), iFacts.getNewVehicle());
 //                if(!nextAct instanceof End)
@@ -103,39 +96,33 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
 
         double minSlack = Double.MAX_VALUE;
         if (!(nextAct instanceof End)) {
-            minSlack = stateManager.getActivityState(nextAct, iFacts.getNewVehicle(), minSlackId, Double.class);
+            minSlack = stateManager.state(nextAct, iFacts.getNewVehicle(), minSlackId, Double.class);
         }
-        double directArrTimeNextAct = prevActDepTime + transportTime.getTransportTime(prevAct.getLocation(), nextAct.getLocation(), prevActDepTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
-        double directNextActStart = Math.max(directArrTimeNextAct, nextAct.getTheoreticalEarliestOperationStartTime());
+        double directArrTimeNextAct = prevActDepTime + transportTime.transportTime(prevAct.location(), nextAct.location(), prevActDepTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
+        double directNextActStart = Math.max(directArrTimeNextAct, nextAct.startEarliest());
         double additionalTimeOfNewAct = (nextActStart - prevActDepTime) - (directNextActStart - prevActDepTime);
         if (additionalTimeOfNewAct > minSlack) {
-            if (newActIsPickup) return ConstraintsStatus.NOT_FULFILLED;
-            else return ConstraintsStatus.NOT_FULFILLED;
+            return newActIsPickup ? ConstraintsStatus.NOT_FULFILLED : ConstraintsStatus.NOT_FULFILLED;
         }
         if (newActIsDelivery) {
             Map<Job, Double> openJobsAtNext;
-            if (nextAct instanceof End)
-                openJobsAtNext = stateManager.getRouteState(iFacts.getRoute(), iFacts.getNewVehicle(), openJobsId, Map.class);
-            else openJobsAtNext = stateManager.getActivityState(nextAct, iFacts.getNewVehicle(), openJobsId, Map.class);
+            openJobsAtNext = nextAct instanceof End ? stateManager.getRouteState(iFacts.getRoute(), iFacts.getNewVehicle(), openJobsId, Map.class) : stateManager.state(nextAct, iFacts.getNewVehicle(), openJobsId, Map.class);
             if (openJobsAtNext == null) openJobsAtNext = Collections.emptyMap();
-            for (Job openJob : openJobsAtNext.keySet()) {
-                double slack = openJobsAtNext.get(openJob);
+            for (Map.Entry<Job, Double> jobDoubleEntry : openJobsAtNext.entrySet()) {
+                double slack = jobDoubleEntry.getValue();
                 double additionalTimeOfNewJob = additionalTimeOfNewAct;
-                if (openJob instanceof Shipment) {
+                if (jobDoubleEntry.getKey() instanceof Shipment) {
                     Map<Job, Double> openJobsAtNextOfPickup = Collections.emptyMap();
-                    TourActivity nextAfterPickup;
-                    if (iFacts.getAssociatedActivities().size() == 1 && !iFacts.getRoute().isEmpty())
-                        nextAfterPickup = iFacts.getRoute().getActivities().get(0);
-                    else
-                        nextAfterPickup = iFacts.getRoute().getActivities().get(iFacts.getRelatedActivityContext().getInsertionIndex());
+                    AbstractActivity nextAfterPickup;
+                    nextAfterPickup = iFacts.getAssociatedActivities().size() == 1 && !iFacts.getRoute().isEmpty() ? iFacts.getRoute().activities().get(0) : iFacts.getRoute().activities().get(iFacts.getRelatedActivityContext().getInsertionIndex());
                     if (nextAfterPickup != null)
-                        openJobsAtNextOfPickup = stateManager.getActivityState(nextAfterPickup, iFacts.getNewVehicle(), openJobsId, Map.class);
-                    if (openJobsAtNextOfPickup.containsKey(openJob)) {
-                        TourActivity pickupAct = iFacts.getAssociatedActivities().get(0);
+                        openJobsAtNextOfPickup = stateManager.state(nextAfterPickup, iFacts.getNewVehicle(), openJobsId, Map.class);
+                    if (openJobsAtNextOfPickup.containsKey(jobDoubleEntry.getKey())) {
+                        AbstractActivity pickupAct = iFacts.getAssociatedActivities().get(0);
                         double pickupActArrTime = iFacts.getRelatedActivityContext().getArrivalTime();
                         double pickupActEndTime = startOf(pickupAct, pickupActArrTime) + activityCosts.getActivityDuration(pickupAct, pickupActArrTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
-                        double nextAfterPickupArr = pickupActEndTime + transportTime.getTransportTime(pickupAct.getLocation(), nextAfterPickup.getLocation(), pickupActArrTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
-                        additionalTimeOfNewJob += startOf(nextAfterPickup, nextAfterPickupArr) - startOf(nextAfterPickup, nextAfterPickup.getArrTime());
+                        double nextAfterPickupArr = pickupActEndTime + transportTime.transportTime(pickupAct.location(), nextAfterPickup.location(), pickupActArrTime, iFacts.getNewDriver(), iFacts.getNewVehicle());
+                        additionalTimeOfNewJob += startOf(nextAfterPickup, nextAfterPickupArr) - startOf(nextAfterPickup, nextAfterPickup.arrTime());
                     }
                 }
                 if (additionalTimeOfNewJob > slack) {
@@ -146,8 +133,8 @@ public class MaxTimeInVehicleConstraint implements HardActivityConstraint {
         return ConstraintsStatus.FULFILLED;
     }
 
-    private double startOf(TourActivity act, double arrTime) {
-        return Math.max(arrTime, act.getTheoreticalEarliestOperationStartTime());
+    private static double startOf(AbstractActivity act, double arrTime) {
+        return Math.max(arrTime, act.startEarliest());
     }
 
 }

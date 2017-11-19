@@ -23,6 +23,6 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 public interface BackwardTransportTime {
 
-    public double getBackwardTransportTime(Location from, Location to, double arrivalTime, Driver driver, Vehicle vehicle);
+    double transportTimeReverse(Location from, Location to, double arrivalTime, Driver driver, Vehicle vehicle);
 
 }

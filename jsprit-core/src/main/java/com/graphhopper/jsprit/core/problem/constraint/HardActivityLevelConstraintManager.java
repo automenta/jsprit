@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.constraint;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,16 +28,16 @@ import java.util.List;
 
 class HardActivityLevelConstraintManager implements HardActivityConstraint {
 
-    private Collection<HardActivityConstraint> criticalConstraints = new ArrayList<HardActivityConstraint>();
+    private final Collection<HardActivityConstraint> criticalConstraints = new ArrayList<>();
 
-    private Collection<HardActivityConstraint> highPrioConstraints = new ArrayList<HardActivityConstraint>();
+    private final Collection<HardActivityConstraint> highPrioConstraints = new ArrayList<>();
 
-    private Collection<HardActivityConstraint> lowPrioConstraints = new ArrayList<HardActivityConstraint>();
+    private final Collection<HardActivityConstraint> lowPrioConstraints = new ArrayList<>();
 
     public void addConstraint(HardActivityConstraint constraint, ConstraintManager.Priority priority) {
-        if (priority.equals(ConstraintManager.Priority.CRITICAL)) {
+        if (priority == ConstraintManager.Priority.CRITICAL) {
             criticalConstraints.add(constraint);
-        } else if (priority.equals(ConstraintManager.Priority.HIGH)) {
+        } else if (priority == ConstraintManager.Priority.HIGH) {
             highPrioConstraints.add(constraint);
         } else {
             lowPrioConstraints.add(constraint);
@@ -57,7 +57,7 @@ class HardActivityLevelConstraintManager implements HardActivityConstraint {
     }
 
     Collection<HardActivityConstraint> getAllConstraints() {
-        List<HardActivityConstraint> c = new ArrayList<HardActivityConstraint>();
+        Collection<HardActivityConstraint> c = new ArrayList<>();
         c.addAll(criticalConstraints);
         c.addAll(highPrioConstraints);
         c.addAll(lowPrioConstraints);
@@ -65,14 +65,14 @@ class HardActivityLevelConstraintManager implements HardActivityConstraint {
     }
 
     @Override
-    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
         ConstraintsStatus notFulfilled = null;
         for (HardActivityConstraint c : criticalConstraints) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     notFulfilled = status;
                 }
             }
@@ -81,10 +81,10 @@ class HardActivityLevelConstraintManager implements HardActivityConstraint {
 
         for (HardActivityConstraint c : highPrioConstraints) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     notFulfilled = status;
                 }
             }
@@ -93,7 +93,7 @@ class HardActivityLevelConstraintManager implements HardActivityConstraint {
 
         for (HardActivityConstraint constraint : lowPrioConstraints) {
             ConstraintsStatus status = constraint.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK) || status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK || status == ConstraintsStatus.NOT_FULFILLED) {
                 return status;
             }
         }

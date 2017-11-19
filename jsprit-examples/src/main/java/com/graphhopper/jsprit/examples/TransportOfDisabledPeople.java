@@ -37,7 +37,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl.Builder;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.util.Examples;
 
@@ -45,7 +45,7 @@ import java.util.Collection;
 
 public class TransportOfDisabledPeople {
 
-    static int WHEELCHAIRSPACE_INDEX = 0;
+    static int WHEELCHAIRSPACE_INDEX;
 
     static int PASSENGERSEATS_INDEX = 1;
 
@@ -58,12 +58,12 @@ public class TransportOfDisabledPeople {
 		/*
          * get a vehicle type-builder and build a type with the typeId "vehicleType" and a capacity of 2
 		 */
-        VehicleTypeImpl.Builder wheelChairTypeBuilder = VehicleTypeImpl.Builder.newInstance("wheelChairBusType")
+        VehicleTypeImpl.Builder wheelChairTypeBuilder = VehicleTypeImpl.Builder.the("wheelChairBusType")
             .addCapacityDimension(WHEELCHAIRSPACE_INDEX, 2) //can transport two people with wheelchair
             .addCapacityDimension(PASSENGERSEATS_INDEX, 4); //and 4 without
         VehicleType vehicleType_wheelchair = wheelChairTypeBuilder.build();
 
-        VehicleTypeImpl.Builder soleyPassengerTypeBuilder = VehicleTypeImpl.Builder.newInstance("passengerBusType")
+        VehicleTypeImpl.Builder soleyPassengerTypeBuilder = VehicleTypeImpl.Builder.the("passengerBusType")
             .addCapacityDimension(PASSENGERSEATS_INDEX, 6); //and 4 without
         VehicleType vehicleType_solelypassenger = soleyPassengerTypeBuilder.build();
 
@@ -76,22 +76,22 @@ public class TransportOfDisabledPeople {
 		 * play with these location to see which impact they have on customer-sequences.
 		 */
         Builder vehicleBuilder1 = VehicleImpl.Builder.newInstance("wheelchair_bus");
-        vehicleBuilder1.setStartLocation(loc(Coordinate.newInstance(10, 10)));
+        vehicleBuilder1.setStartLocation(loc(v2.the(10, 10)));
         vehicleBuilder1.setType(vehicleType_wheelchair);
         VehicleImpl vehicle1 = vehicleBuilder1.build();
 
         Builder vehicleBuilder1_2 = VehicleImpl.Builder.newInstance("wheelchair_bus_2");
-        vehicleBuilder1_2.setStartLocation(loc(Coordinate.newInstance(10, 10)));
+        vehicleBuilder1_2.setStartLocation(loc(v2.the(10, 10)));
         vehicleBuilder1_2.setType(vehicleType_wheelchair);
         VehicleImpl vehicle1_2 = vehicleBuilder1_2.build();
 
         Builder vehicleBuilder2 = VehicleImpl.Builder.newInstance("passenger_bus");
-        vehicleBuilder2.setStartLocation(loc(Coordinate.newInstance(30, 30))).setEndLocation(loc(Coordinate.newInstance(30, 19)));
+        vehicleBuilder2.setStartLocation(loc(v2.the(30, 30))).setEndLocation(loc(v2.the(30, 19)));
         vehicleBuilder2.setType(vehicleType_solelypassenger);
         VehicleImpl vehicle2 = vehicleBuilder2.build();
 
         Builder vehicleBuilder2_2 = VehicleImpl.Builder.newInstance("passenger_bus_2");
-        vehicleBuilder2_2.setStartLocation(loc(Coordinate.newInstance(30, 30))).setEndLocation(loc(Coordinate.newInstance(30, 19)));
+        vehicleBuilder2_2.setStartLocation(loc(v2.the(30, 30))).setEndLocation(loc(v2.the(30, 19)));
         vehicleBuilder2_2.setType(vehicleType_solelypassenger);
         VehicleImpl vehicle2_2 = vehicleBuilder2_2.build();
 
@@ -100,37 +100,37 @@ public class TransportOfDisabledPeople {
          * build shipments at the required locations, each with a capacity-demand of 1.
 		 *
 		 */
-        Shipment shipment1 = Shipment.Builder.newInstance("wheelchair_1").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(5, 7))).setDeliveryLocation(loc(Coordinate.newInstance(6, 9))).build();
-        Shipment shipment2 = Shipment.Builder.newInstance("2").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(5, 13))).setDeliveryLocation(loc(Coordinate.newInstance(6, 11))).build();
+        Shipment shipment1 = Shipment.Builder.newInstance("wheelchair_1").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(5, 7))).setDeliveryLocation(loc(v2.the(6, 9))).build();
+        Shipment shipment2 = Shipment.Builder.newInstance("2").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(5, 13))).setDeliveryLocation(loc(v2.the(6, 11))).build();
 
-        Shipment shipment3 = Shipment.Builder.newInstance("wheelchair_2").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(15, 7))).setDeliveryLocation(loc(Coordinate.newInstance(14, 9))).build();
-        Shipment shipment4 = Shipment.Builder.newInstance("4").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(15, 13))).setDeliveryLocation(loc(Coordinate.newInstance(14, 11))).build();
+        Shipment shipment3 = Shipment.Builder.newInstance("wheelchair_2").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(15, 7))).setDeliveryLocation(loc(v2.the(14, 9))).build();
+        Shipment shipment4 = Shipment.Builder.newInstance("4").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(15, 13))).setDeliveryLocation(loc(v2.the(14, 11))).build();
 
-        Shipment shipment5 = Shipment.Builder.newInstance("wheelchair_3").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(25, 27))).setDeliveryLocation(loc(Coordinate.newInstance(26, 29))).build();
-        Shipment shipment6 = Shipment.Builder.newInstance("6").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(25, 33))).setDeliveryLocation(loc(Coordinate.newInstance(26, 31))).build();
+        Shipment shipment5 = Shipment.Builder.newInstance("wheelchair_3").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(25, 27))).setDeliveryLocation(loc(v2.the(26, 29))).build();
+        Shipment shipment6 = Shipment.Builder.newInstance("6").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(25, 33))).setDeliveryLocation(loc(v2.the(26, 31))).build();
 
-        Shipment shipment7 = Shipment.Builder.newInstance("7").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(35, 27))).setDeliveryLocation(loc(Coordinate.newInstance(34, 29))).build();
-        Shipment shipment8 = Shipment.Builder.newInstance("wheelchair_4").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(35, 33))).setDeliveryLocation(loc(Coordinate.newInstance(34, 31))).build();
+        Shipment shipment7 = Shipment.Builder.newInstance("7").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(35, 27))).setDeliveryLocation(loc(v2.the(34, 29))).build();
+        Shipment shipment8 = Shipment.Builder.newInstance("wheelchair_4").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(35, 33))).setDeliveryLocation(loc(v2.the(34, 31))).build();
 
-        Shipment shipment9 = Shipment.Builder.newInstance("9").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(5, 27))).setDeliveryLocation(loc(Coordinate.newInstance(6, 29))).build();
-        Shipment shipment10 = Shipment.Builder.newInstance("wheelchair_5").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(5, 33))).setDeliveryLocation(loc(Coordinate.newInstance(6, 31))).build();
+        Shipment shipment9 = Shipment.Builder.newInstance("9").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(5, 27))).setDeliveryLocation(loc(v2.the(6, 29))).build();
+        Shipment shipment10 = Shipment.Builder.newInstance("wheelchair_5").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(5, 33))).setDeliveryLocation(loc(v2.the(6, 31))).build();
 
-        Shipment shipment11 = Shipment.Builder.newInstance("11").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(15, 27))).setDeliveryLocation(loc(Coordinate.newInstance(14, 29))).build();
-        Shipment shipment12 = Shipment.Builder.newInstance("wheelchair_6").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(15, 33))).setDeliveryLocation(loc(Coordinate.newInstance(14, 31))).build();
+        Shipment shipment11 = Shipment.Builder.newInstance("11").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(15, 27))).setDeliveryLocation(loc(v2.the(14, 29))).build();
+        Shipment shipment12 = Shipment.Builder.newInstance("wheelchair_6").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(15, 33))).setDeliveryLocation(loc(v2.the(14, 31))).build();
 
-        Shipment shipment13 = Shipment.Builder.newInstance("13").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(25, 7))).setDeliveryLocation(loc(Coordinate.newInstance(26, 9))).build();
-        Shipment shipment14 = Shipment.Builder.newInstance("wheelchair_7").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(25, 13))).setDeliveryLocation(loc(Coordinate.newInstance(26, 11))).build();
+        Shipment shipment13 = Shipment.Builder.newInstance("13").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(25, 7))).setDeliveryLocation(loc(v2.the(26, 9))).build();
+        Shipment shipment14 = Shipment.Builder.newInstance("wheelchair_7").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(25, 13))).setDeliveryLocation(loc(v2.the(26, 11))).build();
 
-        Shipment shipment15 = Shipment.Builder.newInstance("15").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(35, 7))).setDeliveryLocation(loc(Coordinate.newInstance(34, 9))).build();
-        Shipment shipment16 = Shipment.Builder.newInstance("wheelchair_8").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(35, 13))).setDeliveryLocation(loc(Coordinate.newInstance(34, 11))).build();
+        Shipment shipment15 = Shipment.Builder.newInstance("15").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(35, 7))).setDeliveryLocation(loc(v2.the(34, 9))).build();
+        Shipment shipment16 = Shipment.Builder.newInstance("wheelchair_8").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(35, 13))).setDeliveryLocation(loc(v2.the(34, 11))).build();
 
-        Shipment shipment17 = Shipment.Builder.newInstance("17").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(5, 14))).setDeliveryLocation(loc(Coordinate.newInstance(6, 16))).build();
-        Shipment shipment18 = Shipment.Builder.newInstance("wheelchair_9").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(5, 20))).setDeliveryLocation(loc(Coordinate.newInstance(6, 18))).build();
+        Shipment shipment17 = Shipment.Builder.newInstance("17").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(5, 14))).setDeliveryLocation(loc(v2.the(6, 16))).build();
+        Shipment shipment18 = Shipment.Builder.newInstance("wheelchair_9").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(5, 20))).setDeliveryLocation(loc(v2.the(6, 18))).build();
 
-        Shipment shipment19 = Shipment.Builder.newInstance("19").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(15, 14))).setDeliveryLocation(loc(Coordinate.newInstance(14, 16))).build();
-        Shipment shipment20 = Shipment.Builder.newInstance("wheelchair_10").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(Coordinate.newInstance(15, 20))).setDeliveryLocation(loc(Coordinate.newInstance(14, 18))).build();
+        Shipment shipment19 = Shipment.Builder.newInstance("19").addSizeDimension(PASSENGERSEATS_INDEX, 1).setPickupLocation(loc(v2.the(15, 14))).setDeliveryLocation(loc(v2.the(14, 16))).build();
+        Shipment shipment20 = Shipment.Builder.newInstance("wheelchair_10").addSizeDimension(WHEELCHAIRSPACE_INDEX, 1).setPickupLocation(loc(v2.the(15, 20))).setDeliveryLocation(loc(v2.the(14, 18))).build();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addVehicle(vehicle1).addVehicle(vehicle2).addVehicle(vehicle1_2).addVehicle(vehicle2_2);
         vrpBuilder.addJob(shipment1).addJob(shipment2).addJob(shipment3).addJob(shipment4);
         vrpBuilder.addJob(shipment5).addJob(shipment6).addJob(shipment7).addJob(shipment8);
@@ -150,11 +150,9 @@ public class TransportOfDisabledPeople {
             @Override
             public boolean fulfilled(JobInsertionContext insertionContext) {
                 Shipment shipment2insert = ((Shipment) insertionContext.getJob());
-                if (insertionContext.getNewVehicle().getId().equals("wheelchair_bus")) {
-                    if (shipment2insert.getSize().get(PASSENGERSEATS_INDEX) > 0) {
-                        if (shipment2insert.getPickupLocation().getCoordinate().getX() > 15. || shipment2insert.getDeliveryLocation().getCoordinate().getX() > 15.) {
-                            return false;
-                        }
+                if (insertionContext.getNewVehicle().id().equals("wheelchair_bus")) {
+                    if (shipment2insert.size().get(PASSENGERSEATS_INDEX) > 0) {
+                        return !(shipment2insert.getPickupLocation().coord.x > 15.) && !(shipment2insert.getDeliveryLocation().coord.x > 15.);
                     }
                 }
                 return true;
@@ -212,8 +210,8 @@ public class TransportOfDisabledPeople {
 
     }
 
-    private static Location loc(Coordinate coordinate) {
-        return Location.Builder.newInstance().setCoordinate(coordinate).build();
+    private static Location loc(v2 coordinate) {
+        return Location.Builder.the().setCoord(coordinate).build();
     }
 
 }

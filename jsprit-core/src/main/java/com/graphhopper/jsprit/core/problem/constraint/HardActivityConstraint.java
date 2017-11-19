@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.constraint;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 /**
  * Hard constraint that evaluates whether a new activity can be inserted between an activity segment (prevAct,nextAct).
@@ -28,7 +28,7 @@ public interface HardActivityConstraint extends HardConstraint {
     /**
      * Indicates whether a hard activity constraint is fulfilled or not
      */
-    static enum ConstraintsStatus {
+    enum ConstraintsStatus {
 
         NOT_FULFILLED_BREAK, NOT_FULFILLED, FULFILLED
 
@@ -78,6 +78,6 @@ public interface HardActivityConstraint extends HardConstraint {
      * @param prevActDepTime the departure time at previous activity (prevAct) with the new vehicle (iFacts.getNewVehicle())
      * @return fulfilled if hard constraint is met, other not fulfilled.
      */
-    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime);
+    ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime);
 
 }

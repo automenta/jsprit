@@ -28,27 +28,27 @@ import java.util.*;
 
 public class SearchStrategyManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(SearchStrategyManager.class);
+//    private final static Logger logger = LoggerFactory.getLogger(SearchStrategyManager.class);
 
-    private List<SearchStrategyListener> searchStrategyListeners = new ArrayList<SearchStrategyListener>();
+    private final Collection<SearchStrategyListener> searchStrategyListeners = new ArrayList<>();
 
-    private List<SearchStrategy> strategies = new ArrayList<SearchStrategy>();
+    private final List<SearchStrategy> strategies = new ArrayList<>();
 
-    private List<Double> weights = new ArrayList<Double>();
+    private final List<Double> weights = new ArrayList<>();
 
-    private Map<String, Integer> id2index = new HashMap<String, Integer>();
+    private final Map<String, Integer> id2index = new HashMap<>();
 
     private Random random = RandomNumberGeneration.getRandom();
 
-    private double sumWeights = 0;
+    private double sumWeights;
 
-    private int strategyIndex = 0;
+    private int strategyIndex;
 
     public void setRandom(Random random) {
         this.random = random;
     }
 
-    public List<SearchStrategy> getStrategies() {
+    public Collection<SearchStrategy> getStrategies() {
         return Collections.unmodifiableList(strategies);
     }
 

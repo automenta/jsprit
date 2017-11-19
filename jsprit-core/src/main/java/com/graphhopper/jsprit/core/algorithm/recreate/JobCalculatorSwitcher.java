@@ -28,12 +28,13 @@ import java.util.Map;
 
 class JobCalculatorSwitcher implements JobInsertionCostsCalculator {
 
-    private Map<Class<? extends Job>, JobInsertionCostsCalculator> calcMap = new HashMap<Class<? extends Job>, JobInsertionCostsCalculator>();
+    private final Map<Class<? extends Job>, JobInsertionCostsCalculator> calcMap = new HashMap<>();
 
     void put(Class<? extends Job> jobClass, JobInsertionCostsCalculator jic) {
         calcMap.put(jobClass, jic);
     }
 
+    @Override
     public InsertionData getInsertionData(VehicleRoute currentRoute, Job jobToInsert, Vehicle newVehicle, double newVehicleDepartureTime, Driver newDriver, double bestKnownScore) {
         JobInsertionCostsCalculator jic = calcMap.get(jobToInsert.getClass());
         if (jic == null) throw new IllegalStateException("cannot find calculator for " + jobToInsert.getClass());

@@ -22,10 +22,7 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -38,20 +35,20 @@ public class VehicleRoutingProblemSolutionTest {
         VehicleRoute r2 = mock(VehicleRoute.class);
 
         VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Arrays.asList(r1, r2), 0.0);
-        assertEquals(2, sol.getRoutes().size());
+        assertEquals(2, sol.routes.size());
     }
 
     @Test
     public void whenSettingSolutionCostsTo10_solutionCostsShouldBe10() {
-        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), 10.0);
-        assertEquals(10.0, sol.getCost(), 0.01);
+        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.emptyList(), 10.0);
+        assertEquals(10.0, sol.cost(), 0.01);
     }
 
     @Test
     public void whenCreatingSolWithCostsOf10AndSettingCostsAfterwardsTo20_solutionCostsShouldBe20() {
-        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), 10.0);
+        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.emptyList(), 10.0);
         sol.setCost(20.0);
-        assertEquals(20.0, sol.getCost(), 0.01);
+        assertEquals(20.0, sol.cost(), 0.01);
     }
 
     @Test
@@ -59,8 +56,8 @@ public class VehicleRoutingProblemSolutionTest {
         Job badJob = mock(Job.class);
         List<Job> badJobs = new ArrayList<Job>();
         badJobs.add(badJob);
-        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), badJobs, 10.0);
-        assertEquals(1, sol.getUnassignedJobs().size());
+        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.emptyList(), badJobs, 10.0);
+        assertEquals(1, sol.jobsUnassigned.size());
     }
 
     @Test
@@ -68,9 +65,9 @@ public class VehicleRoutingProblemSolutionTest {
         Job badJob = mock(Job.class);
         List<Job> badJobs = new ArrayList<Job>();
         badJobs.add(badJob);
-        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), 10.0);
-        sol.getUnassignedJobs().addAll(badJobs);
-        assertEquals(1, sol.getUnassignedJobs().size());
+        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.emptyList(), 10.0);
+        sol.jobsUnassigned.addAll(badJobs);
+        assertEquals(1, sol.jobsUnassigned.size());
     }
 
     @Test
@@ -78,8 +75,8 @@ public class VehicleRoutingProblemSolutionTest {
         Job badJob = mock(Job.class);
         List<Job> badJobs = new ArrayList<Job>();
         badJobs.add(badJob);
-        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), badJobs, 10.0);
-        Assert.assertEquals(badJob, sol.getUnassignedJobs().iterator().next());
+        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.emptyList(), badJobs, 10.0);
+        Assert.assertEquals(badJob, sol.jobsUnassigned.iterator().next());
     }
 
     @Test
@@ -87,9 +84,9 @@ public class VehicleRoutingProblemSolutionTest {
         Job badJob = mock(Job.class);
         List<Job> badJobs = new ArrayList<Job>();
         badJobs.add(badJob);
-        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.<VehicleRoute>emptyList(), 10.0);
-        sol.getUnassignedJobs().addAll(badJobs);
-        Assert.assertEquals(badJob, sol.getUnassignedJobs().iterator().next());
+        VehicleRoutingProblemSolution sol = new VehicleRoutingProblemSolution(Collections.emptyList(), 10.0);
+        sol.jobsUnassigned.addAll(badJobs);
+        Assert.assertEquals(badJob, sol.jobsUnassigned.iterator().next());
     }
 
 }

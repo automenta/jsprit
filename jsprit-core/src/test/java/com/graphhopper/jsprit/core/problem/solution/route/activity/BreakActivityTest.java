@@ -35,60 +35,60 @@ public class BreakActivityTest {
     @Before
     public void doBefore() {
         service = Break.Builder.newInstance("service")
-            .setTimeWindow(TimeWindow.newInstance(1., 2.)).setServiceTime(3).build();
-        serviceActivity = BreakActivity.newInstance(service);
-        serviceActivity.setTheoreticalEarliestOperationStartTime(service.getTimeWindow().getStart());
-        serviceActivity.setTheoreticalLatestOperationStartTime(service.getTimeWindow().getEnd());
+            .timeWindowSet(TimeWindow.the(1., 2.)).serviceTime(3).build();
+        serviceActivity = BreakActivity.the(service);
+        serviceActivity.startEarliest(service.timeWindow().start);
+        serviceActivity.startLatest(service.timeWindow().end);
     }
 
     @Test
     public void whenCallingCapacity_itShouldReturnCorrectCapacity() {
-        assertEquals(0, serviceActivity.getSize().get(0));
+        assertEquals(0, serviceActivity.size().get(0));
     }
 
     @Test
     public void hasVariableLocationShouldBeTrue() {
-        Break aBreak = (Break) serviceActivity.getJob();
+        Break aBreak = (Break) serviceActivity.job();
         assertTrue(aBreak.hasVariableLocation());
     }
 
 
     @Test
     public void whenStartIsIniWithEarliestStart_itShouldBeSetCorrectly() {
-        assertEquals(1., serviceActivity.getTheoreticalEarliestOperationStartTime(), 0.01);
+        assertEquals(1., serviceActivity.startEarliest(), 0.01);
     }
 
     @Test
     public void whenStartIsIniWithLatestStart_itShouldBeSetCorrectly() {
-        assertEquals(2., serviceActivity.getTheoreticalLatestOperationStartTime(), 0.01);
+        assertEquals(2., serviceActivity.startLatest(), 0.01);
     }
 
     @Test
     public void whenSettingArrTime_itShouldBeSetCorrectly() {
-        serviceActivity.setArrTime(4.0);
-        assertEquals(4., serviceActivity.getArrTime(), 0.01);
+        serviceActivity.arrTime(4.0);
+        assertEquals(4., serviceActivity.arrTime(), 0.01);
     }
 
     @Test
     public void whenSettingEndTime_itShouldBeSetCorrectly() {
-        serviceActivity.setEndTime(5.0);
-        assertEquals(5., serviceActivity.getEndTime(), 0.01);
+        serviceActivity.end(5.0);
+        assertEquals(5., serviceActivity.end(), 0.01);
     }
 
 
     @Test
     public void whenCopyingStart_itShouldBeDoneCorrectly() {
-        BreakActivity copy = (BreakActivity) serviceActivity.duplicate();
-        assertEquals(1., copy.getTheoreticalEarliestOperationStartTime(), 0.01);
-        assertEquals(2., copy.getTheoreticalLatestOperationStartTime(), 0.01);
+        BreakActivity copy = serviceActivity.clone();
+        assertEquals(1., copy.startEarliest(), 0.01);
+        assertEquals(2., copy.startLatest(), 0.01);
         assertTrue(copy != serviceActivity);
     }
 
 
     @Test
     public void whenTwoDeliveriesHaveTheSameUnderlyingJob_theyAreEqual() {
-        Service s1 = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).build();
-        Service s2 = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).build();
+        Service s1 = Service.Builder.newInstance("s").location(Location.the("loc")).build();
+        Service s2 = Service.Builder.newInstance("s").location(Location.the("loc")).build();
 
         ServiceActivity d1 = ServiceActivity.newInstance(s1);
         ServiceActivity d2 = ServiceActivity.newInstance(s2);
@@ -98,8 +98,8 @@ public class BreakActivityTest {
 
     @Test
     public void whenTwoDeliveriesHaveTheDifferentUnderlyingJob_theyAreNotEqual() {
-        Service s1 = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).build();
-        Service s2 = Service.Builder.newInstance("s1").setLocation(Location.newInstance("loc")).build();
+        Service s1 = Service.Builder.newInstance("s").location(Location.the("loc")).build();
+        Service s2 = Service.Builder.newInstance("s1").location(Location.the("loc")).build();
 
         ServiceActivity d1 = ServiceActivity.newInstance(s1);
         ServiceActivity d2 = ServiceActivity.newInstance(s2);

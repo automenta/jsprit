@@ -20,9 +20,9 @@ package com.graphhopper.jsprit.core.util;
 
 public class ManhattanDistanceCalculator {
 
-    public static double calculateDistance(Coordinate coord1, Coordinate coord2) {
-        return Math.abs(coord1.getX() - coord2.getX())
-            + Math.abs(coord1.getY() - coord2.getY());
+    public static double calculateDistance(v2 coord1, v2 coord2) {
+        return Math.abs(coord1.x - coord2.x)
+            + Math.abs(coord1.y - coord2.y);
     }
 
 }

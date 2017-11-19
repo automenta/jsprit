@@ -46,9 +46,9 @@ public class JspritTest {
 
     @Test
     public void whenRunningJspritWithSingleCustomer_itShouldWork() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addVehicle(v).addJob(s).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addVehicle(v).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(10);
         final Map<String, Integer> counts = new HashMap<String, Integer>();
@@ -76,10 +76,10 @@ public class JspritTest {
 
     @Test
     public void whenActivatingStrat_itShouldBeReflected() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addVehicle(v).addJob(s2).addJob(s).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
             .setProperty(Jsprit.Strategy.RADIAL_BEST, "100.").buildAlgorithm();
         vra.setMaxIterations(100);
@@ -104,12 +104,12 @@ public class JspritTest {
 
     @Test
     public void whenActivatingStrat_itShouldBeReflectedV2() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 2)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 2)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         final Map<String, Integer> counts = new HashMap<String, Integer>();
@@ -132,13 +132,13 @@ public class JspritTest {
 
     @Test
     public void test_v4() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 2)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(1, 2)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 2)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(1, 2)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         final Map<String, Integer> counts = new HashMap<String, Integer>();
@@ -162,13 +162,13 @@ public class JspritTest {
 
     @Test
     public void strategyDrawShouldBeReproducible() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 2)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(1, 2)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 2)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(1, 2)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         final List<String> firstRecord = new ArrayList<String>();
@@ -207,13 +207,13 @@ public class JspritTest {
 
     @Test
     public void strategyDrawShouldBeReproducibleV2() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 2)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(1, 2)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 2)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(1, 2)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp).setProperty(Jsprit.Parameter.THREADS, "4").buildAlgorithm();
         vra.setMaxIterations(100);
         final List<String> firstRecord = new ArrayList<String>();
@@ -252,13 +252,13 @@ public class JspritTest {
 
     @Test
     public void ruinedJobsShouldBeReproducible() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 2)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(1, 2)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 2)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(1, 2)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
             .setProperty(Jsprit.Strategy.WORST_REGRET, "0.")
             .setProperty(Jsprit.Strategy.WORST_BEST, "0.")
@@ -278,7 +278,7 @@ public class JspritTest {
 
             @Override
             public void removed(Job job, VehicleRoute fromRoute) {
-                firstRecord.add(job.getId());
+                firstRecord.add(job.id());
             }
         });
         vra.searchSolutions();
@@ -302,7 +302,7 @@ public class JspritTest {
 
             @Override
             public void removed(Job job, VehicleRoute fromRoute) {
-                secondRecord.add(job.getId());
+                secondRecord.add(job.id());
             }
         });
         second.searchSolutions();
@@ -318,13 +318,13 @@ public class JspritTest {
 
     @Test
     public void ruinedJobsShouldBeReproducibleV2() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 2)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(1, 2)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 2)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(1, 2)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         final List<String> firstRecord = new ArrayList<String>();
@@ -341,7 +341,7 @@ public class JspritTest {
 
             @Override
             public void removed(Job job, VehicleRoute fromRoute) {
-                firstRecord.add(job.getId());
+                firstRecord.add(job.id());
             }
         });
         vra.searchSolutions();
@@ -362,7 +362,7 @@ public class JspritTest {
 
             @Override
             public void removed(Job job, VehicleRoute fromRoute) {
-                secondRecord.add(job.getId());
+                secondRecord.add(job.id());
             }
         });
         second.searchSolutions();
@@ -378,13 +378,13 @@ public class JspritTest {
 
     @Test
     public void insertionShouldBeReproducible() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 2)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 2)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(1, 2)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 2)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 2)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(1, 2)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
 
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
@@ -392,7 +392,7 @@ public class JspritTest {
         vra.addListener(new JobInsertedListener() {
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-                firstRecord.add(job2insert.getId());
+                firstRecord.add(job2insert.id());
             }
         });
         vra.searchSolutions();
@@ -403,7 +403,7 @@ public class JspritTest {
         second.addListener(new JobInsertedListener() {
             @Override
             public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-                secondRecord.add(job2insert.getId());
+                secondRecord.add(job2insert.id());
             }
         });
         second.searchSolutions();
@@ -419,13 +419,13 @@ public class JspritTest {
 
     @Test
     public void insertionShouldBeReproducibleV2() {
-        Service s = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1, 1)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(1, 3)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(1, 4)).build();
+        Service s = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1, 1)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(1, 3)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(1, 4)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addJob(s4).addJob(s3).addVehicle(v).addJob(s2).addJob(s).build();
 
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp)
             .setProperty(Jsprit.Strategy.WORST_REGRET, "0.")
@@ -437,7 +437,7 @@ public class JspritTest {
         vra.addListener(new BeforeJobInsertionListener() {
             @Override
             public void informBeforeJobInsertion(Job job, InsertionData data, VehicleRoute route) {
-                String id = job.getId();
+                String id = job.id();
                 firstRecordCosts.add(data.getInsertionCost());
                 firstRecord.add(id);
             }
@@ -454,7 +454,7 @@ public class JspritTest {
         second.addListener(new BeforeJobInsertionListener() {
             @Override
             public void informBeforeJobInsertion(Job job, InsertionData data, VehicleRoute route) {
-                secondRecord.add(job.getId());
+                secondRecord.add(job.id());
                 secondRecordCosts.add(data.getInsertionCost());
             }
         });

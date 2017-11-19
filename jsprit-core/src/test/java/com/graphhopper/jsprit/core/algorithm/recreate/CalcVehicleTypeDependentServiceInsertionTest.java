@@ -48,27 +48,27 @@ public class CalcVehicleTypeDependentServiceInsertionTest {
     public void doBefore() {
         veh1 = mock(Vehicle.class);
         veh2 = mock(Vehicle.class);
-        when(veh1.getType()).thenReturn(VehicleTypeImpl.Builder.newInstance("type1").build());
-        when(veh2.getType()).thenReturn(VehicleTypeImpl.Builder.newInstance("type2").build());
-        when(veh1.getStartLocation()).thenReturn(Location.newInstance("loc1"));
-        when(veh2.getStartLocation()).thenReturn(Location.newInstance("loc2"));
+        when(veh1.type()).thenReturn(VehicleTypeImpl.Builder.the("type1").build());
+        when(veh2.type()).thenReturn(VehicleTypeImpl.Builder.the("type2").build());
+        when(veh1.start()).thenReturn(Location.the("loc1"));
+        when(veh2.start()).thenReturn(Location.the("loc2"));
         fleetManager = mock(VehicleFleetManager.class);
         service = mock(Service.class);
         vehicleRoute = mock(VehicleRoute.class);
 
-        when(fleetManager.getAvailableVehicles()).thenReturn(Arrays.asList(veh1, veh2));
+        when(fleetManager.vehiclesAvailable()).thenReturn(Arrays.asList(veh1, veh2));
 
         VehicleType type = mock(VehicleType.class);
-        when(type.getCapacityDimensions()).thenReturn(Capacity.Builder.newInstance().addDimension(0, 10).build());
-        when(veh1.getType()).thenReturn(type);
+        when(type.getCapacityDimensions()).thenReturn(Capacity.Builder.get().addDimension(0, 10).build());
+        when(veh1.type()).thenReturn(type);
 
-        when(veh2.getType()).thenReturn(type);
+        when(veh2.type()).thenReturn(type);
 
-        when(service.getSize()).thenReturn(Capacity.Builder.newInstance().build());
-        when(service.getTimeWindow()).thenReturn(TimeWindow.newInstance(0.0, Double.MAX_VALUE));
+        when(service.size()).thenReturn(Capacity.Builder.get().build());
+        when(service.timeWindow()).thenReturn(TimeWindow.the(0.0, Double.MAX_VALUE));
 
-        when(vehicleRoute.getDriver()).thenReturn(null);
-        when(vehicleRoute.getVehicle()).thenReturn(VehicleImpl.createNoVehicle());
+        when(vehicleRoute.driver).thenReturn(null);
+        when(vehicleRoute.vehicle()).thenReturn(VehicleImpl.get());
     }
 
     @Test
@@ -76,11 +76,11 @@ public class CalcVehicleTypeDependentServiceInsertionTest {
         JobInsertionCostsCalculator calc = mock(JobInsertionCostsCalculator.class);
         InsertionData iDataVeh1 = new InsertionData(10.0, InsertionData.NO_INDEX, 1, veh1, null);
         InsertionData iDataVeh2 = new InsertionData(20.0, InsertionData.NO_INDEX, 1, veh2, null);
-        when(calc.getInsertionData(vehicleRoute, service, veh1, veh1.getEarliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh1);
-        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.getEarliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh2);
-        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.getEarliestDeparture(), null, 10.0)).thenReturn(iDataVeh2);
+        when(calc.getInsertionData(vehicleRoute, service, veh1, veh1.earliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh1);
+        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh2);
+        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, 10.0)).thenReturn(iDataVeh2);
         VehicleRoutingProblem vrp = mock(VehicleRoutingProblem.class);
-        when(vrp.getInitialVehicleRoutes()).thenReturn(Collections.<VehicleRoute>emptyList());
+        when(vrp.initialVehicleRoutes()).thenReturn(Collections.emptyList());
         VehicleTypeDependentJobInsertionCalculator insertion = new VehicleTypeDependentJobInsertionCalculator(vrp, fleetManager, calc);
         InsertionData iData = insertion.getInsertionData(vehicleRoute, service, null, 0.0, null, Double.MAX_VALUE);
         assertThat(iData.getSelectedVehicle(), is(veh1));
@@ -92,11 +92,11 @@ public class CalcVehicleTypeDependentServiceInsertionTest {
         JobInsertionCostsCalculator calc = mock(JobInsertionCostsCalculator.class);
         InsertionData iDataVeh1 = new InsertionData(20.0, InsertionData.NO_INDEX, 1, veh1, null);
         InsertionData iDataVeh2 = new InsertionData(10.0, InsertionData.NO_INDEX, 1, veh2, null);
-        when(calc.getInsertionData(vehicleRoute, service, veh1, veh1.getEarliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh1);
-        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.getEarliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh2);
-        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.getEarliestDeparture(), null, 20.0)).thenReturn(iDataVeh2);
+        when(calc.getInsertionData(vehicleRoute, service, veh1, veh1.earliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh1);
+        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, Double.MAX_VALUE)).thenReturn(iDataVeh2);
+        when(calc.getInsertionData(vehicleRoute, service, veh2, veh2.earliestDeparture(), null, 20.0)).thenReturn(iDataVeh2);
         VehicleRoutingProblem vrp = mock(VehicleRoutingProblem.class);
-        when(vrp.getInitialVehicleRoutes()).thenReturn(Collections.<VehicleRoute>emptyList());
+        when(vrp.initialVehicleRoutes()).thenReturn(Collections.emptyList());
         VehicleTypeDependentJobInsertionCalculator insertion = new VehicleTypeDependentJobInsertionCalculator(vrp, fleetManager, calc);
         InsertionData iData = insertion.getInsertionData(vehicleRoute, service, null, 0.0, null, Double.MAX_VALUE);
         assertThat(iData.getSelectedVehicle(), is(veh2));

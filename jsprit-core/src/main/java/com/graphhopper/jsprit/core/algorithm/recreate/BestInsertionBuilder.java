@@ -31,21 +31,21 @@ import java.util.concurrent.ExecutorService;
 
 public class BestInsertionBuilder {
 
-    private VehicleRoutingProblem vrp;
+    private final VehicleRoutingProblem vrp;
 
-    private StateManager stateManager;
+    private final StateManager stateManager;
 
     private boolean local = true;
 
-    private ConstraintManager constraintManager;
+    private final ConstraintManager constraintManager;
 
-    private VehicleFleetManager fleetManager;
+    private final VehicleFleetManager fleetManager;
 
     private double weightOfFixedCosts;
 
-    private boolean considerFixedCosts = false;
+    private boolean considerFixedCosts;
 
-    private ActivityInsertionCostsCalculator actInsertionCostsCalculator = null;
+    private ActivityInsertionCostsCalculator actInsertionCostsCalculator;
 
     private int forwaredLooking;
 
@@ -55,18 +55,17 @@ public class BestInsertionBuilder {
 
     private int nuOfThreads;
 
-    private double timeSlice;
+//    private double timeSlice;
 
-    private int nNeighbors;
+//    private int nNeighbors;
 
-    private boolean timeScheduling = false;
+//    private final boolean timeScheduling;
 
     private boolean allowVehicleSwitch = true;
 
     private boolean addDefaultCostCalc = true;
 
     public BestInsertionBuilder(VehicleRoutingProblem vrp, VehicleFleetManager vehicleFleetManager, StateManager stateManager, ConstraintManager constraintManager) {
-        super();
         this.vrp = vrp;
         this.stateManager = stateManager;
         this.constraintManager = constraintManager;
@@ -80,8 +79,6 @@ public class BestInsertionBuilder {
         return this;
     }
 
-    ;
-
     public BestInsertionBuilder setRouteLevel(int forwardLooking, int memory, boolean addDefaultMarginalCostCalculation) {
         local = false;
         this.forwaredLooking = forwardLooking;
@@ -90,14 +87,10 @@ public class BestInsertionBuilder {
         return this;
     }
 
-    ;
-
     public BestInsertionBuilder setLocalLevel() {
         local = true;
         return this;
     }
-
-    ;
 
     /**
      * If addDefaulMarginalCostCalculation is false, no calculator is set which implicitly assumes that marginal cost calculation
@@ -123,8 +116,6 @@ public class BestInsertionBuilder {
         return this;
     }
 
-    ;
-
     public BestInsertionBuilder setConcurrentMode(ExecutorService executor, int nuOfThreads) {
         this.executor = executor;
         this.nuOfThreads = nuOfThreads;
@@ -133,8 +124,8 @@ public class BestInsertionBuilder {
 
 
     public InsertionStrategy build() {
-        List<InsertionListener> iListeners = new ArrayList<InsertionListener>();
-        List<PrioritizedVRAListener> algorithmListeners = new ArrayList<PrioritizedVRAListener>();
+        List<InsertionListener> iListeners = new ArrayList<>();
+        List<PrioritizedVRAListener> algorithmListeners = new ArrayList<>();
         JobInsertionCostsCalculatorBuilder calcBuilder = new JobInsertionCostsCalculatorBuilder(iListeners, algorithmListeners);
         if (local) {
             calcBuilder.setLocalLevel(addDefaultCostCalc);
@@ -149,17 +140,13 @@ public class BestInsertionBuilder {
         if (considerFixedCosts) {
             calcBuilder.considerFixedCosts(weightOfFixedCosts);
         }
-        if (timeScheduling) {
-            calcBuilder.experimentalTimeScheduler(timeSlice, nNeighbors);
-        }
+//        if (timeScheduling) {
+//            calcBuilder.experimentalTimeScheduler(timeSlice, nNeighbors);
+//        }
         calcBuilder.setAllowVehicleSwitch(allowVehicleSwitch);
         JobInsertionCostsCalculator jobInsertions = calcBuilder.build();
         InsertionStrategy bestInsertion;
-        if (executor == null) {
-            bestInsertion = new BestInsertion(jobInsertions, vrp);
-        } else {
-            bestInsertion = new BestInsertionConcurrent(jobInsertions, executor, nuOfThreads, vrp);
-        }
+        bestInsertion = executor == null ? new BestInsertion(jobInsertions, vrp) : new BestInsertionConcurrent(jobInsertions, executor, nuOfThreads, vrp);
         for (InsertionListener l : iListeners) bestInsertion.addListener(l);
         return bestInsertion;
     }

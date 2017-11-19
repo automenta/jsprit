@@ -33,10 +33,9 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 public class VariablePlusFixedSolutionCostCalculatorFactory {
 
-    private RouteAndActivityStateGetter stateManager;
+    private final RouteAndActivityStateGetter stateManager;
 
     public VariablePlusFixedSolutionCostCalculatorFactory(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
     }
 
@@ -46,18 +45,18 @@ public class VariablePlusFixedSolutionCostCalculatorFactory {
             @Override
             public double getCosts(VehicleRoutingProblemSolution solution) {
                 double c = 0.0;
-                for (VehicleRoute r : solution.getRoutes()) {
+                for (VehicleRoute r : solution.routes) {
                     c += stateManager.getRouteState(r, InternalStates.COSTS, Double.class);
-                    c += getFixedCosts(r.getVehicle());
+                    c += getFixedCosts(r.vehicle());
                 }
-                c += solution.getUnassignedJobs().size() * c * .1;
+                c += solution.jobsUnassigned.size() * c * .1;
                 return c;
             }
 
             private double getFixedCosts(Vehicle vehicle) {
                 if (vehicle == null) return 0.0;
-                if (vehicle.getType() == null) return 0.0;
-                return vehicle.getType().getVehicleCostParams().fix;
+                if (vehicle.type() == null) return 0.0;
+                return vehicle.type().getVehicleCostParams().fix;
             }
         };
     }

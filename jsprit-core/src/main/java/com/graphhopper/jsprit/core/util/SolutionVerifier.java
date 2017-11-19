@@ -34,11 +34,11 @@ public class SolutionVerifier implements AlgorithmEndsListener {
     public void informAlgorithmEnds(VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
 
         for (VehicleRoutingProblemSolution solution : solutions) {
-            Set<Job> jobsInSolution = new HashSet<Job>();
-            for (VehicleRoute route : solution.getRoutes()) {
-                jobsInSolution.addAll(route.getTourActivities().getJobs());
+            Collection<Job> jobsInSolution = new HashSet<>();
+            for (VehicleRoute route : solution.routes) {
+                jobsInSolution.addAll(route.tourActivities().jobs());
             }
-            if (jobsInSolution.size() != problem.getJobs().size()) {
+            if (jobsInSolution.size() != problem.jobs().size()) {
                 throw new IllegalStateException("we are at the end of the algorithm and still have not found a valid solution." +
                     "This cannot be.");
             }

@@ -17,116 +17,114 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
-import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
 
-public final class DeliverShipment extends AbstractActivity implements DeliveryActivity {
+public final class DeliverShipment extends DeliveryActivity {
 
-    private Shipment shipment;
+    private final Shipment shipment;
 
     private double endTime;
 
     private double arrTime;
 
-    private Capacity capacity;
+    private final Capacity capacity;
 
-    private double earliest = 0;
+    private double earliest;
 
     private double latest = Double.MAX_VALUE;
 
     public DeliverShipment(Shipment shipment) {
-        super();
         this.shipment = shipment;
-        this.capacity = Capacity.invert(shipment.getSize());
+        this.capacity = Capacity.invert(shipment.size());
     }
 
     private DeliverShipment(DeliverShipment deliveryShipmentActivity) {
-        this.shipment = (Shipment) deliveryShipmentActivity.getJob();
-        this.arrTime = deliveryShipmentActivity.getArrTime();
-        this.endTime = deliveryShipmentActivity.getEndTime();
-        this.capacity = deliveryShipmentActivity.getSize();
-        setIndex(deliveryShipmentActivity.getIndex());
-        this.earliest = deliveryShipmentActivity.getTheoreticalEarliestOperationStartTime();
-        this.latest = deliveryShipmentActivity.getTheoreticalLatestOperationStartTime();
+
+        this.arrTime = deliveryShipmentActivity.arrTime();
+        this.endTime = deliveryShipmentActivity.end();
+        this.capacity = deliveryShipmentActivity.size();
+        index(deliveryShipmentActivity.index());
+        this.earliest = deliveryShipmentActivity.startEarliest();
+        this.latest = deliveryShipmentActivity.startLatest();
+        this.shipment = deliveryShipmentActivity.job();
     }
 
     @Override
-    public Job getJob() {
+    public Shipment job() {
         return shipment;
     }
 
     @Override
-    public void setTheoreticalEarliestOperationStartTime(double earliest) {
+    public void startEarliest(double earliest) {
         this.earliest = earliest;
     }
 
     @Override
-    public void setTheoreticalLatestOperationStartTime(double latest) {
+    public void startLatest(double latest) {
         this.latest = latest;
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return "deliverShipment";
     }
 
     @Override
-    public Location getLocation() {
+    public Location location() {
         return shipment.getDeliveryLocation();
     }
 
     @Override
-    public double getTheoreticalEarliestOperationStartTime() {
+    public double startEarliest() {
         return earliest;
     }
 
     @Override
-    public double getTheoreticalLatestOperationStartTime() {
+    public double startLatest() {
         return latest;
     }
 
     @Override
-    public double getOperationTime() {
+    public double operationTime() {
         return shipment.getDeliveryServiceTime();
     }
 
     @Override
-    public double getArrTime() {
+    public double arrTime() {
         return arrTime;
     }
 
     @Override
-    public double getEndTime() {
+    public double end() {
         return endTime;
     }
 
     @Override
-    public void setArrTime(double arrTime) {
+    public void arrTime(double arrTime) {
         this.arrTime = arrTime;
     }
 
     @Override
-    public void setEndTime(double endTime) {
+    public void end(double endTime) {
         this.endTime = endTime;
     }
 
     @Override
-    public TourActivity duplicate() {
+    public JobActivity clone() {
         return new DeliverShipment(this);
     }
 
     public String toString() {
-        return "[type=" + getName() + "][locationId=" + getLocation().getId()
-            + "][size=" + getSize().toString()
-            + "][twStart=" + Activities.round(getTheoreticalEarliestOperationStartTime())
-            + "][twEnd=" + Activities.round(getTheoreticalLatestOperationStartTime()) + "]";
+        return "[type=" + name() + "][locationId=" + location().id
+            + "][size=" + size()
+            + "][twStart=" + Activities.round(startEarliest())
+            + "][twEnd=" + Activities.round(startLatest()) + ']';
     }
 
     @Override
-    public Capacity getSize() {
+    public Capacity size() {
         return capacity;
     }
 }

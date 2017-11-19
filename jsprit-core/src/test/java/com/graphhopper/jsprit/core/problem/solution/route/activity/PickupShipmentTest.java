@@ -31,70 +31,70 @@ public class PickupShipmentTest {
 
     @Before
     public void doBefore() {
-        Shipment shipment = Shipment.Builder.newInstance("shipment").setPickupLocation(Location.Builder.newInstance().setId("pickupLoc").build())
-            .setDeliveryLocation(Location.newInstance("deliveryLoc"))
-            .setPickupTimeWindow(TimeWindow.newInstance(1., 2.))
-            .setDeliveryTimeWindow(TimeWindow.newInstance(3., 4.))
+        Shipment shipment = Shipment.Builder.newInstance("shipment").setPickupLocation(Location.Builder.the().setId("pickupLoc").build())
+            .setDeliveryLocation(Location.the("deliveryLoc"))
+            .setPickupTimeWindow(TimeWindow.the(1., 2.))
+            .setDeliveryTimeWindow(TimeWindow.the(3., 4.))
             .addSizeDimension(0, 10).addSizeDimension(1, 100).addSizeDimension(2, 1000).build();
         pickup = new PickupShipment(shipment);
-        pickup.setTheoreticalEarliestOperationStartTime(shipment.getPickupTimeWindow().getStart());
-        pickup.setTheoreticalLatestOperationStartTime(shipment.getPickupTimeWindow().getEnd());
+        pickup.startEarliest(shipment.getPickupTimeWindow().start);
+        pickup.startLatest(shipment.getPickupTimeWindow().end);
     }
 
     @Test
     public void whenCallingCapacity_itShouldReturnCorrectCapacity() {
-        assertEquals(10, pickup.getSize().get(0));
-        assertEquals(100, pickup.getSize().get(1));
-        assertEquals(1000, pickup.getSize().get(2));
+        assertEquals(10, pickup.size().get(0));
+        assertEquals(100, pickup.size().get(1));
+        assertEquals(1000, pickup.size().get(2));
     }
 
     @Test
     public void whenStartIsIniWithEarliestStart_itShouldBeSetCorrectly() {
-        assertEquals(1., pickup.getTheoreticalEarliestOperationStartTime(), 0.01);
+        assertEquals(1., pickup.startEarliest(), 0.01);
     }
 
     @Test
     public void whenStartIsIniWithLatestStart_itShouldBeSetCorrectly() {
-        assertEquals(2., pickup.getTheoreticalLatestOperationStartTime(), 0.01);
+        assertEquals(2., pickup.startLatest(), 0.01);
     }
 
     @Test
     public void whenSettingArrTime_itShouldBeSetCorrectly() {
-        pickup.setArrTime(4.0);
-        assertEquals(4., pickup.getArrTime(), 0.01);
+        pickup.arrTime(4.0);
+        assertEquals(4., pickup.arrTime(), 0.01);
     }
 
     @Test
     public void whenSettingEndTime_itShouldBeSetCorrectly() {
-        pickup.setEndTime(5.0);
-        assertEquals(5., pickup.getEndTime(), 0.01);
+        pickup.end(5.0);
+        assertEquals(5., pickup.end(), 0.01);
     }
 
     @Test
     public void whenIniLocationId_itShouldBeSetCorrectly() {
-        assertEquals("pickupLoc", pickup.getLocation().getId());
+        assertEquals("pickupLoc", pickup.location().id);
     }
 
     @Test
     public void whenCopyingStart_itShouldBeDoneCorrectly() {
-        PickupShipment copy = (PickupShipment) pickup.duplicate();
-        assertEquals(1., copy.getTheoreticalEarliestOperationStartTime(), 0.01);
-        assertEquals(2., copy.getTheoreticalLatestOperationStartTime(), 0.01);
-        assertEquals("pickupLoc", copy.getLocation().getId());
-        assertEquals(10, copy.getSize().get(0));
-        assertEquals(100, copy.getSize().get(1));
-        assertEquals(1000, copy.getSize().get(2));
+        PickupShipment copy = pickup.clone();
+        assertEquals(1., copy.startEarliest(), 0.01);
+        assertEquals(2., copy.startLatest(), 0.01);
+        assertEquals("pickupLoc", copy.location().id);
+        assertEquals(10, copy.size().get(0));
+        assertEquals(100, copy.size().get(1));
+        assertEquals(1000, copy.size().get(2));
         assertTrue(copy != pickup);
     }
 
 
     @Test
     public void whenGettingCapacity_itShouldReturnItCorrectly() {
-        Shipment shipment = Shipment.Builder.newInstance("s").setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).setDeliveryLocation(Location.newInstance("delLoc"))
+        Shipment shipment = Shipment.Builder.newInstance("s").setPickupLocation(Location.Builder.the().setId("pickLoc").build()).setDeliveryLocation(Location.the("delLoc"))
             .addSizeDimension(0, 10).addSizeDimension(1, 100).build();
         PickupShipment pick = new PickupShipment(shipment);
-        assertEquals(10, pick.getSize().get(0));
-        assertEquals(100, pick.getSize().get(1));
+        assertEquals(10, pick.size().get(0));
+        assertEquals(100, pick.size().get(1));
     }
 
 }

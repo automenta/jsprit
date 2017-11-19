@@ -31,10 +31,9 @@ import com.graphhopper.jsprit.core.problem.job.Service;
  */
 public class AvgServiceDistance implements JobDistance {
 
-    private VehicleRoutingTransportCosts costs;
+    private final VehicleRoutingTransportCosts costs;
 
     public AvgServiceDistance(VehicleRoutingTransportCosts costs) {
-        super();
         this.costs = costs;
 
     }
@@ -65,12 +64,12 @@ public class AvgServiceDistance implements JobDistance {
     private double calcDist(Service s_i, Service s_j) {
         double distance;
         try {
-            distance = costs.getTransportCost(s_i.getLocation(), s_j.getLocation(), 0.0, null, null);
+            distance = costs.transportCost(s_i.location, s_j.location, 0.0, null, null);
             return distance;
         } catch (IllegalStateException e) {
             // now try the euclidean distance between these two services
         }
-        EuclideanServiceDistance euclidean = new EuclideanServiceDistance();
+        JobDistance euclidean = new EuclideanServiceDistance();
         distance = euclidean.getDistance(s_i, s_j);
         return distance;
     }

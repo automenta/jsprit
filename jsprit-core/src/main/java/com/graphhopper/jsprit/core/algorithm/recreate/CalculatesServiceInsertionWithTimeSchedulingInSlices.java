@@ -25,40 +25,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Deprecated
 class CalculatesServiceInsertionWithTimeSchedulingInSlices implements JobInsertionCostsCalculator {
 
 
-    private static Logger log = LoggerFactory.getLogger(CalculatesServiceInsertionWithTimeSchedulingInSlices.class);
+    private static final Logger log = LoggerFactory.getLogger(CalculatesServiceInsertionWithTimeSchedulingInSlices.class);
 
-    private JobInsertionCostsCalculator jic;
+    private final JobInsertionCostsCalculator jic;
 
     private int nOfDepartureTimes = 3;
 
     private double timeSlice = 900.0;
 
     public CalculatesServiceInsertionWithTimeSchedulingInSlices(JobInsertionCostsCalculator jic, double timeSlice, int neighbors) {
-        super();
         this.jic = jic;
         this.timeSlice = timeSlice;
         this.nOfDepartureTimes = neighbors;
-        log.debug("initialise " + this);
+        log.debug("initialise {}", this);
     }
 
     @Override
     public String toString() {
-        return "[name=" + this.getClass().toString() + "][timeSlice=" + timeSlice + "][#timeSlice=" + nOfDepartureTimes + "]";
+        return "[name=" + this.getClass() + "][timeSlice=" + timeSlice + "][#timeSlice=" + nOfDepartureTimes + ']';
     }
 
     @Override
     public InsertionData getInsertionData(VehicleRoute currentRoute, Job jobToInsert, Vehicle newVehicle, double newVehicleDepartureTime, Driver newDriver, double bestKnownScore) {
-        List<Double> vehicleDepartureTimes = new ArrayList<Double>();
+        Collection<Double> vehicleDepartureTimes = new ArrayList<>();
         double currentStart;
-        if (currentRoute.getStart() == null) {
-            currentStart = newVehicleDepartureTime;
-        } else currentStart = currentRoute.getStart().getEndTime();
+        currentStart = currentRoute.start == null ? newVehicleDepartureTime : currentRoute.start.end();
 
         vehicleDepartureTimes.add(currentStart);
 //		double earliestDeparture = newVehicle.getEarliestDeparture();

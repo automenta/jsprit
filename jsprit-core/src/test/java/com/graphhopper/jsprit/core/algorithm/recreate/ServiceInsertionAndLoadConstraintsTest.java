@@ -31,12 +31,9 @@ import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.driver.DriverImpl;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
-import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Pickup;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
-import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivityStateGetter;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
@@ -47,7 +44,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -60,33 +56,20 @@ public class ServiceInsertionAndLoadConstraintsTest {
     VehicleRoutingActivityCosts activityCosts = new VehicleRoutingActivityCosts() {
 
         @Override
-        public double getActivityCost(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
+        public double getActivityCost(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
             return 0;
         }
 
         @Override
-        public double getActivityDuration(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
-            return tourAct.getOperationTime();
+        public double getActivityDuration(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle) {
+            return tourAct.operationTime();
         }
 
     };
 
-    HardActivityConstraint hardActivityLevelConstraint = new HardActivityConstraint() {
+    HardActivityConstraint hardActivityLevelConstraint = (iFacts, prevAct, newAct, nextAct, prevActDepTime) -> HardActivityConstraint.ConstraintsStatus.FULFILLED;
 
-        @Override
-        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
-            return ConstraintsStatus.FULFILLED;
-        }
-    };
-
-    HardRouteConstraint hardRouteLevelConstraint = new HardRouteConstraint() {
-
-        @Override
-        public boolean fulfilled(JobInsertionContext insertionContext) {
-            return true;
-        }
-
-    };
+    HardRouteConstraint hardRouteLevelConstraint = insertionContext -> true;
 
     ActivityInsertionCostsCalculator activityInsertionCostsCalculator;
 
@@ -99,8 +82,8 @@ public class ServiceInsertionAndLoadConstraintsTest {
     @Before
     public void doBefore() {
         routingCosts = CostFactory.createManhattanCosts();
-        VehicleType type = VehicleTypeImpl.Builder.newInstance("t").addCapacityDimension(0, 2).setCostPerDistance(1).build();
-        vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("0,0")).setType(type).build();
+        VehicleType type = VehicleTypeImpl.Builder.the("t").addCapacityDimension(0, 2).setCostPerDistance(1).build();
+        vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the("0,0")).setType(type).build();
         activityInsertionCostsCalculator = new LocalActivityInsertionCostsCalculator(routingCosts, activityCosts, mock(StateManager.class));
         createInsertionCalculator(hardRouteLevelConstraint);
         vehicleRoutingProblem = mock(VehicleRoutingProblem.class);
@@ -114,13 +97,13 @@ public class ServiceInsertionAndLoadConstraintsTest {
 
     @Test
     public void whenInsertingServiceWhileNoCapIsAvailable_itMustReturnTheCorrectInsertionIndex() {
-        Delivery delivery = (Delivery) Delivery.Builder.newInstance("del").addSizeDimension(0, 41).setLocation(Location.newInstance("10,10")).build();
-        Pickup pickup = (Pickup) Pickup.Builder.newInstance("pick").addSizeDimension(0, 15).setLocation(Location.newInstance("0,10")).build();
+        Delivery delivery = Delivery.Builder.newInstance("del").sizeDimension(0, 41).location(Location.the("10,10")).build();
+        Pickup pickup = Pickup.Builder.the("pick").sizeDimension(0, 15).location(Location.the("0,10")).build();
 
-        VehicleType type = VehicleTypeImpl.Builder.newInstance("t").addCapacityDimension(0, 50).setCostPerDistance(1).build();
-        VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("0,0")).setType(type).build();
+        VehicleType type = VehicleTypeImpl.Builder.the("t").addCapacityDimension(0, 50).setCostPerDistance(1).build();
+        VehicleImpl vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the("0,0")).setType(type).build();
 
-        final VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(delivery).addJob(pickup).addVehicle(vehicle).build();
+        final VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(delivery).addJob(pickup).addVehicle(vehicle).build();
 
         VehicleRoute route = VehicleRoute.emptyRoute();
         route.setVehicleAndDepartureTime(vehicle, 0.0);
@@ -128,12 +111,7 @@ public class ServiceInsertionAndLoadConstraintsTest {
         Inserter inserter = new Inserter(new InsertionListeners(), vrp);
         inserter.insertJob(delivery, new InsertionData(0, 0, 0, vehicle, null), route);
 
-        JobActivityFactory activityFactory = new JobActivityFactory() {
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-        };
+        JobActivityFactory activityFactory = vrp::copyAndGetActivities;
 
         StateManager stateManager = new StateManager(vrp);
         stateManager.updateLoadStates();

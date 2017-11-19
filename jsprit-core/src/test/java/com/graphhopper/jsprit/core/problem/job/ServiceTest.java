@@ -35,16 +35,16 @@ public class ServiceTest {
 
     @Test
     public void whenTwoServicesHaveTheSameId_theirReferencesShouldBeUnEqual() {
-        Service one = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("foo")).build();
-        Service two = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("fo")).build();
+        Service one = Service.Builder.newInstance("service").sizeDimension(0, 10).location(Location.the("foo")).build();
+        Service two = Service.Builder.newInstance("service").sizeDimension(0, 10).location(Location.the("fo")).build();
 
         assertTrue(one != two);
     }
 
     @Test
     public void whenTwoServicesHaveTheSameId_theyShouldBeEqual() {
-        Service one = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("foo")).build();
-        Service two = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("fo")).build();
+        Service one = Service.Builder.newInstance("service").sizeDimension(0, 10).location(Location.the("foo")).build();
+        Service two = Service.Builder.newInstance("service").sizeDimension(0, 10).location(Location.the("fo")).build();
 
         assertTrue(one.equals(two));
     }
@@ -52,8 +52,8 @@ public class ServiceTest {
     @Test
     public void noName() {
         Set<Service> serviceSet = new HashSet<Service>();
-        Service one = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("foo")).build();
-        Service two = Service.Builder.newInstance("service").addSizeDimension(0, 10).setLocation(Location.newInstance("fo")).build();
+        Service one = Service.Builder.newInstance("service").sizeDimension(0, 10).location(Location.the("foo")).build();
+        Service two = Service.Builder.newInstance("service").sizeDimension(0, 10).location(Location.the("fo")).build();
         serviceSet.add(one);
         //		assertTrue(serviceSet.contains(two));
         serviceSet.remove(two);
@@ -63,32 +63,32 @@ public class ServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void whenCapacityDimValueIsNegative_throwIllegalStateExpception() {
         @SuppressWarnings("unused")
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("foo")).addSizeDimension(0, -10).build();
+        Service s = Service.Builder.newInstance("s").location(Location.the("foo")).sizeDimension(0, -10).build();
     }
 
     @Test
     public void whenAddingTwoCapDimension_nuOfDimsShouldBeTwo() {
-        Service one = Service.Builder.newInstance("s").setLocation(Location.newInstance("foofoo"))
-            .addSizeDimension(0, 2)
-            .addSizeDimension(1, 4)
+        Service one = Service.Builder.newInstance("s").location(Location.the("foofoo"))
+            .sizeDimension(0, 2)
+            .sizeDimension(1, 4)
             .build();
-        assertEquals(2, one.getSize().getNuOfDimensions());
+        assertEquals(2, one.size.dim());
     }
 
     @Test
     public void whenShipmentIsBuiltWithoutSpecifyingCapacity_itShouldHvCapWithOneDimAndDimValOfZero() {
-        Service one = Service.Builder.newInstance("s").setLocation(Location.newInstance("foofoo"))
+        Service one = Service.Builder.newInstance("s").location(Location.the("foofoo"))
             .build();
-        assertEquals(1, one.getSize().getNuOfDimensions());
-        assertEquals(0, one.getSize().get(0));
+        assertEquals(1, one.size.dim());
+        assertEquals(0, one.size.get(0));
     }
 
     @Test
     public void whenShipmentIsBuiltWithConstructorWhereSizeIsSpecified_capacityShouldBeSetCorrectly() {
-        Service one = Service.Builder.newInstance("s").addSizeDimension(0, 1).setLocation(Location.newInstance("foofoo"))
+        Service one = Service.Builder.newInstance("s").sizeDimension(0, 1).location(Location.the("foofoo"))
             .build();
-        assertEquals(1, one.getSize().getNuOfDimensions());
-        assertEquals(1, one.getSize().get(0));
+        assertEquals(1, one.size.dim());
+        assertEquals(1, one.size.get(0));
     }
 
     @Test
@@ -99,32 +99,32 @@ public class ServiceTest {
 
     @Test
     public void whenSettingNoType_itShouldReturn_service() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).build();
-        assertEquals("service", s.getType());
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc")).build();
+        assertEquals("service", s.type);
     }
 
     @Test
     public void whenSettingLocation_itShouldBeSetCorrectly() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).build();
-        assertEquals("loc", s.getLocation().getId());
-        assertEquals("loc", s.getLocation().getId());
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc")).build();
+        assertEquals("loc", s.location.id);
+        assertEquals("loc", s.location.id);
     }
 
     @Test
     public void whenSettingLocation_itShouldWork() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.Builder.newInstance().setId("loc").build()).build();
-        assertEquals("loc", s.getLocation().getId());
-        assertEquals("loc", s.getLocation().getId());
+        Service s = Service.Builder.newInstance("s").location(Location.Builder.the().setId("loc").build()).build();
+        assertEquals("loc", s.location.id);
+        assertEquals("loc", s.location.id);
     }
 
 
     @Test
     public void whenSettingLocationCoord_itShouldBeSetCorrectly() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance(1, 2)).build();
-        assertEquals(1.0, s.getLocation().getCoordinate().getX(), 0.01);
-        assertEquals(2.0, s.getLocation().getCoordinate().getY(), 0.01);
-        assertEquals(1.0,s.getLocation().getCoordinate().getX(),0.01);
-        assertEquals(2.0,s.getLocation().getCoordinate().getY(),0.01);
+        Service s = Service.Builder.newInstance("s").location(Location.the(1, 2)).build();
+        assertEquals(1.0, s.location.coord.x, 0.01);
+        assertEquals(2.0, s.location.coord.y, 0.01);
+        assertEquals(1.0, s.location.coord.x,0.01);
+        assertEquals(2.0, s.location.coord.y,0.01);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -136,64 +136,64 @@ public class ServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void whenServiceTimeSmallerZero_throwIllegalStateException() {
         @SuppressWarnings("unused")
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).setServiceTime(-1).build();
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc")).serviceTime(-1).build();
     }
 
     @Test
     public void whenSettingServiceTime_itShouldBeSetCorrectly() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).setServiceTime(1).build();
-        assertEquals(1.0, s.getServiceDuration(), 0.01);
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc")).serviceTime(1).build();
+        assertEquals(1.0, s.serviceTime, 0.01);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenTimeWindowIsNull_throwException() {
         @SuppressWarnings("unused")
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).setTimeWindow(null).build();
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc")).timeWindowSet(null).build();
     }
 
     @Test
     public void whenSettingTimeWindow_itShouldBeSetCorrectly() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc")).setTimeWindow(TimeWindow.newInstance(1.0, 2.0)).build();
-        assertEquals(1.0, s.getTimeWindow().getStart(), 0.01);
-        assertEquals(2.0, s.getTimeWindow().getEnd(), 0.01);
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc")).timeWindowSet(TimeWindow.the(1.0, 2.0)).build();
+        assertEquals(1.0, s.timeWindow().start, 0.01);
+        assertEquals(2.0, s.timeWindow().end, 0.01);
     }
 
     @Test
     public void whenAddingSkills_theyShouldBeAddedCorrectly() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addRequiredSkill("drill").addRequiredSkill("screwdriver").build();
-        assertTrue(s.getRequiredSkills().containsSkill("drill"));
-        assertTrue(s.getRequiredSkills().containsSkill("drill"));
-        assertTrue(s.getRequiredSkills().containsSkill("ScrewDriver"));
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .skillRequired("drill").skillRequired("screwdriver").build();
+        assertTrue(s.skills.containsSkill("drill"));
+        assertTrue(s.skills.containsSkill("drill"));
+        assertTrue(s.skills.containsSkill("ScrewDriver"));
     }
 
     @Test
     public void whenAddingSkillsCaseSens_theyShouldBeAddedCorrectly() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addRequiredSkill("DriLl").addRequiredSkill("screwDriver").build();
-        assertTrue(s.getRequiredSkills().containsSkill("drill"));
-        assertTrue(s.getRequiredSkills().containsSkill("drilL"));
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .skillRequired("DriLl").skillRequired("screwDriver").build();
+        assertTrue(s.skills.containsSkill("drill"));
+        assertTrue(s.skills.containsSkill("drilL"));
     }
 
     @Test
     public void whenAddingSeveralTimeWindows_itShouldBeSetCorrectly(){
-        TimeWindow tw1 = TimeWindow.newInstance(1.0, 2.0);
-        TimeWindow tw2 = TimeWindow.newInstance(3.0, 5.0);
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addTimeWindow(tw1)
-            .addTimeWindow(tw2)
+        TimeWindow tw1 = TimeWindow.the(1.0, 2.0);
+        TimeWindow tw2 = TimeWindow.the(3.0, 5.0);
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .timeWindowAdd(tw1)
+            .timeWindowAdd(tw2)
             .build();
-        assertEquals(2, s.getTimeWindows().size());
-        assertThat(s.getTimeWindows(),hasItem(is(tw1)));
-        assertThat(s.getTimeWindows(),hasItem(is(tw2)));
+        assertEquals(2, s.timeWindows.size());
+        assertThat(s.timeWindows,hasItem(is(tw1)));
+        assertThat(s.timeWindows,hasItem(is(tw2)));
     }
 
     @Test
     public void whenAddingTimeWindow_itShouldBeSetCorrectly(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addTimeWindow(TimeWindow.newInstance(1.0, 2.0)).build();
-        assertEquals(1.0, s.getTimeWindow().getStart(), 0.01);
-        assertEquals(2.0, s.getTimeWindow().getEnd(), 0.01);
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .timeWindowAdd(TimeWindow.the(1.0, 2.0)).build();
+        assertEquals(1.0, s.timeWindow().start, 0.01);
+        assertEquals(2.0, s.timeWindow().end, 0.01);
     }
 
 
@@ -201,107 +201,107 @@ public class ServiceTest {
 
     @Test
     public void whenAddingSkillsCaseSensV2_theyShouldBeAddedCorrectly() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addRequiredSkill("screwDriver").build();
-        assertFalse(s.getRequiredSkills().containsSkill("drill"));
-        assertFalse(s.getRequiredSkills().containsSkill("drilL"));
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .skillRequired("screwDriver").build();
+        assertFalse(s.skills.containsSkill("drill"));
+        assertFalse(s.skills.containsSkill("drilL"));
     }
 
     @Test
     public void nameShouldBeAssigned() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .setName("name").build();
-        assertEquals("name", s.getName());
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .name("name").build();
+        assertEquals("name", s.name);
     }
 
     @Test
     public void shouldKnowMultipleTimeWindows() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addTimeWindow(TimeWindow.newInstance(0., 10.)).addTimeWindow(TimeWindow.newInstance(20., 30.))
-            .setName("name").build();
-        assertEquals(2, s.getTimeWindows().size());
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .timeWindowAdd(TimeWindow.the(0., 10.)).timeWindowAdd(TimeWindow.the(20., 30.))
+            .name("name").build();
+        assertEquals(2, s.timeWindows.size());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenMultipleTWOverlap_throwEx() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addTimeWindow(TimeWindow.newInstance(0., 10.))
-            .addTimeWindow(TimeWindow.newInstance(5., 30.))
-            .setName("name").build();
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .timeWindowAdd(TimeWindow.the(0., 10.))
+            .timeWindowAdd(TimeWindow.the(5., 30.))
+            .name("name").build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenMultipleTWOverlap2_throwEx() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addTimeWindow(TimeWindow.newInstance(20., 30.))
-            .addTimeWindow(TimeWindow.newInstance(0., 25.))
-            .setName("name").build();
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .timeWindowAdd(TimeWindow.the(20., 30.))
+            .timeWindowAdd(TimeWindow.the(0., 25.))
+            .name("name").build();
     }
 
     @Test
     public void whenSettingPriorities_itShouldBeSetCorrectly(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .setPriority(1).build();
-        Assert.assertEquals(1, s.getPriority());
+        Assert.assertEquals(1, s.priority);
     }
 
     @Test
     public void whenSettingPriorities_itShouldBeSetCorrectly2(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .setPriority(3).build();
-        Assert.assertEquals(3, s.getPriority());
+        Assert.assertEquals(3, s.priority);
     }
 
     @Test
     public void whenSettingPriorities_itShouldBeSetCorrectly3() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .setPriority(10).build();
-        Assert.assertEquals(10, s.getPriority());
+        Assert.assertEquals(10, s.priority);
     }
 
     @Test
     public void whenNotSettingPriorities_defaultShouldBe2(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .build();
-        Assert.assertEquals(2, s.getPriority());
+        Assert.assertEquals(2, s.priority);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenSettingIncorrectPriorities_itShouldThrowException(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .setPriority(30).build();
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenSettingIncorrectPriorities_itShouldThrowException2(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .setPriority(0).build();
 
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void whenAddingMaxTimeInVehicle_itShouldThrowEx(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .setMaxTimeInVehicle(10)
             .build();
     }
 
     @Test
     public void whenNotAddingMaxTimeInVehicle_itShouldBeDefault(){
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("s").location(Location.the("loc"))
             .build();
-        Assert.assertEquals(Double.MAX_VALUE, s.getMaxTimeInVehicle(),0.001);
+        Assert.assertEquals(Double.MAX_VALUE, s.maxTimeInVehicle,0.001);
     }
 
 
     @Test
     public void whenSettingUserData_itIsAssociatedWithTheJob() {
-        Service one = Service.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .setUserData(new HashMap<String, Object>()).build();
-        Service two = Service.Builder.newInstance("s2").setLocation(Location.newInstance("loc")).setUserData(42)
+        Service one = Service.Builder.newInstance("s").location(Location.the("loc"))
+            .userData(new HashMap<String, Object>()).build();
+        Service two = Service.Builder.newInstance("s2").location(Location.the("loc")).userData(42)
             .build();
-        Service three = Service.Builder.newInstance("s3").setLocation(Location.newInstance("loc")).build();
+        Service three = Service.Builder.newInstance("s3").location(Location.the("loc")).build();
 
         assertTrue(one.getUserData() instanceof Map);
         assertEquals(42, two.getUserData());

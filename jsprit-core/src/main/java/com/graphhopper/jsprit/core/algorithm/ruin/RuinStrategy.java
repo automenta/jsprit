@@ -37,17 +37,17 @@ public interface RuinStrategy {
      * @param {@link VehicleRoute}
      * @return Collection of {@link com.graphhopper.jsprit.core.problem.job.Job}
      */
-    public Collection<Job> ruin(Collection<VehicleRoute> vehicleRoutes);
+    Collection<Job> ruin(Collection<VehicleRoute> vehicleRoutes);
 
     /**
      * Adds a ruin-listener.
      *
      * @param {@link RuinListener}
      */
-    public void addListener(RuinListener ruinListener);
+    void addListener(RuinListener ruinListener);
 
-    public void removeListener(RuinListener ruinListener);
+    void removeListener(RuinListener ruinListener);
 
-    public Collection<RuinListener> getListeners();
+    Collection<RuinListener> getListeners();
 
 }

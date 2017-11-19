@@ -33,7 +33,7 @@ public class Pickup extends Service {
          * @param id the id of the pickup
          * @return the builder
          */
-        public static Builder newInstance(String id) {
+        public static Builder the(String id) {
             return new Builder(id);
         }
 
@@ -41,6 +41,7 @@ public class Pickup extends Service {
             super(id);
         }
 
+        @Override
         public Builder setMaxTimeInVehicle(double maxTimeInVehicle){
             throw new UnsupportedOperationException("maxTimeInVehicle is not yet supported for Pickups and Services (only for Deliveries and Shipments)");
 //            if(maxTimeInVehicle < 0) throw new IllegalArgumentException("maxTimeInVehicle should be positive");
@@ -56,11 +57,12 @@ public class Pickup extends Service {
          * @return pickup
          * @throws IllegalArgumentException if neither locationId nor coordinate has been set
          */
+        @Override
         public Pickup build() {
             if (location == null) throw new IllegalArgumentException("location is missing");
-            this.setType("pickup");
-            super.capacity = super.capacityBuilder.build();
-            super.skills = super.skillBuilder.build();
+            this.type("pickup");
+            capacity = capacityBuilder.build();
+            skills = skillBuilder.build();
             return new Pickup(this);
         }
 

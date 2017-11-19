@@ -61,7 +61,7 @@ public class XYLineChartBuilder {
         return new XYLineChartBuilder(chartTitle, xDomainName, yDomainName);
     }
 
-    private ConcurrentHashMap<String, XYSeries> seriesMap = new ConcurrentHashMap<String, XYSeries>();
+    private final ConcurrentHashMap<String, XYSeries> seriesMap = new ConcurrentHashMap<String, XYSeries>();
 
     private final String xDomain;
 

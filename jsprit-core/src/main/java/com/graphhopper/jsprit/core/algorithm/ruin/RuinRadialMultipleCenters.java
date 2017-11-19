@@ -37,11 +37,9 @@ import java.util.*;
 @Deprecated
 public final class RuinRadialMultipleCenters extends AbstractRuinStrategy {
 
-    private Logger logger = LoggerFactory.getLogger(RuinRadialMultipleCenters.class);
+    private final Logger logger = LoggerFactory.getLogger(RuinRadialMultipleCenters.class);
 
-    private VehicleRoutingProblem vrp;
-
-    private JobNeighborhoods jobNeighborhoods;
+    private final JobNeighborhoods jobNeighborhoods;
 
     private final int noJobsToMemorize;
 
@@ -49,17 +47,9 @@ public final class RuinRadialMultipleCenters extends AbstractRuinStrategy {
 
     public RuinRadialMultipleCenters(VehicleRoutingProblem vrp, int neighborhoodSize, JobDistance jobDistance) {
         super(vrp);
-        this.vrp = vrp;
         noJobsToMemorize = neighborhoodSize;
-        ruinShareFactory = new RuinShareFactory() {
-
-            @Override
-            public int createNumberToBeRemoved() {
-                return noJobsToMemorize;
-            }
-
-        };
-        JobNeighborhoodsImplWithCapRestriction jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
+        ruinShareFactory = () -> noJobsToMemorize;
+        JobNeighborhoods jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
         jobNeighborhoodsImpl.initialise();
         jobNeighborhoods = jobNeighborhoodsImpl;
         logger.debug("initialise {}", this);
@@ -71,7 +61,7 @@ public final class RuinRadialMultipleCenters extends AbstractRuinStrategy {
 
     @Override
     public String toString() {
-        return "[name=radialRuin][noJobsToBeRemoved=" + noJobsToMemorize + "]";
+        return "[name=radialRuin][noJobsToBeRemoved=" + noJobsToMemorize + ']';
     }
 
     /**
@@ -83,8 +73,8 @@ public final class RuinRadialMultipleCenters extends AbstractRuinStrategy {
         if (vehicleRoutes.isEmpty()) {
             return Collections.emptyList();
         }
-        Set<Job> available = new HashSet<Job>(vrp.getJobs().values());
-        Collection<Job> ruined = new ArrayList<Job>();
+        Set<Job> available = new HashSet<>(vrp.jobs().values());
+        Collection<Job> ruined = new ArrayList<>();
         for (int center = 0; center < noCenters; center++) {
             int nOfJobs2BeRemoved = ruinShareFactory.createNumberToBeRemoved();
             if (nOfJobs2BeRemoved == 0) {
@@ -98,8 +88,8 @@ public final class RuinRadialMultipleCenters extends AbstractRuinStrategy {
         return ruined;
     }
 
-    private Collection<Job> ruinRoutes_(Collection<VehicleRoute> vehicleRoutes, Job targetJob, int nOfJobs2BeRemoved, Set<Job> available) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+    private Collection<Job> ruinRoutes_(Collection<VehicleRoute> vehicleRoutes, Job targetJob, int nOfJobs2BeRemoved, Collection<Job> available) {
+        Collection<Job> unassignedJobs = new ArrayList<>();
         int nNeighbors = nOfJobs2BeRemoved - 1;
         removeJob(targetJob, vehicleRoutes);
         unassignedJobs.add(targetJob);
@@ -114,7 +104,7 @@ public final class RuinRadialMultipleCenters extends AbstractRuinStrategy {
         return unassignedJobs;
     }
 
-    private Job pickRandomJob(Set<Job> available) {
+    private Job pickRandomJob(Collection<Job> available) {
         int randomIndex = random.nextInt(available.size());
         int i = 0;
         for (Job j : available) {

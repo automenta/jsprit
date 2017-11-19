@@ -17,6 +17,7 @@
  */
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.JobActivityFactory;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.constraint.*;
@@ -28,10 +29,7 @@ import com.graphhopper.jsprit.core.problem.job.Break;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.BreakActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.Start;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.*;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,26 +47,25 @@ final class BreakInsertionCalculator implements JobInsertionCostsCalculator {
 
     private static final Logger logger = LoggerFactory.getLogger(BreakInsertionCalculator.class);
 
-    private HardRouteConstraint hardRouteLevelConstraint;
+    private final HardRouteConstraint hardRouteLevelConstraint;
 
-    private HardActivityConstraint hardActivityLevelConstraint;
+    private final HardActivityConstraint hardActivityLevelConstraint;
 
-    private SoftRouteConstraint softRouteConstraint;
+    private final SoftRouteConstraint softRouteConstraint;
 
-    private SoftActivityConstraint softActivityConstraint;
+    private final SoftActivityConstraint softActivityConstraint;
 
-    private VehicleRoutingTransportCosts transportCosts;
+    private final VehicleRoutingTransportCosts transportCosts;
 
     private final VehicleRoutingActivityCosts activityCosts;
 
-    private ActivityInsertionCostsCalculator additionalTransportCostsCalculator;
+    private final ActivityInsertionCostsCalculator additionalTransportCostsCalculator;
 
     private JobActivityFactory activityFactory;
 
-    private AdditionalAccessEgressCalculator additionalAccessEgressCalculator;
+    private final AdditionalAccessEgressCalculator additionalAccessEgressCalculator;
 
     public BreakInsertionCalculator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts activityCosts, ActivityInsertionCostsCalculator additionalTransportCostsCalculator, ConstraintManager constraintManager) {
-        super();
         this.transportCosts = routingCosts;
         this.activityCosts = activityCosts;
         hardRouteLevelConstraint = constraintManager;
@@ -77,7 +74,7 @@ final class BreakInsertionCalculator implements JobInsertionCostsCalculator {
         softRouteConstraint = constraintManager;
         this.additionalTransportCostsCalculator = additionalTransportCostsCalculator;
         additionalAccessEgressCalculator = new AdditionalAccessEgressCalculator(routingCosts);
-        logger.debug("initialise " + this);
+        logger.debug("initialise {}", this);
     }
 
     public void setJobActivityFactory(JobActivityFactory jobActivityFactory) {
@@ -96,7 +93,7 @@ final class BreakInsertionCalculator implements JobInsertionCostsCalculator {
     @Override
     public InsertionData getInsertionData(final VehicleRoute currentRoute, final Job jobToInsert, final Vehicle newVehicle, double newVehicleDepartureTime, final Driver newDriver, final double bestKnownCosts) {
         Break breakToInsert = (Break) jobToInsert;
-        if (newVehicle.getBreak() == null || newVehicle.getBreak() != breakToInsert) {
+        if (newVehicle.aBreak() == null || newVehicle.aBreak() != breakToInsert) {
             return InsertionData.createEmptyInsertionData();
         }
         if (currentRoute.isEmpty()) return InsertionData.createEmptyInsertionData();
@@ -104,7 +101,7 @@ final class BreakInsertionCalculator implements JobInsertionCostsCalculator {
         JobInsertionContext insertionContext = new JobInsertionContext(currentRoute, jobToInsert, newVehicle, newDriver, newVehicleDepartureTime);
         int insertionIndex = InsertionData.NO_INDEX;
 
-        BreakActivity breakAct2Insert = (BreakActivity) activityFactory.createActivities(breakToInsert).get(0);
+        BreakActivity breakAct2Insert = (BreakActivity) activityFactory.the(breakToInsert).get(0);
         insertionContext.getAssociatedActivities().add(breakAct2Insert);
 
         /*
@@ -125,32 +122,32 @@ final class BreakInsertionCalculator implements JobInsertionCostsCalculator {
 		/*
         generate new start and end for new vehicle
          */
-        Start start = new Start(newVehicle.getStartLocation(), newVehicle.getEarliestDeparture(), Double.MAX_VALUE);
-        start.setEndTime(newVehicleDepartureTime);
-        End end = new End(newVehicle.getEndLocation(), 0.0, newVehicle.getLatestArrival());
+        Start start = new Start(newVehicle.start(), newVehicle.earliestDeparture(), Double.MAX_VALUE);
+        start.end(newVehicleDepartureTime);
+        End end = new End(newVehicle.end(), 0.0, newVehicle.latestArrival());
 
         Location bestLocation = null;
 
-        TourActivity prevAct = start;
+        AbstractActivity prevAct = start;
         double prevActStartTime = newVehicleDepartureTime;
         int actIndex = 0;
-        Iterator<TourActivity> activityIterator = currentRoute.getActivities().iterator();
+        Iterator<AbstractActivity> activityIterator = currentRoute.activities().iterator();
         boolean tourEnd = false;
         while (!tourEnd) {
-            TourActivity nextAct;
+            AbstractActivity nextAct;
             if (activityIterator.hasNext()) nextAct = activityIterator.next();
             else {
                 nextAct = end;
                 tourEnd = true;
             }
             boolean breakThis = true;
-            List<Location> locations = Arrays.asList(prevAct.getLocation(), nextAct.getLocation());
+            List<Location> locations = Arrays.asList(prevAct.location(), nextAct.location());
             for (Location location : locations) {
-                breakAct2Insert.setLocation(location);
-                breakAct2Insert.setTheoreticalEarliestOperationStartTime(breakToInsert.getTimeWindow().getStart());
-                breakAct2Insert.setTheoreticalLatestOperationStartTime(breakToInsert.getTimeWindow().getEnd());
+                breakAct2Insert.location(location);
+                breakAct2Insert.startEarliest(breakToInsert.timeWindow().start);
+                breakAct2Insert.startLatest(breakToInsert.timeWindow().end);
                 ConstraintsStatus status = hardActivityLevelConstraint.fulfilled(insertionContext, prevAct, breakAct2Insert, nextAct, prevActStartTime);
-                if (status.equals(ConstraintsStatus.FULFILLED)) {
+                if (status == ConstraintsStatus.FULFILLED) {
                     //from job2insert induced costs at activity level
                     double additionalICostsAtActLevel = softActivityConstraint.getCosts(insertionContext, prevAct, breakAct2Insert, nextAct, prevActStartTime);
                     double additionalTransportationCosts = additionalTransportCostsCalculator.getCosts(insertionContext, prevAct, nextAct, breakAct2Insert, prevActStartTime);
@@ -160,12 +157,12 @@ final class BreakInsertionCalculator implements JobInsertionCostsCalculator {
                         bestLocation = location;
                     }
                     breakThis = false;
-                } else if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                } else if (status == ConstraintsStatus.NOT_FULFILLED) {
                     breakThis = false;
                 }
             }
-            double nextActArrTime = prevActStartTime + transportCosts.getTransportTime(prevAct.getLocation(), nextAct.getLocation(), prevActStartTime, newDriver, newVehicle);
-            prevActStartTime = Math.max(nextActArrTime, nextAct.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(nextAct,nextActArrTime,newDriver,newVehicle);
+            double nextActArrTime = prevActStartTime + transportCosts.transportTime(prevAct.location(), nextAct.location(), prevActStartTime, newDriver, newVehicle);
+            prevActStartTime = Math.max(nextActArrTime, nextAct.startEarliest()) + activityCosts.getActivityDuration(nextAct,nextActArrTime,newDriver,newVehicle);
             prevAct = nextAct;
             actIndex++;
             if (breakThis) break;
@@ -174,7 +171,7 @@ final class BreakInsertionCalculator implements JobInsertionCostsCalculator {
             return InsertionData.createEmptyInsertionData();
         }
         InsertionData insertionData = new InsertionData(bestCost, InsertionData.NO_INDEX, insertionIndex, newVehicle, newDriver);
-        breakAct2Insert.setLocation(bestLocation);
+        breakAct2Insert.location(bestLocation);
         insertionData.getEvents().add(new InsertBreak(currentRoute, newVehicle, breakAct2Insert, insertionIndex));
         insertionData.getEvents().add(new SwitchVehicle(currentRoute, newVehicle, newVehicleDepartureTime));
         insertionData.setVehicleDepartureTime(newVehicleDepartureTime);

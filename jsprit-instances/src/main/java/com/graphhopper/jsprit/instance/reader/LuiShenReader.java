@@ -25,7 +25,7 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,14 +37,13 @@ import java.io.IOException;
 
 public class LuiShenReader {
 
-    private static Logger logger = LoggerFactory.getLogger(LuiShenReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(LuiShenReader.class);
 
     private final VehicleRoutingProblem.Builder vrpBuilder;
 
     private double coordProjectionFactor = 1;
 
     public LuiShenReader(VehicleRoutingProblem.Builder vrpBuilder) {
-        super();
         this.vrpBuilder = vrpBuilder;
     }
 
@@ -77,7 +76,7 @@ public class LuiShenReader {
             counter++;
             if (counter > 9) {
                 if (tokens.length < 7) continue;
-                Coordinate coord = makeCoord(tokens[1], tokens[2]);
+                v2 coord = makeCoord(tokens[1], tokens[2]);
                 String customerId = tokens[0];
                 int demand = Integer.parseInt(tokens[3]);
                 double start = Double.parseDouble(tokens[4]) * coordProjectionFactor;
@@ -86,9 +85,9 @@ public class LuiShenReader {
                 if (counter == 10) {
                     createVehicles(vehicleFile, costScenario, customerId, coord, start, end);
                 } else {
-                    Service service = Service.Builder.newInstance("" + (counter - 10)).addSizeDimension(0, demand)
-                        .setLocation(Location.Builder.newInstance().setCoordinate(coord).setId(customerId).build()).setServiceTime(serviceTime)
-                        .setTimeWindow(TimeWindow.newInstance(start, end)).build();
+                    Service service = Service.Builder.newInstance("" + (counter - 10)).sizeDimension(0, demand)
+                        .location(Location.Builder.the().setCoord(coord).setId(customerId).build()).serviceTime(serviceTime)
+                        .timeWindowSet(TimeWindow.the(start, end)).build();
                     vrpBuilder.addJob(service);
                 }
             }
@@ -96,7 +95,7 @@ public class LuiShenReader {
         close(reader);
     }
 
-    private void createVehicles(String vehicleFileName, String costScenario, String locationId, Coordinate coord, double start, double end) {
+    private void createVehicles(String vehicleFileName, String costScenario, String locationId, v2 coord, double start, double end) {
         BufferedReader reader = getReader(vehicleFileName);
 
         int costScenarioColumn = getCostScenarioColumn(costScenario);
@@ -116,13 +115,13 @@ public class LuiShenReader {
             int capacity = Integer.parseInt(tokens[capacityColumn]);
             int fixCost = Integer.parseInt(tokens[costScenarioColumn]);
 
-            VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance(vehicleId).addCapacityDimension(0, capacity);
+            VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the(vehicleId).addCapacityDimension(0, capacity);
             typeBuilder.setFixedCost(fixCost).setCostPerDistance(1.0);
 
             VehicleTypeImpl type = typeBuilder.build();
 
             VehicleImpl reprVehicle = VehicleImpl.Builder.newInstance(vehicleId).setEarliestStart(start).setLatestArrival(end).
-                setStartLocation(Location.Builder.newInstance().setId(locationId).setCoordinate(coord).build())
+                setStartLocation(Location.Builder.the().setId(locationId).setCoord(coord).build())
                 .setType(type).build();
 
             vrpBuilder.addVehicle(reprVehicle);
@@ -162,10 +161,10 @@ public class LuiShenReader {
         }
     }
 
-    private Coordinate makeCoord(String xString, String yString) {
+    private v2 makeCoord(String xString, String yString) {
         double x = Double.parseDouble(xString);
         double y = Double.parseDouble(yString);
-        return new Coordinate(x * coordProjectionFactor, y * coordProjectionFactor);
+        return new v2(x * coordProjectionFactor, y * coordProjectionFactor);
     }
 
     private BufferedReader getReader(String solomonFile) {

@@ -51,7 +51,6 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
         final String to;
 
         public RelationKey(String from, String to) {
-            super();
             this.from = from;
             this.to = to;
         }
@@ -85,12 +84,7 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
                     return false;
             } else if (!from.equals(other.from))
                 return false;
-            if (to == null) {
-                if (other.to != null)
-                    return false;
-            } else if (!to.equals(other.to))
-                return false;
-            return true;
+            return to == null ? other.to == null : to.equals(other.to);
         }
     }
 
@@ -101,17 +95,17 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
      * @author schroeder
      */
     public static class Builder {
-        private static Logger log = LoggerFactory.getLogger(Builder.class);
+        private static final Logger log = LoggerFactory.getLogger(Builder.class);
 
-        private boolean isSymmetric;
+        private final boolean isSymmetric;
 
-        private Map<RelationKey, Double> distances = new HashMap<RelationKey, Double>();
+        private final Map<RelationKey, Double> distances = new HashMap<>();
 
-        private Map<RelationKey, Double> times = new HashMap<RelationKey, Double>();
+        private final Map<RelationKey, Double> times = new HashMap<>();
 
-        private boolean distancesSet = false;
+        private boolean distancesSet;
 
-        private boolean timesSet = false;
+        private boolean timesSet;
 
         /**
          * Creates a new builder returning the matrix-builder.
@@ -140,7 +134,7 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
             RelationKey key = RelationKey.newKey(from, to);
             if (!distancesSet) distancesSet = true;
             if (distances.containsKey(key)) {
-                log.warn("distance from " + from + " to " + to + " already exists. This overrides distance.");
+                log.warn("distance from {} to {} already exists. This overrides distance.", from, to);
             }
             distances.put(key, distance);
             if (isSymmetric) {
@@ -162,7 +156,7 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
             RelationKey key = RelationKey.newKey(from, to);
             if (!timesSet) timesSet = true;
             if (times.containsKey(key)) {
-                log.warn("transport-time from " + from + " to " + to + " already exists. This overrides times.");
+                log.warn("transport-time from {} to {} already exists. This overrides times.", from, to);
             }
             times.put(key, time);
             if (isSymmetric) {
@@ -184,15 +178,15 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
 
     }
 
-    private Map<RelationKey, Double> distances = new HashMap<RelationKey, Double>();
+    private final Map<RelationKey, Double> distances = new HashMap<>();
 
-    private Map<RelationKey, Double> times = new HashMap<RelationKey, Double>();
+    private final Map<RelationKey, Double> times = new HashMap<>();
 
-    private boolean isSymmetric;
+    private final boolean isSymmetric;
 
-    private boolean timesSet;
+    private final boolean timesSet;
 
-    private boolean distancesSet;
+    private final boolean distancesSet;
 
     private VehicleRoutingTransportCostsMatrix(Builder builder) {
         this.isSymmetric = builder.isSymmetric;
@@ -204,8 +198,8 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
 
 
     @Override
-    public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        return getTime(from.getId(), to.getId());
+    public double transportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        return getTime(from.id, to.id);
     }
 
 
@@ -256,15 +250,15 @@ public class VehicleRoutingTransportCostsMatrix extends AbstractForwardVehicleRo
     }
 
     @Override
-    public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        if (vehicle == null) return getDistance(from.getId(), to.getId());
-        VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
-        return costParams.perDistanceUnit * getDistance(from.getId(), to.getId()) + costParams.perTransportTimeUnit * getTime(from.getId(), to.getId());
+    public double transportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        if (vehicle == null) return getDistance(from.id, to.id);
+        VehicleCostParams costParams = vehicle.type().getVehicleCostParams();
+        return costParams.perDistanceUnit * getDistance(from.id, to.id) + costParams.perTransportTimeUnit * getTime(from.id, to.id);
     }
 
     @Override
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
-        return getDistance(from.getId(), to.getId());
+    public double distance(Location from, Location to, double departureTime, Vehicle vehicle) {
+        return getDistance(from.id, to.id);
     }
 
 }

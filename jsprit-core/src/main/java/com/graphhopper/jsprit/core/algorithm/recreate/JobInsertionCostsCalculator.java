@@ -25,6 +25,6 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 public interface JobInsertionCostsCalculator {
 
-    public InsertionData getInsertionData(VehicleRoute currentRoute, Job newJob, Vehicle newVehicle, double newVehicleDepartureTime, Driver newDriver, double bestKnownCosts);
+    InsertionData getInsertionData(VehicleRoute currentRoute, Job newJob, Vehicle newVehicle, double newVehicleDepartureTime, Driver newDriver, double bestKnownCosts);
 
 }

@@ -32,6 +32,6 @@ public interface InitialSolutionFactory {
      * @param vrp
      * @return
      */
-    public VehicleRoutingProblemSolution createSolution(VehicleRoutingProblem vrp);
+    VehicleRoutingProblemSolution createSolution(VehicleRoutingProblem vrp);
 
 }

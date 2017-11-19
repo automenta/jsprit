@@ -31,19 +31,19 @@ public class DriverImpl implements Driver {
 
     }
 
-    private String id;
+    private final String id;
 
-    private double earliestStart = 0.0;
+    private double earliestStart;
 
     private double latestEnd = Double.MAX_VALUE;
 
     private String home;
 
     private DriverImpl(String id) {
-        super();
         this.id = id;
     }
 
+    @Override
     public String getId() {
         return id;
     }

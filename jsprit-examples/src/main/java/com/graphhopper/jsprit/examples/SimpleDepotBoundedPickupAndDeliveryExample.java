@@ -49,14 +49,14 @@ public class SimpleDepotBoundedPickupAndDeliveryExample {
 		/*
          * get a vehicle type-builder and build a type with the typeId "vehicleType" and a capacity of 2
 		 */
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(0, 2);
+        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.the("vehicleType").addCapacityDimension(0, 2);
         VehicleType vehicleType = vehicleTypeBuilder.build();
 
 		/*
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
 		 */
         Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance(10, 10));
+        vehicleBuilder.setStartLocation(Location.the(10, 10));
         vehicleBuilder.setType(vehicleType);
         VehicleImpl vehicle = vehicleBuilder.build();
 
@@ -64,14 +64,14 @@ public class SimpleDepotBoundedPickupAndDeliveryExample {
          * build pickups and deliveries at the required locations, each with a capacity-demand of 1.
 		 */
 
-        Pickup pickup1 = Pickup.Builder.newInstance("1").addSizeDimension(0, 1).setLocation(Location.newInstance(5, 7)).build();
-        Delivery delivery1 = Delivery.Builder.newInstance("2").addSizeDimension(0, 1).setLocation(Location.newInstance(5, 13)).build();
+        Pickup pickup1 = Pickup.Builder.the("1").sizeDimension(0, 1).location(Location.the(5, 7)).build();
+        Delivery delivery1 = Delivery.Builder.newInstance("2").sizeDimension(0, 1).location(Location.the(5, 13)).build();
 
-        Pickup pickup2 = Pickup.Builder.newInstance("3").addSizeDimension(0, 1).setLocation(Location.newInstance(15, 7)).build();
-        Delivery delivery2 = Delivery.Builder.newInstance("4").addSizeDimension(0, 1).setLocation(Location.newInstance(15, 13)).build();
+        Pickup pickup2 = Pickup.Builder.the("3").sizeDimension(0, 1).location(Location.the(15, 7)).build();
+        Delivery delivery2 = Delivery.Builder.newInstance("4").sizeDimension(0, 1).location(Location.the(15, 13)).build();
 
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addVehicle(vehicle);
         vrpBuilder.addJob(pickup1).addJob(pickup2).addJob(delivery1).addJob(delivery2);
 
@@ -81,7 +81,7 @@ public class SimpleDepotBoundedPickupAndDeliveryExample {
 		/*
          * get the algorithm out-of-the-box.
 		 */
-        VehicleRoutingAlgorithm algorithm = new SchrimpfFactory().createAlgorithm(problem);
+        VehicleRoutingAlgorithm algorithm = SchrimpfFactory.createAlgorithm(problem);
 
 		/*
          * and search a solution

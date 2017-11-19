@@ -29,7 +29,7 @@ public interface VehicleFleetManager {
      *
      * @param vehicle
      */
-    public abstract void lock(Vehicle vehicle);
+    void lock(Vehicle vehicle);
 
     /**
      * Unlocks vehicle.
@@ -38,7 +38,7 @@ public interface VehicleFleetManager {
      *
      * @param vehicle
      */
-    public abstract void unlock(Vehicle vehicle);
+    void unlock(Vehicle vehicle);
 
     /**
      * Returns true if locked.
@@ -46,12 +46,12 @@ public interface VehicleFleetManager {
      * @param vehicle
      * @return
      */
-    public abstract boolean isLocked(Vehicle vehicle);
+    boolean isLocked(Vehicle vehicle);
 
     /**
      * Unlocks all locked vehicles.
      */
-    public abstract void unlockAll();
+    void unlockAll();
 
     /**
      * Returns a collection of available vehicles.
@@ -63,9 +63,9 @@ public interface VehicleFleetManager {
      *
      * @return
      */
-    public abstract Collection<Vehicle> getAvailableVehicles();
+    Collection<Vehicle> vehiclesAvailable();
 
-    public Collection<Vehicle> getAvailableVehicles(Vehicle withoutThisType);
+    Collection<Vehicle> vehiclesAvailable(Vehicle withoutThisType);
 
-    public Vehicle getAvailableVehicle(VehicleTypeKey vehicleTypeIdentifier);
+    Vehicle vehicleAvailable(VehicleTypeKey vehicleTypeIdentifier);
 }

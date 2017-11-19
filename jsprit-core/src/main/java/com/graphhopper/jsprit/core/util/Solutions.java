@@ -19,16 +19,18 @@ package com.graphhopper.jsprit.core.util;
 
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 
-import java.util.Collection;
-
 
 public class Solutions {
 
-    public static VehicleRoutingProblemSolution bestOf(Collection<VehicleRoutingProblemSolution> solutions) {
+    public static VehicleRoutingProblemSolution bestOf(Iterable<VehicleRoutingProblemSolution> solutions) {
         VehicleRoutingProblemSolution best = null;
+        double bestCost = Double.POSITIVE_INFINITY;
         for (VehicleRoutingProblemSolution s : solutions) {
-            if (best == null) best = s;
-            else if (s.getCost() < best.getCost()) best = s;
+            double ss;
+            if ((ss = s.cost()) < bestCost) {
+                best = s;
+                bestCost = ss;
+            }
         }
         return best;
     }

@@ -47,13 +47,13 @@ public class GreedySchrimpfFactory {
      * @param vrp
      * @return algorithm
      */
-    public VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp) {
+    public static VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp) {
         return createGreedyAlgorithmBuilder(vrp).buildAlgorithm();
     }
 
-    public Jsprit.Builder createGreedyAlgorithmBuilder(VehicleRoutingProblem vrp) {
-        int radialShare = (int) (vrp.getJobs().size() * 0.3);
-        int randomShare = (int) (vrp.getJobs().size() * 0.5);
+    public static Jsprit.Builder createGreedyAlgorithmBuilder(VehicleRoutingProblem vrp) {
+        int radialShare = (int) (vrp.jobs().size() * 0.3);
+        int randomShare = (int) (vrp.jobs().size() * 0.5);
 
         Jsprit.Builder builder = Jsprit.Builder.newInstance(vrp);
         builder.setProperty(Jsprit.Parameter.THRESHOLD_ALPHA,"0.0");

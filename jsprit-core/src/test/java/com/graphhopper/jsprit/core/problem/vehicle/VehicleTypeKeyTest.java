@@ -29,19 +29,19 @@ public class VehicleTypeKeyTest {
 
     @Test
     public void typeIdentifierShouldBeEqual() {
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("start")).addSkill("skill1").addSkill("skill2")
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("start")).addSkill("skill1").addSkill("skill2")
             .addSkill("skill3").build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("start")).addSkill("skill2").addSkill("skill1")
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("start")).addSkill("skill2").addSkill("skill1")
             .addSkill("skill3").build();
-        assertTrue(v1.getVehicleTypeIdentifier().equals(v2.getVehicleTypeIdentifier()));
+        assertTrue(v1.vehicleType().equals(v2.vehicleType()));
     }
 
     @Test
     public void typeIdentifierShouldNotBeEqual() {
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("start")).addSkill("skill1").addSkill("skill2")
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("start")).addSkill("skill1").addSkill("skill2")
             .build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("start")).addSkill("skill2").addSkill("skill1")
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("start")).addSkill("skill2").addSkill("skill1")
             .addSkill("skill3").build();
-        assertFalse(v1.getVehicleTypeIdentifier().equals(v2.getVehicleTypeIdentifier()));
+        assertFalse(v1.vehicleType().equals(v2.vehicleType()));
     }
 }

@@ -43,7 +43,7 @@ public class MultipleTimeWindowExample {
          * get a vehicle type-builder and build a type with the typeId "vehicleType" and one capacity dimension, i.e. weight, and capacity dimension value of 2
 		 */
         final int WEIGHT_INDEX = 0;
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType")
+        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.the("vehicleType")
             .addCapacityDimension(WEIGHT_INDEX, 10).setCostPerWaitingTime(1.);
         VehicleType vehicleType = vehicleTypeBuilder.build();
 
@@ -51,7 +51,7 @@ public class MultipleTimeWindowExample {
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
 		 */
         Builder vehicleBuilder = Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance(0, 0));
+        vehicleBuilder.setStartLocation(Location.the(0, 0));
         vehicleBuilder.setType(vehicleType);
         VehicleImpl vehicle = vehicleBuilder.build();
 
@@ -59,34 +59,34 @@ public class MultipleTimeWindowExample {
          * build services at the required locations, each with a capacity-demand of 1.
 		 */
         Service service1 = Service.Builder.newInstance("1")
-            .addTimeWindow(50,100)
-            .addTimeWindow(20,35)
-            .addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(10, 0)).build();
+            .timeWindowAdd(50,100)
+            .timeWindowAdd(20,35)
+            .sizeDimension(WEIGHT_INDEX, 1).location(Location.the(10, 0)).build();
 
         Service service2 = Service.Builder.newInstance("2")
-            .addSizeDimension(WEIGHT_INDEX, 1)
+            .sizeDimension(WEIGHT_INDEX, 1)
 //            .setServiceTime(10)
-            .setLocation(Location.newInstance(20, 0)).setServiceTime(10).build();
+            .location(Location.the(20, 0)).serviceTime(10).build();
 
         Service service3 = Service.Builder.newInstance("3")
-            .addTimeWindow(5, 10)
-            .addTimeWindow(35, 50)
-            .addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(30, 0)).build();
+            .timeWindowAdd(5, 10)
+            .timeWindowAdd(35, 50)
+            .sizeDimension(WEIGHT_INDEX, 1).location(Location.the(30, 0)).build();
 
         Service service4 = Service.Builder.newInstance("4")
 //            .addTimeWindow(5,10)
-            .addTimeWindow(20, 40)
-            .addTimeWindow(45, 80)
-            .addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(40, 0)).build();
+            .timeWindowAdd(20, 40)
+            .timeWindowAdd(45, 80)
+            .sizeDimension(WEIGHT_INDEX, 1).location(Location.the(40, 0)).build();
 
         Service service5 = Service.Builder.newInstance("5")
-            .addTimeWindow(5,10)
-            .addTimeWindow(20, 40)
-            .addTimeWindow(60,100)
-            .addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(20, 0)).build();
+            .timeWindowAdd(5,10)
+            .timeWindowAdd(20, 40)
+            .timeWindowAdd(60,100)
+            .sizeDimension(WEIGHT_INDEX, 1).location(Location.the(20, 0)).build();
 
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addVehicle(vehicle);
         vrpBuilder.addJob(service1).addJob(service2)
             .addJob(service3)

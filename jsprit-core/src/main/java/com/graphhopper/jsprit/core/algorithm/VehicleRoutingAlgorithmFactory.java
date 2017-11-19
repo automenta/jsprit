@@ -22,6 +22,6 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 
 public interface VehicleRoutingAlgorithmFactory {
 
-    public VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp);
+    VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp);
 
 }

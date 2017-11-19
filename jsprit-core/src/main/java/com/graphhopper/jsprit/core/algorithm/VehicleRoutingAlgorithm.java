@@ -23,12 +23,13 @@ import com.graphhopper.jsprit.core.algorithm.listener.SearchStrategyModuleListen
 import com.graphhopper.jsprit.core.algorithm.listener.VehicleRoutingAlgorithmListener;
 import com.graphhopper.jsprit.core.algorithm.listener.VehicleRoutingAlgorithmListeners;
 import com.graphhopper.jsprit.core.algorithm.termination.PrematureAlgorithmTermination;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 import com.graphhopper.jsprit.core.util.Solutions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class VehicleRoutingAlgorithm {
 
     private static class TerminationManager implements PrematureAlgorithmTermination {
 
-        private Collection<PrematureAlgorithmTermination> terminationCriteria = new ArrayList<PrematureAlgorithmTermination>();
+        private final Collection<PrematureAlgorithmTermination> terminationCriteria = new ArrayList<>();
 
         void addTermination(PrematureAlgorithmTermination termination) {
             terminationCriteria.add(termination);
@@ -68,7 +69,7 @@ public class VehicleRoutingAlgorithm {
 
     private static class Counter {
         private final String name;
-        private long counter = 0;
+        private long counter;
         private long nextCounter = 1;
         private static final Logger log = LoggerFactory.getLogger(Counter.class);
 
@@ -81,7 +82,7 @@ public class VehicleRoutingAlgorithm {
             long n = nextCounter;
             if (i >= n) {
                 nextCounter = n * 2;
-                log.info(this.name + n);
+                log.info("{}{}", this.name, n);
             }
         }
 
@@ -107,20 +108,18 @@ public class VehicleRoutingAlgorithm {
 
     private TerminationManager terminationManager = new TerminationManager();
 
-    private VehicleRoutingProblemSolution bestEver = null;
+    private VehicleRoutingProblemSolution bestEver;
 
     private final SolutionCostCalculator objectiveFunction;
 
     public VehicleRoutingAlgorithm(VehicleRoutingProblem problem, SearchStrategyManager searchStrategyManager) {
-        super();
         this.problem = problem;
         this.searchStrategyManager = searchStrategyManager;
-        initialSolutions = new ArrayList<VehicleRoutingProblemSolution>();
+        initialSolutions = new ArrayList<>();
         objectiveFunction = null;
     }
 
     public VehicleRoutingAlgorithm(VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> initialSolutions, SearchStrategyManager searchStrategyManager) {
-        super();
         this.problem = problem;
         this.searchStrategyManager = searchStrategyManager;
         this.initialSolutions = initialSolutions;
@@ -128,10 +127,9 @@ public class VehicleRoutingAlgorithm {
     }
 
     public VehicleRoutingAlgorithm(VehicleRoutingProblem problem, SearchStrategyManager searchStrategyManager, SolutionCostCalculator objectiveFunction) {
-        super();
         this.problem = problem;
         this.searchStrategyManager = searchStrategyManager;
-        initialSolutions = new ArrayList<VehicleRoutingProblemSolution>();
+        initialSolutions = new ArrayList<>();
         this.objectiveFunction = objectiveFunction;
     }
 
@@ -148,15 +146,15 @@ public class VehicleRoutingAlgorithm {
     }
 
     private void verify(VehicleRoutingProblemSolution solution) {
-        Set<Job> allJobs = new HashSet<Job>(problem.getJobs().values());
-        allJobs.removeAll(solution.getUnassignedJobs());
-        for (VehicleRoute route : solution.getRoutes()) {
-            allJobs.removeAll(route.getTourActivities().getJobs());
-            if (route.getVehicle().getIndex() == 0)
+        Collection<Job> allJobs = new HashSet<>(problem.jobs().values());
+        allJobs.removeAll(solution.jobsUnassigned);
+        for (VehicleRoute route : solution.routes) {
+            allJobs.removeAll(route.tourActivities().jobs());
+            if (route.vehicle().index() == 0)
                 throw new IllegalStateException("vehicle used in initial solution has no index. probably a vehicle is used that has not been added to the " +
                     " the VehicleRoutingProblem. only use vehicles that have already been added to the problem.");
-            for (TourActivity act : route.getActivities()) {
-                if (act.getIndex() == 0)
+            for (AbstractActivity act : route.activities()) {
+                if (act.index() == 0)
                     throw new IllegalStateException("act in initial solution has no index. activities are created and associated to their job in VehicleRoutingProblem\n." +
                         " thus if you build vehicle-routes use the jobActivityFactory from vehicle routing problem like that \n" +
                         " VehicleRoute.Builder.newInstance(knownVehicle).setJobActivityFactory(vrp.getJobActivityFactory).addService(..)....build() \n" +
@@ -164,7 +162,7 @@ public class VehicleRoutingAlgorithm {
             }
         }
 
-        solution.getUnassignedJobs().addAll(allJobs);
+        solution.jobsUnassigned.addAll(allJobs);
         solution.setCost(getObjectiveFunction().getCosts(solution));
 
         //        if (nuJobs != problem.getJobs().values().size()) {
@@ -218,7 +216,7 @@ public class VehicleRoutingAlgorithm {
         double now = System.currentTimeMillis();
         int noIterationsThisAlgoIsRunning = maxIterations;
         counter.reset();
-        Collection<VehicleRoutingProblemSolution> solutions = new ArrayList<VehicleRoutingProblemSolution>(initialSolutions);
+        Collection<VehicleRoutingProblemSolution> solutions = new ArrayList<>(initialSolutions);
         algorithmStarts(problem, solutions);
         bestEver = Solutions.bestOf(solutions);
         if (logger.isTraceEnabled()) {
@@ -256,35 +254,35 @@ public class VehicleRoutingAlgorithm {
         }
     }
 
-    private void log(Collection<VehicleRoutingProblemSolution> solutions) {
+    private static void log(Iterable<VehicleRoutingProblemSolution> solutions) {
         for (VehicleRoutingProblemSolution sol : solutions) {
             log(sol);
         }
     }
 
-    private void log(VehicleRoutingProblemSolution solution) {
-        logger.trace("solution costs: {}", solution.getCost());
-        for (VehicleRoute r : solution.getRoutes()) {
+    private static void log(VehicleRoutingProblemSolution solution) {
+        logger.trace("solution costs: {}", solution.cost());
+        for (VehicleRoute r : solution.routes) {
             StringBuilder b = new StringBuilder();
-            b.append(r.getVehicle().getId()).append(" : ").append("[ ");
-            for (TourActivity act : r.getActivities()) {
-                if (act instanceof TourActivity.JobActivity) {
-                    b.append(((TourActivity.JobActivity) act).getJob().getId()).append(" ");
+            b.append(r.vehicle().id()).append(" : ").append("[ ");
+            for (AbstractActivity act : r.activities()) {
+                if (act instanceof JobActivity) {
+                    b.append(((JobActivity) act).job().id()).append(' ');
                 }
             }
-            b.append("]");
+            b.append(']');
             logger.trace(b.toString());
         }
         StringBuilder b = new StringBuilder();
         b.append("unassigned : [ ");
-        for (Job j : solution.getUnassignedJobs()) {
-            b.append(j.getId()).append(" ");
+        for (Job j : solution.jobsUnassigned) {
+            b.append(j.id()).append(' ');
         }
-        b.append("]");
+        b.append(']');
         logger.trace(b.toString());
     }
 
-    private void log(DiscoveredSolution discoveredSolution) {
+    private static void log(DiscoveredSolution discoveredSolution) {
         logger.trace("discovered solution: {}", discoveredSolution);
         log(discoveredSolution.getSolution());
     }
@@ -294,7 +292,7 @@ public class VehicleRoutingAlgorithm {
         if (discoveredSolution == null) return;
         if (bestEver == null) {
             bestEver = discoveredSolution.getSolution();
-        } else if (discoveredSolution.getSolution().getCost() < bestEver.getCost()) {
+        } else if (discoveredSolution.getSolution().cost() < bestEver.cost()) {
             bestEver = discoveredSolution.getSolution();
         }
     }

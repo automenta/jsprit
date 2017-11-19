@@ -24,5 +24,5 @@ import java.util.Collection;
 
 public interface InsertionEndsListener extends InsertionListener {
 
-    public void informInsertionEnds(Collection<VehicleRoute> vehicleRoutes);
+    void informInsertionEnds(Collection<VehicleRoute> vehicleRoutes);
 }

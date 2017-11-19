@@ -30,7 +30,7 @@ import java.util.Collection;
 
 public class StopWatch implements AlgorithmStartsListener, AlgorithmEndsListener {
 
-    private static Logger log = LoggerFactory.getLogger(StopWatch.class);
+    private static final Logger log = LoggerFactory.getLogger(StopWatch.class);
 
     private double ran;
 

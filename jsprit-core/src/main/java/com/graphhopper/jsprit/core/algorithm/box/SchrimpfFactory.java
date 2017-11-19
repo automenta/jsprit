@@ -47,11 +47,11 @@ public class SchrimpfFactory {
      * @param vrp the underlying vehicle routing problem
      * @return algorithm
      */
-    public VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp) {
+    public static VehicleRoutingAlgorithm createAlgorithm(VehicleRoutingProblem vrp) {
         //TODO determine alpha threshold
 
-        int radialShare = (int) (vrp.getJobs().size() * 0.3);
-        int randomShare = (int) (vrp.getJobs().size() * 0.5);
+        int radialShare = (int) (vrp.jobs().size() * 0.3);
+        int randomShare = (int) (vrp.jobs().size() * 0.5);
         Jsprit.Builder builder = Jsprit.Builder.newInstance(vrp);
         builder.setProperty(Jsprit.Parameter.THRESHOLD_ALPHA,"0.0");
         builder.setProperty(Jsprit.Strategy.RADIAL_BEST, "0.5");

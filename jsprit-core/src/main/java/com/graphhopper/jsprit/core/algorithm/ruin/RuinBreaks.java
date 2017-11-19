@@ -41,10 +41,10 @@ public class RuinBreaks implements RuinListener {
     @Override
     public void ruinEnds(Collection<VehicleRoute> routes, Collection<Job> unassignedJobs) {
         for (VehicleRoute r : routes) {
-            Break aBreak = r.getVehicle().getBreak();
+            Break aBreak = r.vehicle().aBreak();
             if (aBreak != null) {
-                r.getTourActivities().removeJob(aBreak);
-                logger.trace("ruin: {}", aBreak.getId());
+                r.tourActivities().removeJob(aBreak);
+                logger.trace("ruin: {}", aBreak.id);
                 unassignedJobs.add(aBreak);
             }
         }

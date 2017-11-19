@@ -25,7 +25,7 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -42,17 +42,17 @@ public class RuinWorstTest {
     @Test
     public void itShouldRemoveCorrectNumber() {
         Service s1 = Service.Builder.newInstance("s1")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(1, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(1, 1)).build()).build();
         Service s2 = Service.Builder.newInstance("s2")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(3, 1)).build()).build();
         Service s3 = Service.Builder.newInstance("s3")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(10, 10)).build()).build();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
+            .setStartLocation(Location.Builder.the().setCoord(v2.the(0, 0)).build()).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
 
-        VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.getJobActivityFactory()).build();
+        VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.jobActivityFactory()).build();
         Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
         assertEquals(1, unassigned.size());
 
@@ -61,17 +61,17 @@ public class RuinWorstTest {
     @Test
     public void itShouldRemoveWorst() {
         Service s1 = Service.Builder.newInstance("s1")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(1, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(1, 1)).build()).build();
         Service s2 = Service.Builder.newInstance("s2")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(3, 1)).build()).build();
         Service s3 = Service.Builder.newInstance("s3")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(10, 10)).build()).build();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
+            .setStartLocation(Location.Builder.the().setCoord(v2.the(0, 0)).build()).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
 
-        VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.getJobActivityFactory()).build();
+        VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.jobActivityFactory()).build();
         Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
         assertEquals(s3, unassigned.iterator().next());
 
@@ -80,14 +80,14 @@ public class RuinWorstTest {
     @Test
     public void itShouldRemoveWorstTwo() {
         Service s1 = Service.Builder.newInstance("s1")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(1, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(1, 1)).build()).build();
         Service s2 = Service.Builder.newInstance("s2")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(3, 1)).build()).build();
         Service s3 = Service.Builder.newInstance("s3")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(10, 10)).build()).build();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
+            .setStartLocation(Location.Builder.the().setCoord(v2.the(0, 0)).build()).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
         worst.setRuinShareFactory(new RuinShareFactory() {
             @Override
@@ -96,7 +96,7 @@ public class RuinWorstTest {
             }
         });
 
-        VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.getJobActivityFactory()).build();
+        VehicleRoute route = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).setJobActivityFactory(vrp.jobActivityFactory()).build();
         Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
 
         assertTrue(unassigned.size() == 2);
@@ -108,17 +108,17 @@ public class RuinWorstTest {
     @Test
     public void itShouldRemoveShipment() {
         Service s1 = Service.Builder.newInstance("s1")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(1, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(1, 1)).build()).build();
         Service s2 = Service.Builder.newInstance("s2")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(3, 1)).build()).build();
         Service s3 = Service.Builder.newInstance("s3")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(10, 10)).build()).build();
         Shipment shipment = Shipment.Builder.newInstance("ship1")
-            .setPickupLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(2, 2)).build())
-            .setDeliveryLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(9, 9)).build()).build();
+            .setPickupLocation(Location.Builder.the().setCoord(v2.the(2, 2)).build())
+            .setDeliveryLocation(Location.Builder.the().setCoord(v2.the(9, 9)).build()).build();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
+            .setStartLocation(Location.Builder.the().setCoord(v2.the(0, 0)).build()).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get()
             .addJob(shipment).addJob(s1).addJob(s2).addJob(s3).addVehicle(v).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
         worst.setRuinShareFactory(new RuinShareFactory() {
@@ -130,7 +130,7 @@ public class RuinWorstTest {
 
         VehicleRoute route = VehicleRoute.Builder.newInstance(v)
             .addPickup(shipment).addService(s1).addService(s2).addService(s3).addDelivery(shipment)
-            .setJobActivityFactory(vrp.getJobActivityFactory()).build();
+            .setJobActivityFactory(vrp.jobActivityFactory()).build();
         Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route));
 
         assertTrue(unassigned.size() == 1);
@@ -141,19 +141,19 @@ public class RuinWorstTest {
     @Test
     public void itShouldRemoveShipmentFromSecondRoute() {
         Service s1 = Service.Builder.newInstance("s1")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(1, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(1, 1)).build()).build();
         Service s2 = Service.Builder.newInstance("s2")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(3, 1)).build()).build();
         Service s3 = Service.Builder.newInstance("s3")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(10, 10)).build()).build();
         Shipment shipment = Shipment.Builder.newInstance("ship1")
-            .setPickupLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build())
-            .setDeliveryLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10.1)).build()).build();
+            .setPickupLocation(Location.Builder.the().setCoord(v2.the(3, 1)).build())
+            .setDeliveryLocation(Location.Builder.the().setCoord(v2.the(10, 10.1)).build()).build();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
+            .setStartLocation(Location.Builder.the().setCoord(v2.the(0, 0)).build()).build();
         VehicleImpl v2 = VehicleImpl.Builder.newInstance("v2")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
+            .setStartLocation(Location.Builder.the().setCoord(com.graphhopper.jsprit.core.util.v2.the(0, 0)).build()).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get()
             .addJob(shipment).addJob(s1).addJob(s2).addJob(s3).addVehicle(v).addVehicle(v2).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
         worst.setRuinShareFactory(new RuinShareFactory() {
@@ -165,7 +165,7 @@ public class RuinWorstTest {
 
         VehicleRoute route1 = VehicleRoute.Builder.newInstance(v)
             .addService(s1).addService(s2).addService(s3)
-            .setJobActivityFactory(vrp.getJobActivityFactory()).build();
+            .setJobActivityFactory(vrp.jobActivityFactory()).build();
         VehicleRoute route2 = VehicleRoute.Builder.newInstance(v2)
             .addPickup(shipment).addDelivery(shipment).build();
         Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route1, route2));
@@ -178,19 +178,19 @@ public class RuinWorstTest {
     @Test
     public void itShouldRemoveServiceAndShipmentFromSecondRoute() {
         Service s1 = Service.Builder.newInstance("s1")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(1, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(1, 1)).build()).build();
         Service s2 = Service.Builder.newInstance("s2")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(3, 1)).build()).build();
         Service s3 = Service.Builder.newInstance("s3")
-            .setLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10)).build()).build();
+            .location(Location.Builder.the().setCoord(v2.the(10, 10)).build()).build();
         Shipment shipment = Shipment.Builder.newInstance("ship1")
-            .setPickupLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(3, 1)).build())
-            .setDeliveryLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 10.1)).build()).build();
+            .setPickupLocation(Location.Builder.the().setCoord(v2.the(3, 1)).build())
+            .setDeliveryLocation(Location.Builder.the().setCoord(v2.the(10, 10.1)).build()).build();
         VehicleImpl v = VehicleImpl.Builder.newInstance("v")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
+            .setStartLocation(Location.Builder.the().setCoord(v2.the(0, 0)).build()).build();
         VehicleImpl v2 = VehicleImpl.Builder.newInstance("v2")
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(0, 0)).build()).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance()
+            .setStartLocation(Location.Builder.the().setCoord(com.graphhopper.jsprit.core.util.v2.the(0, 0)).build()).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get()
             .addJob(shipment).addJob(s1).addJob(s2).addJob(s3).addVehicle(v).addVehicle(v2).build();
         RuinWorst worst = new RuinWorst(vrp, 1);
         worst.setRuinShareFactory(new RuinShareFactory() {
@@ -202,7 +202,7 @@ public class RuinWorstTest {
 
         VehicleRoute route1 = VehicleRoute.Builder.newInstance(v)
             .addService(s1).addService(s2).addService(s3)
-            .setJobActivityFactory(vrp.getJobActivityFactory()).build();
+            .setJobActivityFactory(vrp.jobActivityFactory()).build();
         VehicleRoute route2 = VehicleRoute.Builder.newInstance(v2)
             .addPickup(shipment).addDelivery(shipment).build();
         Collection<Job> unassigned = worst.ruinRoutes(Arrays.asList(route1, route2));

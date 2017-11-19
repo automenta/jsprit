@@ -45,7 +45,7 @@ public class SolomonExample {
 		 *
 		 * But define a problem-builder first.
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
 
 		/*
          * A solomonReader reads solomon-instance files, and stores the required information in the builder.
@@ -65,7 +65,7 @@ public class SolomonExample {
 		 *
 		 * The algorithm can be defined and configured in an xml-file.
 		 */
-        VehicleRoutingAlgorithm vra = new SchrimpfFactory().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = SchrimpfFactory.createAlgorithm(vrp);
 
 		/*
          * Solve the problem.

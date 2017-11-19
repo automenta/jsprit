@@ -37,16 +37,15 @@ class CalculatesServiceInsertionWithTimeScheduling implements JobInsertionCostsC
 
 
     public static class KnowledgeInjection implements InsertionStartsListener {
-        private CalculatesServiceInsertionWithTimeScheduling c;
+        private final CalculatesServiceInsertionWithTimeScheduling c;
 
         public KnowledgeInjection(CalculatesServiceInsertionWithTimeScheduling c) {
-            super();
             this.c = c;
         }
 
         @Override
         public void informInsertionStarts(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
-            List<Double> knowledge = new ArrayList<Double>();
+            List<Double> knowledge = new ArrayList<>();
             if (vehicleRoutes.isEmpty()) {
 //                System.out.println("hmm");
             }
@@ -60,11 +59,11 @@ class CalculatesServiceInsertionWithTimeScheduling implements JobInsertionCostsC
         }
     }
 
-    private static Logger log = LoggerFactory.getLogger(CalculatesServiceInsertionWithTimeScheduling.class);
+    private static final Logger log = LoggerFactory.getLogger(CalculatesServiceInsertionWithTimeScheduling.class);
 
-    private JobInsertionCostsCalculator jic;
+    private final JobInsertionCostsCalculator jic;
 
-    private List<Double> departureTimeKnowledge = new ArrayList<Double>();
+    private List<Double> departureTimeKnowledge = new ArrayList<>();
 
     public void setRandom(Random random) {
         this.random = random;
@@ -73,14 +72,13 @@ class CalculatesServiceInsertionWithTimeScheduling implements JobInsertionCostsC
     private Random random = RandomNumberGeneration.getRandom();
 
     CalculatesServiceInsertionWithTimeScheduling(JobInsertionCostsCalculator jic, double t, double f) {
-        super();
         this.jic = jic;
-        log.debug("initialise " + this);
+        log.debug("initialise {}", this);
     }
 
     @Override
     public String toString() {
-        return "[name=" + this.getClass().toString() + "]";
+        return "[name=" + this.getClass() + ']';
     }
 
     @Override
@@ -90,7 +88,7 @@ class CalculatesServiceInsertionWithTimeScheduling implements JobInsertionCostsC
             if (!departureTimeKnowledge.isEmpty()) {
                 departureTime = departureTimeKnowledge.get(random.nextInt(departureTimeKnowledge.size()));
             }
-        } else if (!currentRoute.getVehicle().getId().equals(newVehicle.getId())) {
+        } else if (!currentRoute.vehicle().id().equals(newVehicle.id())) {
             departureTime = currentRoute.getDepartureTime();
         }
 

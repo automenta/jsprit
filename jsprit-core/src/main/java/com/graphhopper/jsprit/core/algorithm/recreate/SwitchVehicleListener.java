@@ -35,18 +35,18 @@ class SwitchVehicleListener implements EventListener {
         if (event instanceof SwitchVehicle) {
             SwitchVehicle switchVehicle = (SwitchVehicle) event;
             if (vehiclesDifferent((SwitchVehicle) event)) {
-                logger.trace("switch vehicle ({} to {})",((SwitchVehicle) event).getRoute().getVehicle().getId(),((SwitchVehicle) event).getVehicle().getId());
-                Break aBreak = ((SwitchVehicle) event).getRoute().getVehicle().getBreak();
+                logger.trace("switch vehicle ({} to {})",((SwitchVehicle) event).getRoute().vehicle().id(),((SwitchVehicle) event).getVehicle().id());
+                Break aBreak = ((SwitchVehicle) event).getRoute().vehicle().aBreak();
                 if (aBreak != null) {
-                    boolean removed = ((SwitchVehicle) event).getRoute().getTourActivities().removeJob(aBreak);
-                    if (removed) logger.trace("remove {}",aBreak.getId());
+                    boolean removed = ((SwitchVehicle) event).getRoute().tourActivities().removeJob(aBreak);
+                    if (removed) logger.trace("remove {}", aBreak.id);
                 }
             }
             switchVehicle.getRoute().setVehicleAndDepartureTime(switchVehicle.getVehicle(), ((SwitchVehicle) event).getDepartureTime());
         }
     }
 
-    private boolean vehiclesDifferent(SwitchVehicle event) {
-        return !event.getRoute().getVehicle().getId().equals(event.getVehicle().getId());
+    private static boolean vehiclesDifferent(SwitchVehicle event) {
+        return !event.getRoute().vehicle().id().equals(event.getVehicle().id());
     }
 }

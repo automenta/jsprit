@@ -25,7 +25,7 @@ import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +51,12 @@ import java.util.Map;
 public class LiLimReader {
 
     static class CustomerData {
-        public Coordinate coord;
+        public v2 coord;
         public double start;
         public double end;
         public double serviceTime;
 
-        public CustomerData(Coordinate coord, double start, double end, double serviceTime) {
-            super();
+        public CustomerData(v2 coord, double start, double end, double serviceTime) {
             this.coord = coord;
             this.start = start;
             this.end = end;
@@ -71,7 +70,6 @@ public class LiLimReader {
         public int demand;
 
         public Relation(String from, String to, int demand) {
-            super();
             this.from = from;
             this.to = to;
             this.demand = demand;
@@ -79,23 +77,23 @@ public class LiLimReader {
 
     }
 
-    private static Logger logger = LoggerFactory.getLogger(LiLimReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(LiLimReader.class);
 
-    private VehicleRoutingProblem.Builder vrpBuilder;
+    private final VehicleRoutingProblem.Builder vrpBuilder;
 
     private int vehicleCapacity;
 
     private String depotId;
 
-    private Map<String, CustomerData> customers;
+    private final Map<String, CustomerData> customers;
 
-    private Collection<Relation> relations;
+    private final Collection<Relation> relations;
 
     private double depotOpeningTime;
 
     private double depotClosingTime;
 
-    private int fixCosts = 0;
+    private int fixCosts;
 
     public LiLimReader(Builder vrpBuilder) {
         customers = new HashMap<String, LiLimReader.CustomerData>();
@@ -113,11 +111,11 @@ public class LiLimReader {
     public void read(String filename) {
         readShipments(filename);
         buildShipments();
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").addCapacityDimension(0, vehicleCapacity)
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").addCapacityDimension(0, vehicleCapacity)
             .setCostPerDistance(1.0).setFixedCost(fixCosts).build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle")
             .setEarliestStart(depotOpeningTime).setLatestArrival(depotClosingTime)
-            .setStartLocation(Location.Builder.newInstance().setCoordinate(customers.get(depotId).coord).build()).setType(type).build();
+            .setStartLocation(Location.Builder.the().setCoord(customers.get(depotId).coord).build()).setType(type).build();
         vrpBuilder.addVehicle(vehicle);
     }
 
@@ -129,10 +127,10 @@ public class LiLimReader {
             String to = rel.to;
             int demand = rel.demand;
             Shipment s = Shipment.Builder.newInstance(counter.toString()).addSizeDimension(0, demand)
-                .setPickupLocation(Location.Builder.newInstance().setCoordinate(customers.get(from).coord).build()).setPickupServiceTime(customers.get(from).serviceTime)
-                .setPickupTimeWindow(TimeWindow.newInstance(customers.get(from).start, customers.get(from).end))
-                .setDeliveryLocation(Location.Builder.newInstance().setCoordinate(customers.get(to).coord).build()).setDeliveryServiceTime(customers.get(to).serviceTime)
-                .setDeliveryTimeWindow(TimeWindow.newInstance(customers.get(to).start, customers.get(to).end)).build();
+                .setPickupLocation(Location.Builder.the().setCoord(customers.get(from).coord).build()).setPickupServiceTime(customers.get(from).serviceTime)
+                .setPickupTimeWindow(TimeWindow.the(customers.get(from).start, customers.get(from).end))
+                .setDeliveryLocation(Location.Builder.the().setCoord(customers.get(to).coord).build()).setDeliveryServiceTime(customers.get(to).serviceTime)
+                .setDeliveryTimeWindow(TimeWindow.the(customers.get(to).start, customers.get(to).end)).build();
             vrpBuilder.addJob(s);
         }
 
@@ -164,7 +162,7 @@ public class LiLimReader {
                     continue;
                 } else {
                     String customerId = tokens[0];
-                    Coordinate coord = makeCoord(tokens[1], tokens[2]);
+                    v2 coord = makeCoord(tokens[1], tokens[2]);
                     int demand = getInt(tokens[3]);
                     double startTimeWindow = getDouble(tokens[4]);
                     double endTimeWindow = getDouble(tokens[5]);
@@ -188,10 +186,10 @@ public class LiLimReader {
 
     }
 
-    private Coordinate makeCoord(String xString, String yString) {
+    private v2 makeCoord(String xString, String yString) {
         double x = Double.parseDouble(xString);
         double y = Double.parseDouble(yString);
-        return new Coordinate(x, y);
+        return new v2(x, y);
     }
 
     private double getDouble(String string) {

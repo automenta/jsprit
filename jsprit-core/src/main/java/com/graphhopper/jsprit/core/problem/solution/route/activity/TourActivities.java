@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.job.Job;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity.JobActivity;
 
 import java.util.*;
 
@@ -33,26 +33,24 @@ public class TourActivities {
         return new TourActivities(tourActivities);
     }
 
-    public static class ReverseActivityIterator implements Iterator<TourActivity> {
+    public static class ReverseActivityIterator implements Iterator<AbstractActivity> {
 
-        private List<TourActivity> acts;
+        private final List<AbstractActivity> acts;
         private int currentIndex;
 
-        public ReverseActivityIterator(List<TourActivity> acts) {
-            super();
+        public ReverseActivityIterator(List<AbstractActivity> acts) {
             this.acts = acts;
             currentIndex = acts.size() - 1;
         }
 
         @Override
         public boolean hasNext() {
-            if (currentIndex >= 0) return true;
-            return false;
+            return currentIndex >= 0;
         }
 
         @Override
-        public TourActivity next() {
-            TourActivity act = acts.get(currentIndex);
+        public AbstractActivity next() {
+            AbstractActivity act = acts.get(currentIndex);
             currentIndex--;
             return act;
         }
@@ -67,15 +65,15 @@ public class TourActivities {
         }
     }
 
-    private final ArrayList<TourActivity> tourActivities = new ArrayList<TourActivity>();
+    private final ArrayList<AbstractActivity> tourActivities = new ArrayList<>();
 
-    private final Set<Job> jobs = new HashSet<Job>();
+    private final Set<Job> jobs = new HashSet<>();
 
     private ReverseActivityIterator backward;
 
     private TourActivities(TourActivities tour2copy) {
-        for (TourActivity tourAct : tour2copy.getActivities()) {
-            TourActivity newAct = tourAct.duplicate();
+        for (AbstractActivity tourAct : tour2copy.activities()) {
+            AbstractActivity newAct = tourAct.clone();
             this.tourActivities.add(newAct);
             addJob(newAct);
         }
@@ -85,19 +83,19 @@ public class TourActivities {
 
     }
 
-    public List<TourActivity> getActivities() {
+    public List<AbstractActivity> activities() {
         return Collections.unmodifiableList(tourActivities);
     }
 
-    public Iterator<TourActivity> iterator() {
+    public Iterator<AbstractActivity> iterator() {
         return tourActivities.iterator();
     }
 
     public boolean isEmpty() {
-        return (tourActivities.size() == 0);
+        return (tourActivities.isEmpty());
     }
 
-    public Collection<Job> getJobs() {
+    public Collection<Job> jobs() {
         return Collections.unmodifiableSet(jobs);
     }
 
@@ -111,7 +109,7 @@ public class TourActivities {
 
     @Override
     public String toString() {
-        return "[nuOfActivities=" + tourActivities.size() + "]";
+        return "[nuOfActivities=" + tourActivities.size() + ']';
     }
 
     /**
@@ -130,11 +128,11 @@ public class TourActivities {
             jobRemoved = jobs.remove(job);
         }
         boolean activityRemoved = false;
-        Iterator<TourActivity> iterator = tourActivities.iterator();
+        Iterator<AbstractActivity> iterator = tourActivities.iterator();
         while (iterator.hasNext()) {
-            TourActivity c = iterator.next();
+            AbstractActivity c = iterator.next();
             if (c instanceof JobActivity) {
-                Job underlyingJob = ((JobActivity) c).getJob();
+                Job underlyingJob = ((JobActivity) c).job();
                 if (job.equals(underlyingJob)) {
                     iterator.remove();
                     activityRemoved = true;
@@ -154,21 +152,21 @@ public class TourActivities {
      * @param activity to be removed
      * @return true if activity has been removed, false otherwise
      */
-    public boolean removeActivity(TourActivity activity) {
+    public boolean removeActivity(AbstractActivity activity) {
         Job job = null;
         if (activity instanceof JobActivity) {
-            job = ((JobActivity) activity).getJob();
+            job = ((JobActivity) activity).job();
         }
         boolean jobIsAlsoAssociateToOtherActs = false;
         boolean actRemoved = false;
-        List<TourActivity> acts = new ArrayList<TourActivity>(tourActivities);
-        for (TourActivity act : acts) {
+        Iterable<AbstractActivity> acts = new ArrayList<>(tourActivities);
+        for (AbstractActivity act : acts) {
             if (act == activity) {
                 tourActivities.remove(act);
                 actRemoved = true;
             } else {
                 if (act instanceof JobActivity && job != null) {
-                    if (((JobActivity) act).getJob().equals(job)) {
+                    if (((JobActivity) act).job().equals(job)) {
                         jobIsAlsoAssociateToOtherActs = true;
                     }
                 }
@@ -191,7 +189,7 @@ public class TourActivities {
      * @param act            activity to be inserted
      * @throws IndexOutOfBoundsException if insertionIndex < 0;
      */
-    public void addActivity(int insertionIndex, TourActivity act) {
+    public void addActivity(int insertionIndex, AbstractActivity act) {
 
         assert insertionIndex >= 0 : "insertionIndex < 0, this cannot be";
 
@@ -217,16 +215,16 @@ public class TourActivities {
      * @param act to be added
      * @throws IllegalArgumentException if activity-list already contains act.
      */
-    public void addActivity(TourActivity act) {
+    public void addActivity(AbstractActivity act) {
         if (tourActivities.contains(act))
             throw new IllegalArgumentException("act " + act + " already in tour. cannot add act twice.");
         tourActivities.add(act);
         addJob(act);
     }
 
-    private void addJob(TourActivity act) {
+    private void addJob(AbstractActivity act) {
         if (act instanceof JobActivity) {
-            Job job = ((JobActivity) act).getJob();
+            Job job = ((JobActivity) act).job();
 //            if(job instanceof Service) assert !jobs.contains(job);
             jobs.add(job);
         }
@@ -241,7 +239,7 @@ public class TourActivities {
         return jobs.size();
     }
 
-    public Iterator<TourActivity> reverseActivityIterator() {
+    public Iterator<AbstractActivity> reverseActivityIterator() {
         if (backward == null) backward = new ReverseActivityIterator(tourActivities);
         else backward.reset();
         return backward;

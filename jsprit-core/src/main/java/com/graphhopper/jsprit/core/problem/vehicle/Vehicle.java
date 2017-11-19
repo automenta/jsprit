@@ -18,7 +18,7 @@
 package com.graphhopper.jsprit.core.problem.vehicle;
 
 import com.graphhopper.jsprit.core.problem.HasId;
-import com.graphhopper.jsprit.core.problem.HasIndex;
+import com.graphhopper.jsprit.core.problem.Indexed;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.Skills;
 import com.graphhopper.jsprit.core.problem.job.Break;
@@ -28,57 +28,58 @@ import com.graphhopper.jsprit.core.problem.job.Break;
  *
  * @author schroeder
  */
-public interface Vehicle extends HasId, HasIndex {
+public interface Vehicle extends HasId, Indexed {
 
     /**
      * Returns the earliest departure of vehicle which should be the lower bound of this vehicle's departure times.
      *
      * @return earliest departure time
      */
-    public abstract double getEarliestDeparture();
+    double earliestDeparture();
 
     /**
      * Returns the latest arrival time at this vehicle's end-location which should be the upper bound of this vehicle's arrival times at end-location.
      *
      * @return latest arrival time of this vehicle
      */
-    public abstract double getLatestArrival();
+    double latestArrival();
 
     /**
      * Returns the {@link VehicleType} of this vehicle.
      *
      * @return {@link VehicleType} of this vehicle
      */
-    public abstract VehicleType getType();
+    VehicleType type();
 
     /**
      * Returns the id of this vehicle.
      *
      * @return id
      */
-    public abstract String getId();
+    @Override
+    String id();
 
     /**
      * Returns true if vehicle returns to depot, false otherwise.
      *
      * @return true if isReturnToDepot
      */
-    public abstract boolean isReturnToDepot();
+    boolean isReturnToDepot();
 
-    public abstract Location getStartLocation();
+    Location start();
 
-    public abstract Location getEndLocation();
+    Location end();
 
-    public abstract VehicleTypeKey getVehicleTypeIdentifier();
+    VehicleTypeKey vehicleType();
 
-    public abstract Skills getSkills();
+    Skills skills();
 
     /**
      * @return User-specific domain data associated with the vehicle
      */
-    public Object getUserData();
+    Object data();
 
-    public abstract Break getBreak();
+    Break aBreak();
     // Switch to this as soon as we switct to Java 8:
     // default Object getUserData() {
     // return null;

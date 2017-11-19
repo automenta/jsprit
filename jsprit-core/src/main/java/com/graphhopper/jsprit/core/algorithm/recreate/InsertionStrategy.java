@@ -38,12 +38,12 @@ public interface InsertionStrategy {
      * @param vehicleRoutes  existing vehicle routes
      * @param unassignedJobs jobs to be inserted
      */
-    public Collection<Job> insertJobs(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs);
+    Collection<Job> insertJobs(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs);
 
-    public void addListener(InsertionListener insertionListener);
+    void addListener(InsertionListener insertionListener);
 
-    public void removeListener(InsertionListener insertionListener);
+    void removeListener(InsertionListener insertionListener);
 
-    public Collection<InsertionListener> getListeners();
+    Collection<InsertionListener> getListeners();
 
 }

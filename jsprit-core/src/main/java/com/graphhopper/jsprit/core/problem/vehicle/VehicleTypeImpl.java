@@ -50,7 +50,6 @@ public class VehicleTypeImpl implements VehicleType {
         public final double perServiceTimeUnit;
 
         private VehicleCostParams(double fix, double perTimeUnit, double perDistanceUnit) {
-            super();
             this.fix = fix;
             this.perTimeUnit = perTimeUnit;
             this.perTransportTimeUnit = perTimeUnit;
@@ -79,7 +78,7 @@ public class VehicleTypeImpl implements VehicleType {
 
         @Override
         public String toString() {
-            return "[fixed=" + fix + "][perTime=" + perTransportTimeUnit + "][perDistance=" + perDistanceUnit + "][perWaitingTimeUnit=" + perWaitingTimeUnit + "]";
+            return "[fixed=" + fix + "][perTime=" + perTransportTimeUnit + "][perDistance=" + perDistanceUnit + "][perWaitingTimeUnit=" + perWaitingTimeUnit + ']';
         }
     }
 
@@ -91,30 +90,29 @@ public class VehicleTypeImpl implements VehicleType {
     public static class Builder {
 
 
-        public static VehicleTypeImpl.Builder newInstance(String id) {
+        public static VehicleTypeImpl.Builder the(String id) {
             if (id == null) throw new IllegalArgumentException();
             return new Builder(id);
         }
 
-        private String id;
-        private int capacity = 0;
+        private final String id;
         private double maxVelo = Double.MAX_VALUE;
         /**
          * default cost values for default vehicle type
          */
-        private double fixedCost = 0.0;
+        private double fixedCost;
         private double perDistance = 1.0;
-        private double perTime = 0.0;
-        private double perWaitingTime = 0.0;
-        private double perServiceTime = 0.0;
+        private double perTime;
+        private double perWaitingTime;
+        private double perServiceTime;
 
         private String profile = "car";
 
-        private Capacity.Builder capacityBuilder = Capacity.Builder.newInstance();
+        private final Capacity.Builder capacityBuilder = Capacity.Builder.get();
 
-        private Capacity capacityDimensions = null;
+        private Capacity capacityDimensions;
 
-        private boolean dimensionAdded = false;
+        private boolean dimensionAdded;
 
         private Object userData;
 
@@ -301,7 +299,7 @@ public class VehicleTypeImpl implements VehicleType {
         final int prime = 31;
         int result = 1;
         result = prime * result
-            + ((typeId == null) ? 0 : typeId.hashCode());
+            + ((type == null) ? 0 : type.hashCode());
         return result;
     }
 
@@ -317,27 +315,20 @@ public class VehicleTypeImpl implements VehicleType {
         if (getClass() != obj.getClass())
             return false;
         VehicleTypeImpl other = (VehicleTypeImpl) obj;
-        if (typeId == null) {
-            if (other.typeId != null)
-                return false;
-        } else if (!typeId.equals(other.typeId))
-            return false;
-        return true;
+        return type == null ? other.type == null : type.equals(other.type);
     }
 
-    private final String typeId;
+    public final String type;
 
-    private final int capacity;
+    public final String profile;
 
-    private final String profile;
+    public final VehicleTypeImpl.VehicleCostParams vehicleCostParams;
 
-    private final VehicleTypeImpl.VehicleCostParams vehicleCostParams;
+    public final Capacity capacityDimensions;
 
-    private final Capacity capacityDimensions;
+    public final double maxVelocity;
 
-    private final double maxVelocity;
-
-    private Object userData;
+    public final Object data;
 
     /**
      * priv constructor constructing vehicle-type
@@ -345,9 +336,8 @@ public class VehicleTypeImpl implements VehicleType {
      * @param builder
      */
     private VehicleTypeImpl(VehicleTypeImpl.Builder builder) {
-        this.userData = builder.userData;
-        typeId = builder.id;
-        capacity = builder.capacity;
+        this.data = builder.userData;
+        type = builder.id;
         maxVelocity = builder.maxVelo;
         vehicleCostParams = new VehicleCostParams(builder.fixedCost, builder.perTime, builder.perDistance, builder.perWaitingTime, builder.perServiceTime);
         capacityDimensions = builder.capacityDimensions;
@@ -358,16 +348,16 @@ public class VehicleTypeImpl implements VehicleType {
      * @return User-specific domain data associated with the vehicle
      */
     @Override
-    public Object getUserData() {
-        return userData;
+    public Object data() {
+        return data;
     }
 
     /* (non-Javadoc)
      * @see basics.route.VehicleType#getTypeId()
      */
     @Override
-    public String getTypeId() {
-        return typeId;
+    public final String type() {
+        return type;
     }
 
     /* (non-Javadoc)
@@ -380,9 +370,9 @@ public class VehicleTypeImpl implements VehicleType {
 
     @Override
     public String toString() {
-        return "[typeId=" + typeId + "]" +
-            "[capacity=" + capacityDimensions + "]" +
-            "[costs=" + vehicleCostParams + "]";
+        return "[typeId=" + type + ']' +
+            "[capacity=" + capacityDimensions + ']' +
+            "[costs=" + vehicleCostParams + ']';
     }
 
     @Override
@@ -396,7 +386,7 @@ public class VehicleTypeImpl implements VehicleType {
     }
 
     @Override
-    public String getProfile() {
+    public final String profile() {
         return profile;
     }
 

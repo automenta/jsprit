@@ -59,10 +59,10 @@ public class TestAlgorithmReader {
     Collection<VehicleRoutingProblemSolution> solutions;
 
     @Before
-    public void doBefore() throws ConfigurationException {
+    public void doBefore() {
         config = new AlgorithmConfig();
         new AlgorithmConfigXmlReader(config).setSchemaValidation(false).read(getClass().getResource("testConfig.xml"));
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         solutions = new ArrayList<VehicleRoutingProblemSolution>();
         new VrpXMLReader(vrpBuilder, solutions).read(getClass().getResourceAsStream("finiteVrp.xml"));
         vrp = vrpBuilder.build();
@@ -76,7 +76,7 @@ public class TestAlgorithmReader {
 
     static class IterationCounter implements IterationEndsListener {
 
-        int iterations = 0;
+        int iterations;
 
         @Override
         public void informIterationEnds(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {

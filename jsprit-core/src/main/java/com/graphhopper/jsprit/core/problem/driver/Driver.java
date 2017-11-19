@@ -19,6 +19,6 @@ package com.graphhopper.jsprit.core.problem.driver;
 
 public interface Driver {
 
-    public String getId();
+    String getId();
 
 }

@@ -19,7 +19,7 @@
 
 package com.graphhopper.jsprit.core.util;
 
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 
 @Deprecated
 public class CalculationUtils {
@@ -33,7 +33,7 @@ public class CalculationUtils {
      * @return
      */
     @Deprecated
-    public static double getActivityEndTime(double actArrTime, TourActivity act){
-		return Math.max(actArrTime, act.getTheoreticalEarliestOperationStartTime()) + act.getOperationTime();
+    public static double getActivityEndTime(double actArrTime, AbstractActivity act){
+		return Math.max(actArrTime, act.startEarliest()) + act.operationTime();
     }
 }

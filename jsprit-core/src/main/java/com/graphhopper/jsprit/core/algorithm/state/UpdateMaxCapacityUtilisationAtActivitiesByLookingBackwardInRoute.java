@@ -17,10 +17,10 @@
  */
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 /**
  * Determines and memorizes the maximum capacity utilization at each activity by looking backward in route,
@@ -30,17 +30,17 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
  */
 class UpdateMaxCapacityUtilisationAtActivitiesByLookingBackwardInRoute implements ActivityVisitor, StateUpdater {
 
-    private StateManager stateManager;
+    private final StateManager stateManager;
 
     private VehicleRoute route;
 
     private Capacity maxLoad;
 
-    private Capacity defaultValue;
+    private final Capacity defaultValue;
 
     public UpdateMaxCapacityUtilisationAtActivitiesByLookingBackwardInRoute(StateManager stateManager) {
         this.stateManager = stateManager;
-        defaultValue = Capacity.Builder.newInstance().build();
+        defaultValue = Capacity.Builder.get().build();
     }
 
     @Override
@@ -51,8 +51,8 @@ class UpdateMaxCapacityUtilisationAtActivitiesByLookingBackwardInRoute implement
     }
 
     @Override
-    public void visit(TourActivity act) {
-        maxLoad = Capacity.max(maxLoad, stateManager.getActivityState(act, InternalStates.LOAD, Capacity.class));
+    public void visit(AbstractActivity act) {
+        maxLoad = Capacity.max(maxLoad, stateManager.state(act, InternalStates.LOAD, Capacity.class));
         stateManager.putInternalTypedActivityState(act, InternalStates.PAST_MAXLOAD, maxLoad);
 //		assert maxLoad.isGreaterOrEqual(Capacity.Builder.newInstance().build()) : "maxLoad can never be smaller than 0";
 //		assert maxLoad.isLessOrEqual(route.getVehicle().getType().getCapacityDimensions()) : "maxLoad can never be bigger than vehicleCap";

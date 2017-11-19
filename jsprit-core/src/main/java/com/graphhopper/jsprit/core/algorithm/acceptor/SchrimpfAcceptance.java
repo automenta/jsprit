@@ -68,15 +68,15 @@ import java.util.List;
  */
 public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsListener, AlgorithmStartsListener {
 
-    private static Logger logger = LoggerFactory.getLogger(SchrimpfAcceptance.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SchrimpfAcceptance.class.getName());
 
     private final double alpha;
 
     private int maxIterations = 1000;
 
-    private int currentIteration = 0;
+    private int currentIteration;
 
-    private double initialThreshold = 0.0;
+    private double initialThreshold;
 
     private final int solutionMemory;
 
@@ -97,12 +97,12 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
             double threshold = getThreshold(currentIteration);
             for (VehicleRoutingProblemSolution solutionInMemory : solutions) {
                 if (worst == null) worst = solutionInMemory;
-                else if (solutionInMemory.getCost() > worst.getCost()) worst = solutionInMemory;
+                else if (solutionInMemory.cost() > worst.cost()) worst = solutionInMemory;
             }
             if (worst == null) {
                 solutions.add(newSolution);
                 solutionAccepted = true;
-            } else if (newSolution.getCost() < worst.getCost() + threshold) {
+            } else if (newSolution.cost() < worst.cost() + threshold) {
                 solutions.remove(worst);
                 solutions.add(newSolution);
                 solutionAccepted = true;
@@ -112,7 +112,7 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
     }
 
     public boolean acceptSolution(VehicleRoutingProblemSolution solution, VehicleRoutingProblemSolution newSolution) {
-        List<VehicleRoutingProblemSolution> solutions = new ArrayList<>();
+        Collection<VehicleRoutingProblemSolution> solutions = new ArrayList<>();
         solutions.add(solution);
         boolean solutionAccepted = false;
         if (solutions.size() < solutionMemory) {
@@ -123,12 +123,12 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
             double threshold = getThreshold(currentIteration);
             for (VehicleRoutingProblemSolution solutionInMemory : solutions) {
                 if (worst == null) worst = solutionInMemory;
-                else if (solutionInMemory.getCost() > worst.getCost()) worst = solutionInMemory;
+                else if (solutionInMemory.cost() > worst.cost()) worst = solutionInMemory;
             }
             if (worst == null) {
                 solutions.add(newSolution);
                 solutionAccepted = true;
-            } else if (newSolution.getCost() < worst.getCost() + threshold) {
+            } else if (newSolution.cost() < worst.cost() + threshold) {
                 solutions.remove(worst);
                 solutions.add(newSolution);
                 solutionAccepted = true;
@@ -139,7 +139,7 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
 
     @Override
     public String toString() {
-        return "[name=SchrimpfAcceptance][alpha=" + alpha + "]";
+        return "[name=SchrimpfAcceptance][alpha=" + alpha + ']';
     }
 
     private double getThreshold(int iteration) {
@@ -170,8 +170,6 @@ public class SchrimpfAcceptance implements SolutionAcceptor, IterationStartsList
     public void incIteration() {
         currentIteration++;
     }
-
-    ;
 
     @Override
     public void informAlgorithmStarts(VehicleRoutingProblem problem, VehicleRoutingAlgorithm algorithm, Collection<VehicleRoutingProblemSolution> solutions) {

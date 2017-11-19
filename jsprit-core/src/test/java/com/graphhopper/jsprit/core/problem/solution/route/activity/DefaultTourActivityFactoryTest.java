@@ -17,6 +17,7 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
 import com.graphhopper.jsprit.core.problem.job.Pickup;
@@ -31,8 +32,8 @@ public class DefaultTourActivityFactoryTest {
     @Test
     public void whenCreatingActivityWithService_itShouldReturnPickupService() {
         DefaultTourActivityFactory factory = new DefaultTourActivityFactory();
-        Service service = Service.Builder.newInstance("service").setLocation(Location.newInstance("loc")).build();
-        TourActivity act = factory.createActivity(service);
+        Service service = Service.Builder.newInstance("service").location(Location.the("loc")).build();
+        AbstractActivity act = factory.createActivity(service);
         assertNotNull(act);
         assertTrue(act instanceof PickupService);
     }
@@ -40,8 +41,8 @@ public class DefaultTourActivityFactoryTest {
     @Test
     public void whenCreatingActivityWithPickup_itShouldReturnPickupService() {
         DefaultTourActivityFactory factory = new DefaultTourActivityFactory();
-        Pickup service = (Pickup) Pickup.Builder.newInstance("service").setLocation(Location.newInstance("loc")).build();
-        TourActivity act = factory.createActivity(service);
+        Pickup service = Pickup.Builder.the("service").location(Location.the("loc")).build();
+        AbstractActivity act = factory.createActivity(service);
         assertNotNull(act);
         assertTrue(act instanceof PickupService);
     }
@@ -49,8 +50,8 @@ public class DefaultTourActivityFactoryTest {
     @Test
     public void whenCreatingActivityWithDelivery_itShouldReturnDeliverService() {
         DefaultTourActivityFactory factory = new DefaultTourActivityFactory();
-        Delivery service = (Delivery) Delivery.Builder.newInstance("service").setLocation(Location.newInstance("loc")).build();
-        TourActivity act = factory.createActivity(service);
+        Delivery service = Delivery.Builder.newInstance("service").location(Location.the("loc")).build();
+        AbstractActivity act = factory.createActivity(service);
         assertNotNull(act);
         assertTrue(act instanceof DeliverService);
     }

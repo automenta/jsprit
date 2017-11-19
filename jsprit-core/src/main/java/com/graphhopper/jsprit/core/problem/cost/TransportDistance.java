@@ -26,6 +26,6 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 public interface TransportDistance {
 
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle);
+    double distance(Location from, Location to, double departureTime, Vehicle vehicle);
 
 }

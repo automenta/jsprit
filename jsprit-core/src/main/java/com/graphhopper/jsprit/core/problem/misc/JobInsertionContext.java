@@ -17,10 +17,10 @@
  */
 package com.graphhopper.jsprit.core.problem.misc;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 import java.util.ArrayList;
@@ -31,17 +31,17 @@ import java.util.List;
  */
 public class JobInsertionContext {
 
-    private VehicleRoute route;
+    private final VehicleRoute route;
 
-    private Job job;
+    private final Job job;
 
-    private Vehicle newVehicle;
+    private final Vehicle newVehicle;
 
-    private Driver newDriver;
+    private final Driver newDriver;
 
-    private double newDepTime;
+    private final double newDepTime;
 
-    private List<TourActivity> associatedActivities = new ArrayList<TourActivity>();
+    private final List<AbstractActivity> associatedActivities = new ArrayList<>();
 
     private ActivityContext activityContext;
 
@@ -104,7 +104,6 @@ public class JobInsertionContext {
      * @param newDepTime the new departure time at the new vehicle's start location
      */
     public JobInsertionContext(VehicleRoute route, Job job, Vehicle newVehicle, Driver newDriver, double newDepTime) {
-        super();
         this.route = route;
         this.job = job;
         this.newVehicle = newVehicle;
@@ -112,7 +111,7 @@ public class JobInsertionContext {
         this.newDepTime = newDepTime;
     }
 
-    public List<TourActivity> getAssociatedActivities() {
+    public List<AbstractActivity> getAssociatedActivities() {
         return associatedActivities;
     }
 

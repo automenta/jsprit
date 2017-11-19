@@ -18,7 +18,6 @@
 package com.graphhopper.jsprit.core.problem.job;
 
 
-import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Skills;
 
 /**
@@ -54,13 +53,14 @@ public class Break extends Service {
          * @return pickup
          * @throws IllegalStateException if neither locationId nor coordinate has been set
          */
+        @Override
         public Break build() {
             if (location != null) {
                 variableLocation = false;
             }
-            this.setType("break");
-            super.capacity = Capacity.Builder.newInstance().build();
-            super.skills = Skills.Builder.newInstance().build();
+            this.type("break");
+            capacity = capacityBuilder.build();
+            skills = Skills.Builder.newInstance().build();
             return new Break(this);
         }
 

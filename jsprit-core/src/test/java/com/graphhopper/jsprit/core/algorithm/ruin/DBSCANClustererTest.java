@@ -36,11 +36,11 @@ public class DBSCANClustererTest {
 
     @Test
     public void itShouldReturnOneClusterOfSizeTwo() {
-        Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(10, 10)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(9, 9)).build();
+        Service s1 = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(10, 10)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(9, 9)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
         VehicleRoute r = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).build();
 
         DBSCANClusterer c = new DBSCANClusterer(new EuclideanCosts());
@@ -52,11 +52,11 @@ public class DBSCANClustererTest {
 
     @Test
     public void itShouldReturnOneCluster() {
-        Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(10, 10)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(9, 9)).build();
+        Service s1 = Service.Builder.newInstance("s1").location(Location.the(1, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(10, 10)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(9, 9)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
         VehicleRoute r = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3).build();
 
         DBSCANClusterer c = new DBSCANClusterer(new EuclideanCosts());
@@ -68,14 +68,14 @@ public class DBSCANClustererTest {
 
     @Test
     public void itShouldReturnTwoClusters() {
-        Service s0 = Service.Builder.newInstance("s0").setLocation(Location.newInstance(9, 0)).build();
-        Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(9, 1)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(9, 10)).build();
-        Service s3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance(9, 9)).build();
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance(9, 16)).build();
-        Service s5 = Service.Builder.newInstance("s5").setLocation(Location.newInstance(9, 17)).build();
+        Service s0 = Service.Builder.newInstance("s0").location(Location.the(9, 0)).build();
+        Service s1 = Service.Builder.newInstance("s1").location(Location.the(9, 1)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(9, 10)).build();
+        Service s3 = Service.Builder.newInstance("s3").location(Location.the(9, 9)).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the(9, 16)).build();
+        Service s5 = Service.Builder.newInstance("s5").location(Location.the(9, 17)).build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
         VehicleRoute r = VehicleRoute.Builder.newInstance(v).addService(s1).addService(s2).addService(s3)
             .addService(s0).addService(s4).addService(s5).build();
 

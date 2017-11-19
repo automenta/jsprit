@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.constraint;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,7 +26,7 @@ import java.util.Collections;
 
 class SoftActivityConstraintManager implements SoftActivityConstraint {
 
-    private Collection<SoftActivityConstraint> softConstraints = new ArrayList<SoftActivityConstraint>();
+    private final Collection<SoftActivityConstraint> softConstraints = new ArrayList<>();
 
     public void addConstraint(SoftActivityConstraint constraint) {
         softConstraints.add(constraint);
@@ -37,7 +37,7 @@ class SoftActivityConstraintManager implements SoftActivityConstraint {
     }
 
     @Override
-    public double getCosts(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+    public double getCosts(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
         double sumCosts = 0.0;
         for (SoftActivityConstraint c : softConstraints) {
             sumCosts += c.getCosts(iFacts, prevAct, newAct, nextAct, prevActDepTime);

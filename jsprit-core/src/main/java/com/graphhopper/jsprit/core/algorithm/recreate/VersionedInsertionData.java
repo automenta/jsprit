@@ -25,11 +25,11 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
  */
 class VersionedInsertionData {
 
-    private InsertionData iData;
+    private final InsertionData iData;
 
-    private VehicleRoute route;
+    private final VehicleRoute route;
 
-    private int version;
+    private final int version;
 
     public VersionedInsertionData(InsertionData iData, int version, VehicleRoute route) {
         this.iData = iData;

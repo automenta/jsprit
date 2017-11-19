@@ -34,6 +34,6 @@ public interface HardRouteConstraint extends HardConstraint {
      *                         time at this vehicle's start location (<code>insertionContext.getNewDepartureTime()</code>).
      * @return true if constraint is met, false otherwise
      */
-    public boolean fulfilled(JobInsertionContext insertionContext);
+    boolean fulfilled(JobInsertionContext insertionContext);
 
 }

@@ -27,7 +27,7 @@ import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
  */
 public class SwitchNotFeasible implements HardRouteConstraint {
 
-    private StateManager stateManager;
+    private final StateManager stateManager;
 
     public SwitchNotFeasible(StateManager stateManager) {
         this.stateManager = stateManager;
@@ -36,9 +36,7 @@ public class SwitchNotFeasible implements HardRouteConstraint {
     @Override
     public boolean fulfilled(JobInsertionContext insertionContext) {
         Boolean notFeasible = stateManager.getRouteState(insertionContext.getRoute(), insertionContext.getNewVehicle(), InternalStates.SWITCH_NOT_FEASIBLE, Boolean.class);
-        if (notFeasible == null || insertionContext.getRoute().getVehicle().getVehicleTypeIdentifier().equals(insertionContext.getNewVehicle().getVehicleTypeIdentifier()))
-            return true;
-        else return !notFeasible;
+        return notFeasible == null || insertionContext.getRoute().vehicle().vehicleType().equals(insertionContext.getNewVehicle().vehicleType()) ? true : !notFeasible;
     }
 
 }

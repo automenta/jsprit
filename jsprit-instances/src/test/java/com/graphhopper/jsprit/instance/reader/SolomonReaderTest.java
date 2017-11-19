@@ -32,10 +32,10 @@ public class SolomonReaderTest {
 
     @Test
     public void whenReadingSolomonInstance_nuOfCustomersIsCorrect() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        assertEquals(100, vrp.getJobs().values().size());
+        assertEquals(100, vrp.jobs().values().size());
     }
 
     private String getPath() {
@@ -46,7 +46,7 @@ public class SolomonReaderTest {
 
     @Test
     public void whenReadingSolomonInstance_fleetSizeIsInfinite() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
         assertEquals(FleetSize.INFINITE, vrp.getFleetSize());
@@ -54,55 +54,55 @@ public class SolomonReaderTest {
 
     @Test
     public void whenReadingSolomonInstance_vehicleCapacitiesAreCorrect() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        for (Vehicle v : vrp.getVehicles()) {
-            assertEquals(200, v.getType().getCapacityDimensions().get(0));
+        for (Vehicle v : vrp.vehicles()) {
+            assertEquals(200, v.type().getCapacityDimensions().get(0));
         }
     }
 
     @Test
     public void whenReadingSolomonInstance_vehicleLocationsAreCorrect_and_correspondToDepotLocation() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        for (Vehicle v : vrp.getVehicles()) {
-            assertEquals(40.0, v.getStartLocation().getCoordinate().getX(), 0.01);
-            assertEquals(50.0, v.getStartLocation().getCoordinate().getY(), 0.01);
+        for (Vehicle v : vrp.vehicles()) {
+            assertEquals(40.0, v.start().coord.x, 0.01);
+            assertEquals(50.0, v.start().coord.y, 0.01);
         }
     }
 
     @Test
     public void whenReadingSolomonInstance_demandOfCustomerOneIsCorrect() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        assertEquals(10, vrp.getJobs().get("1").getSize().get(0));
+        assertEquals(10, vrp.jobs().get("1").size().get(0));
     }
 
     @Test
     public void whenReadingSolomonInstance_serviceDurationOfCustomerTwoIsCorrect() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        assertEquals(90, ((Service) vrp.getJobs().get("2")).getServiceDuration(), 0.1);
+        assertEquals(90, ((Service) vrp.jobs().get("2")).serviceTime, 0.1);
     }
 
     @Test
     public void whenReadingSolomonInstance_earliestServiceStartTimeOfCustomerSixtyTwoIsCorrect() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        assertEquals(262.0, ((Service) vrp.getJobs().get("62")).getTimeWindow().getStart(), 0.1);
+        assertEquals(262.0, ((Service) vrp.jobs().get("62")).timeWindow().start, 0.1);
     }
 
     @Test
     public void whenReadingSolomonInstance_latestServiceStartTimeOfCustomerEightySevenIsCorrect() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(builder).read(getPath());
         VehicleRoutingProblem vrp = builder.build();
-        assertEquals(144.0, ((Service) vrp.getJobs().get("87")).getTimeWindow().getEnd(), 0.1);
+        assertEquals(144.0, ((Service) vrp.jobs().get("87")).timeWindow().end, 0.1);
     }
 
 

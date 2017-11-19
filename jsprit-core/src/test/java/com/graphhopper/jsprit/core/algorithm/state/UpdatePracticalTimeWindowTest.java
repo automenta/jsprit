@@ -17,8 +17,6 @@
  */
 package com.graphhopper.jsprit.core.algorithm.state;
 
-import com.graphhopper.jsprit.core.problem.AbstractActivity;
-import com.graphhopper.jsprit.core.problem.JobActivityFactory;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
@@ -26,7 +24,6 @@ import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.cost.WaitingTimeCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
-import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Pickup;
 import com.graphhopper.jsprit.core.problem.solution.route.ReverseRouteActivityVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
@@ -37,8 +34,6 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.util.CostFactory;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -69,21 +64,16 @@ public class UpdatePracticalTimeWindowTest {
         reverseActivityVisitor = new ReverseRouteActivityVisitor();
         reverseActivityVisitor.addActivityVisitor(new UpdatePracticalTimeWindows(stateManager, routingCosts, activityCosts));
 
-        Pickup pickup = (Pickup) Pickup.Builder.newInstance("pick").setLocation(Location.newInstance("0,20")).setTimeWindow(TimeWindow.newInstance(0, 30)).build();
-        Delivery delivery = (Delivery) Delivery.Builder.newInstance("del").setLocation(Location.newInstance("20,20")).setTimeWindow(TimeWindow.newInstance(10, 40)).build();
-        Pickup pickup2 = (Pickup) Pickup.Builder.newInstance("pick2").setLocation(Location.newInstance("20,0")).setTimeWindow(TimeWindow.newInstance(20, 50)).build();
+        Pickup pickup = Pickup.Builder.the("pick").location(Location.the("0,20")).timeWindowSet(TimeWindow.the(0, 30)).build();
+        Delivery delivery = Delivery.Builder.newInstance("del").location(Location.the("20,20")).timeWindowSet(TimeWindow.the(10, 40)).build();
+        Pickup pickup2 = Pickup.Builder.the("pick2").location(Location.the("20,0")).timeWindowSet(TimeWindow.the(20, 50)).build();
 
-        Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance("0,0")).setType(mock(VehicleType.class)).build();
+        Vehicle vehicle = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the("0,0")).setType(mock(VehicleType.class)).build();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         final VehicleRoutingProblem vrp = vrpBuilder.addJob(pickup).addJob(pickup2).addJob(delivery).build();
 
-        route = VehicleRoute.Builder.newInstance(vehicle, mock(Driver.class)).setJobActivityFactory(new JobActivityFactory() {
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-        })
+        route = VehicleRoute.Builder.newInstance(vehicle, mock(Driver.class)).setJobActivityFactory(vrp::copyAndGetActivities)
             .addService(pickup).addService(delivery).addService(pickup2).build();
 
         reverseActivityVisitor.visit(route);
@@ -92,20 +82,20 @@ public class UpdatePracticalTimeWindowTest {
 
     @Test
     public void whenVehicleRouteHasPickupAndDeliveryAndPickup_latestStartTimeOfAct3MustBeCorrect() {
-        assertEquals(50., route.getActivities().get(2).getTheoreticalLatestOperationStartTime(), 0.01);
-        assertEquals(50., stateManager.getActivityState(route.getActivities().get(2), InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
+        assertEquals(50., route.activities().get(2).startLatest(), 0.01);
+        assertEquals(50., stateManager.state(route.activities().get(2), InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
     }
 
     @Test
     public void whenVehicleRouteHasPickupAndDeliveryAndPickup_latestStartTimeOfAct2MustBeCorrect() {
-        assertEquals(40., route.getActivities().get(1).getTheoreticalLatestOperationStartTime(), 0.01);
-        assertEquals(30., stateManager.getActivityState(route.getActivities().get(1), InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
+        assertEquals(40., route.activities().get(1).startLatest(), 0.01);
+        assertEquals(30., stateManager.state(route.activities().get(1), InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
     }
 
     @Test
     public void whenVehicleRouteHasPickupAndDeliveryAndPickup_latestStartTimeOfAct1MustBeCorrect() {
-        assertEquals(30., route.getActivities().get(0).getTheoreticalLatestOperationStartTime(), 0.01);
-        assertEquals(10., stateManager.getActivityState(route.getActivities().get(0), InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
+        assertEquals(30., route.activities().get(0).startLatest(), 0.01);
+        assertEquals(10., stateManager.state(route.activities().get(0), InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
     }
 
 }

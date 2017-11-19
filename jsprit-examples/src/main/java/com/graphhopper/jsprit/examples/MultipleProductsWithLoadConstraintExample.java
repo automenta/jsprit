@@ -23,6 +23,7 @@ import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
@@ -31,12 +32,11 @@ import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Solutions;
 
 import java.util.Collection;
@@ -66,33 +66,33 @@ public class MultipleProductsWithLoadConstraintExample {
     static class BananasFirst implements HardActivityConstraint {
 
         @Override
-        public ConstraintsStatus fulfilled(JobInsertionContext jobInsertionContext, TourActivity prevActivity, TourActivity newActivity, TourActivity nextActivity, double departureTimeAtPrevActivity) {
+        public ConstraintsStatus fulfilled(JobInsertionContext jobInsertionContext, AbstractActivity prevActivity, AbstractActivity newActivity, AbstractActivity nextActivity, double departureTimeAtPrevActivity) {
             if (isBananaPickup(newActivity) && isApplePickup(prevActivity))
                 return ConstraintsStatus.NOT_FULFILLED_BREAK;
             if (isBananaPickup(nextActivity) && isApplePickup(newActivity)) return ConstraintsStatus.NOT_FULFILLED;
             return ConstraintsStatus.FULFILLED;
         }
 
-        private boolean isApplePickup(TourActivity act) {
-            return act.getSize().get(APPLES_DIMENSION_INDEX) > 0;
+        private boolean isApplePickup(AbstractActivity act) {
+            return act.size().get(APPLES_DIMENSION_INDEX) > 0;
         }
 
-        private boolean isBananaPickup(TourActivity act) {
-            return act.getSize().get(BANANAS_DIMENSION_INDEX) > 0;
+        private boolean isBananaPickup(AbstractActivity act) {
+            return act.size().get(BANANAS_DIMENSION_INDEX) > 0;
         }
     }
 
     //static class NoBananasANDApplesConstraint implements HardActivityStateLevelConstraint { //v1.3.1
     static class NoBananasANDApplesConstraint implements HardActivityConstraint {
 
-        private StateManager stateManager;
+        private final StateManager stateManager;
 
         NoBananasANDApplesConstraint(StateManager stateManager) {
             this.stateManager = stateManager;
         }
 
         @Override
-        public ConstraintsStatus fulfilled(JobInsertionContext jobInsertionContext, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double departureTimeAtPrevAct) {
+        public ConstraintsStatus fulfilled(JobInsertionContext jobInsertionContext, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double departureTimeAtPrevAct) {
             Capacity loadAtPrevAct = getLoadAtPreviousAct(prevAct);
 
             if (isPickup(newAct)) {
@@ -125,35 +125,35 @@ public class MultipleProductsWithLoadConstraintExample {
             return loadAtPrevAct.get(BANANAS_DIMENSION_INDEX) > 0;
         }
 
-        private boolean isBananaPickup(TourActivity act) {
-            return act.getSize().get(BANANAS_DIMENSION_INDEX) > 0;
+        private boolean isBananaPickup(AbstractActivity act) {
+            return act.size().get(BANANAS_DIMENSION_INDEX) > 0;
         }
 
-        private boolean isBananaDelivery(TourActivity act) {
-            return act.getSize().get(BANANAS_DIMENSION_INDEX) < 0;
+        private boolean isBananaDelivery(AbstractActivity act) {
+            return act.size().get(BANANAS_DIMENSION_INDEX) < 0;
         }
 
-        private boolean isApplePickup(TourActivity act) {
-            return act.getSize().get(APPLES_DIMENSION_INDEX) > 0;
+        private boolean isApplePickup(AbstractActivity act) {
+            return act.size().get(APPLES_DIMENSION_INDEX) > 0;
         }
 
-        private boolean isAppleDelivery(TourActivity act) {
-            return act.getSize().get(APPLES_DIMENSION_INDEX) < 0;
+        private boolean isAppleDelivery(AbstractActivity act) {
+            return act.size().get(APPLES_DIMENSION_INDEX) < 0;
         }
 
-        private boolean isPickup(TourActivity newAct) {
-            return newAct.getName().equals("pickupShipment");
+        private boolean isPickup(AbstractActivity newAct) {
+            return newAct.name().equals("pickupShipment");
         }
 
-        private boolean isDelivery(TourActivity newAct) {
-            return newAct.getName().equals("deliverShipment");
+        private boolean isDelivery(AbstractActivity newAct) {
+            return newAct.name().equals("deliverShipment");
         }
 
-        private Capacity getLoadAtPreviousAct(TourActivity prevAct) {
+        private Capacity getLoadAtPreviousAct(AbstractActivity prevAct) {
 //            Capacity prevLoad = stateManager.getActivityState(prevAct, StateFactory.LOAD, Capacity.class); //v1.3.1
-            Capacity prevLoad = stateManager.getActivityState(prevAct, InternalStates.LOAD, Capacity.class); //1.3.2-SNAPSHOT & upcoming release v1.4
+            Capacity prevLoad = stateManager.state(prevAct, InternalStates.LOAD, Capacity.class); //1.3.2-SNAPSHOT & upcoming release v1.4
             if (prevLoad != null) return prevLoad;
-            else return Capacity.Builder.newInstance().build();
+            else return Capacity.Builder.get().build();
         }
     }
 
@@ -161,27 +161,27 @@ public class MultipleProductsWithLoadConstraintExample {
     public static void main(String[] args) {
 
 
-        VehicleType type = VehicleTypeImpl.Builder.newInstance("type").addCapacityDimension(BANANAS_DIMENSION_INDEX, 10)
+        VehicleType type = VehicleTypeImpl.Builder.the("type").addCapacityDimension(BANANAS_DIMENSION_INDEX, 10)
             .addCapacityDimension(APPLES_DIMENSION_INDEX, 20).build();
-        VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle").setStartLocation(loc(Coordinate.newInstance(0, 0)))
+        VehicleImpl vehicle = VehicleImpl.Builder.newInstance("vehicle").setStartLocation(loc(v2.the(0, 0)))
             .setType(type).build();
 
         Shipment bananas = Shipment.Builder.newInstance("bananas_1").addSizeDimension(BANANAS_DIMENSION_INDEX, 1)
-            .setPickupLocation(loc(Coordinate.newInstance(1, 8))).setDeliveryLocation(loc(Coordinate.newInstance(10, 8))).build();
+            .setPickupLocation(loc(v2.the(1, 8))).setDeliveryLocation(loc(v2.the(10, 8))).build();
 
         Shipment bananas_2 = Shipment.Builder.newInstance("bananas_2").addSizeDimension(BANANAS_DIMENSION_INDEX, 1)
-            .setPickupLocation(loc(Coordinate.newInstance(2, 8))).setDeliveryLocation(loc(Coordinate.newInstance(11, 8))).build();
+            .setPickupLocation(loc(v2.the(2, 8))).setDeliveryLocation(loc(v2.the(11, 8))).build();
 
         Shipment bananas_3 = Shipment.Builder.newInstance("bananas_3").addSizeDimension(BANANAS_DIMENSION_INDEX, 1)
-            .setPickupLocation(loc(Coordinate.newInstance(3, 8))).setDeliveryLocation(loc(Coordinate.newInstance(12, 8))).build();
+            .setPickupLocation(loc(v2.the(3, 8))).setDeliveryLocation(loc(v2.the(12, 8))).build();
 
         Shipment apples = Shipment.Builder.newInstance("apples_1").addSizeDimension(APPLES_DIMENSION_INDEX, 1)
-            .setPickupLocation(loc(Coordinate.newInstance(1, 6))).setDeliveryLocation(loc(Coordinate.newInstance(10, 12))).build();
+            .setPickupLocation(loc(v2.the(1, 6))).setDeliveryLocation(loc(v2.the(10, 12))).build();
 
         Shipment apples_2 = Shipment.Builder.newInstance("apples_2").addSizeDimension(APPLES_DIMENSION_INDEX, 1)
-            .setPickupLocation(loc(Coordinate.newInstance(1, 5))).setDeliveryLocation(loc(Coordinate.newInstance(10, 11))).build();
+            .setPickupLocation(loc(v2.the(1, 5))).setDeliveryLocation(loc(v2.the(10, 11))).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE)
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE)
             .addVehicle(vehicle)
             .addJob(bananas).addJob(apples).addJob(bananas_2).addJob(bananas_3).addJob(apples_2).build();
 
@@ -201,7 +201,7 @@ public class MultipleProductsWithLoadConstraintExample {
 
     }
 
-    private static Location loc(Coordinate coordinate) {
-        return Location.Builder.newInstance().setCoordinate(coordinate).build();
+    private static Location loc(v2 coordinate) {
+        return Location.Builder.the().setCoord(coordinate).build();
     }
 }

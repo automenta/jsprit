@@ -17,11 +17,12 @@
  */
 package com.graphhopper.jsprit.core.algorithm.ruin;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.driver.DriverImpl;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.util.NoiseMaker;
 import org.slf4j.Logger;
@@ -39,17 +40,9 @@ import java.util.*;
 
 public final class RuinWorst extends AbstractRuinStrategy {
 
-    private Logger logger = LoggerFactory.getLogger(RuinWorst.class);
+    private final Logger logger = LoggerFactory.getLogger(RuinWorst.class);
 
-    private VehicleRoutingProblem vrp;
-
-    private NoiseMaker noiseMaker = new NoiseMaker() {
-
-        @Override
-        public double makeNoise() {
-            return 0;
-        }
-    };
+    private NoiseMaker noiseMaker = () -> 0;
 
     public void setNoiseMaker(NoiseMaker noiseMaker) {
         this.noiseMaker = noiseMaker;
@@ -57,13 +50,7 @@ public final class RuinWorst extends AbstractRuinStrategy {
 
     public RuinWorst(VehicleRoutingProblem vrp, final int initialNumberJobsToRemove) {
         super(vrp);
-        this.vrp = vrp;
-        setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return initialNumberJobsToRemove;
-            }
-        });
+        setRuinShareFactory(() -> initialNumberJobsToRemove);
         logger.debug("initialise {}", this);
     }
 
@@ -74,14 +61,14 @@ public final class RuinWorst extends AbstractRuinStrategy {
      */
     @Override
     public Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+        List<Job> unassignedJobs = new ArrayList<>();
         int nOfJobs2BeRemoved = getRuinShareFactory().createNumberToBeRemoved();
         ruin(vehicleRoutes, nOfJobs2BeRemoved, unassignedJobs);
         return unassignedJobs;
     }
 
-    private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, List<Job> unassignedJobs) {
-        LinkedList<Job> availableJobs = new LinkedList<Job>(vrp.getJobs().values());
+    private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, Collection<Job> unassignedJobs) {
+        Deque<Job> availableJobs = new LinkedList<>(vrp.jobs().values());
         int toRemove = nOfJobs2BeRemoved;
         while (toRemove > 0) {
             Job worst = getWorst(vehicleRoutes);
@@ -94,22 +81,22 @@ public final class RuinWorst extends AbstractRuinStrategy {
         }
     }
 
-    private Job getWorst(Collection<VehicleRoute> copied) {
+    private Job getWorst(Iterable<VehicleRoute> copied) {
         Job worst = null;
         double bestSavings = Double.MIN_VALUE;
 
         for (VehicleRoute route : copied) {
             if (route.isEmpty()) continue;
-            Map<Job, Double> savingsMap = new HashMap<Job, Double>();
-            TourActivity actBefore = route.getStart();
-            TourActivity actToEval = null;
-            for (TourActivity act : route.getActivities()) {
+            Map<Job, Double> savingsMap = new HashMap<>();
+            AbstractActivity actBefore = route.start;
+            AbstractActivity actToEval = null;
+            for (AbstractActivity act : route.activities()) {
                 if (actToEval == null) {
                     actToEval = act;
                     continue;
                 }
                 double savings = savings(route, actBefore, actToEval, act);
-                Job job = ((TourActivity.JobActivity) actToEval).getJob();
+                Job job = ((JobActivity) actToEval).job();
                 if (!savingsMap.containsKey(job)) {
                     savingsMap.put(job, savings);
                 } else {
@@ -119,8 +106,8 @@ public final class RuinWorst extends AbstractRuinStrategy {
                 actBefore = actToEval;
                 actToEval = act;
             }
-            double savings = savings(route, actBefore, actToEval, route.getEnd());
-            Job job = ((TourActivity.JobActivity) actToEval).getJob();
+            double savings = savings(route, actBefore, actToEval, route.end);
+            Job job = ((JobActivity) actToEval).job();
             if (!savingsMap.containsKey(job)) {
                 savingsMap.put(job, savings);
             } else {
@@ -128,23 +115,24 @@ public final class RuinWorst extends AbstractRuinStrategy {
                 savingsMap.put(job, s + savings);
             }
             //getCounts best
-            for (Job j : savingsMap.keySet()) {
-                if (savingsMap.get(j) > bestSavings) {
-                    bestSavings = savingsMap.get(j);
-                    worst = j;
+            for (Map.Entry<Job,Double> x: savingsMap.entrySet()) {
+                double s = x.getValue();
+                if (s > bestSavings) {
+                    bestSavings = s;
+                    worst = x.getKey();
                 }
             }
         }
         return worst;
     }
 
-    private double savings(VehicleRoute route, TourActivity actBefore, TourActivity actToEval, TourActivity act) {
-        double savings = c(actBefore, actToEval, route.getVehicle()) + c(actToEval, act, route.getVehicle()) - c(actBefore, act, route.getVehicle());
+    private double savings(VehicleRoute route, AbstractActivity actBefore, AbstractActivity actToEval, AbstractActivity act) {
+        double savings = c(actBefore, actToEval, route.vehicle()) + c(actToEval, act, route.vehicle()) - c(actBefore, act, route.vehicle());
         return Math.max(0, savings + noiseMaker.makeNoise());
     }
 
-    private double c(TourActivity from, TourActivity to, Vehicle vehicle) {
-        return vrp.getTransportCosts().getTransportCost(from.getLocation(), to.getLocation(), from.getEndTime(), DriverImpl.noDriver(), vehicle);
+    private double c(AbstractActivity from, AbstractActivity to, Vehicle vehicle) {
+        return vrp.transportCosts().transportCost(from.location(), to.location(), from.end(), DriverImpl.noDriver(), vehicle);
     }
 
     @Override

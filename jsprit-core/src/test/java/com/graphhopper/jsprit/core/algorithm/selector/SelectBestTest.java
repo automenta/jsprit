@@ -36,21 +36,21 @@ public class SelectBestTest {
     public void whenHaving2Solutions_selectBest() {
         VehicleRoutingProblemSolution sol1 = mock(VehicleRoutingProblemSolution.class);
         VehicleRoutingProblemSolution sol2 = mock(VehicleRoutingProblemSolution.class);
-        when(sol1.getCost()).thenReturn(1.0);
-        when(sol2.getCost()).thenReturn(2.0);
+        when(sol1.cost()).thenReturn(1.0);
+        when(sol2.cost()).thenReturn(2.0);
         assertThat(new SelectBest().selectSolution(Arrays.asList(sol1, sol2)), is(sol1));
     }
 
     @Test
     public void whenHavingOnly1Solutions_selectThisOne() {
         VehicleRoutingProblemSolution sol1 = mock(VehicleRoutingProblemSolution.class);
-        when(sol1.getCost()).thenReturn(1.0);
+        when(sol1.cost()).thenReturn(1.0);
         assertThat(new SelectBest().selectSolution(Arrays.asList(sol1)), is(sol1));
     }
 
     @Test
     public void whenHavingNoSolutions_returnNull() {
-        assertNull(new SelectBest().selectSolution(Collections.<VehicleRoutingProblemSolution>emptyList()));
+        assertNull(new SelectBest().selectSolution(Collections.emptyList()));
     }
 
 }

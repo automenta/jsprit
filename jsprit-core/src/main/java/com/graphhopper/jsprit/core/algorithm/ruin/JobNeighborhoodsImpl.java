@@ -32,18 +32,17 @@ import java.util.*;
  */
 class JobNeighborhoodsImpl implements JobNeighborhoods {
 
-    private static Logger logger = LoggerFactory.getLogger(JobNeighborhoodsImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(JobNeighborhoodsImpl.class);
 
-    private VehicleRoutingProblem vrp;
+    private final VehicleRoutingProblem vrp;
 
-    private Map<String, TreeSet<ReferencedJob>> distanceNodeTree = new HashMap<String, TreeSet<ReferencedJob>>();
+    private final Map<String, TreeSet<ReferencedJob>> distanceNodeTree = new HashMap<>();
 
-    private JobDistance jobDistance;
+    private final JobDistance jobDistance;
 
-    private double maxDistance = 0.;
+    private double maxDistance;
 
     public JobNeighborhoodsImpl(VehicleRoutingProblem vrp, JobDistance jobDistance) {
-        super();
         this.vrp = vrp;
         this.jobDistance = jobDistance;
         logger.debug("intialise {}", this);
@@ -51,8 +50,8 @@ class JobNeighborhoodsImpl implements JobNeighborhoods {
 
     @Override
     public Iterator<Job> getNearestNeighborsIterator(int nNeighbors, Job neighborTo) {
-        TreeSet<ReferencedJob> tree = distanceNodeTree.get(neighborTo.getId());
-        if (tree == null) return new Iterator<Job>() {
+        TreeSet<ReferencedJob> tree = distanceNodeTree.get(neighborTo.id());
+        if (tree == null) return new Iterator<>() {
             @Override
             public boolean hasNext() {
                 return false;
@@ -88,20 +87,17 @@ class JobNeighborhoodsImpl implements JobNeighborhoods {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         int nuOfDistancesStored = 0;
-        for (Job i : vrp.getJobs().values()) {
-            TreeSet<ReferencedJob> treeSet = new TreeSet<ReferencedJob>(
-                new Comparator<ReferencedJob>() {
-                    @Override
-                    public int compare(ReferencedJob o1, ReferencedJob o2) {
-                        if (o1.getDistance() <= o2.getDistance()) {
+        for (Job i : vrp.jobs().values()) {
+            TreeSet<ReferencedJob> treeSet = new TreeSet<>(
+                    (o1, o2) -> {
+                        if (o1.distance <= o2.distance) {
                             return -1;
                         } else {
                             return 1;
                         }
-                    }
-                });
-            distanceNodeTree.put(i.getId(), treeSet);
-            for (Job j : vrp.getJobs().values()) {
+                    });
+            distanceNodeTree.put(i.id(), treeSet);
+            for (Job j : vrp.jobs().values()) {
                 if (i == j) continue;
                 double distance = jobDistance.getDistance(i, j);
                 if (distance > maxDistance) maxDistance = distance;

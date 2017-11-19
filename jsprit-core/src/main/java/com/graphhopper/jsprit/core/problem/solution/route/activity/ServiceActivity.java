@@ -17,12 +17,11 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
-import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.job.Service;
 
-public class ServiceActivity extends AbstractActivity implements TourActivity.JobActivity {
+public class ServiceActivity extends JobActivity {
 
     public double arrTime;
 
@@ -35,28 +34,32 @@ public class ServiceActivity extends AbstractActivity implements TourActivity.Jo
     /**
      * @return the arrTime
      */
-    public double getArrTime() {
+    @Override
+    public double arrTime() {
         return arrTime;
     }
 
     /**
      * @param arrTime the arrTime to set
      */
-    public void setArrTime(double arrTime) {
+    @Override
+    public void arrTime(double arrTime) {
         this.arrTime = arrTime;
     }
 
     /**
      * @return the endTime
      */
-    public double getEndTime() {
+    @Override
+    public double end() {
         return endTime;
     }
 
     /**
      * @param endTime the endTime to set
      */
-    public void setEndTime(double endTime) {
+    @Override
+    public void end(double endTime) {
         this.endTime = endTime;
     }
 
@@ -76,12 +79,12 @@ public class ServiceActivity extends AbstractActivity implements TourActivity.Jo
     }
 
     protected ServiceActivity(ServiceActivity serviceActivity) {
-        this.service = serviceActivity.getJob();
-        this.arrTime = serviceActivity.getArrTime();
-        this.endTime = serviceActivity.getEndTime();
-        setIndex(serviceActivity.getIndex());
-        this.theoreticalEarliest = serviceActivity.getTheoreticalEarliestOperationStartTime();
-        this.theoreticalLatest = serviceActivity.getTheoreticalLatestOperationStartTime();
+        this.service = serviceActivity.job();
+        this.arrTime = serviceActivity.arrTime();
+        this.endTime = serviceActivity.end();
+        index(serviceActivity.index());
+        this.theoreticalEarliest = serviceActivity.startEarliest();
+        this.theoreticalLatest = serviceActivity.startLatest();
     }
 
 
@@ -108,70 +111,67 @@ public class ServiceActivity extends AbstractActivity implements TourActivity.Jo
         if (getClass() != obj.getClass())
             return false;
         ServiceActivity other = (ServiceActivity) obj;
-        if (service == null) {
-            if (other.service != null)
-                return false;
-        } else if (!service.equals(other.service))
-            return false;
-        return true;
+        return service == null ? other.service == null : service.equals(other.service);
     }
 
-    public double getTheoreticalEarliestOperationStartTime() {
+    @Override
+    public double startEarliest() {
         return theoreticalEarliest;
     }
 
-    public double getTheoreticalLatestOperationStartTime() {
+    @Override
+    public double startLatest() {
         return theoreticalLatest;
     }
 
     @Override
-    public void setTheoreticalEarliestOperationStartTime(double earliest) {
+    public void startEarliest(double earliest) {
         theoreticalEarliest = earliest;
     }
 
     @Override
-    public void setTheoreticalLatestOperationStartTime(double latest) {
+    public void startLatest(double latest) {
         theoreticalLatest = latest;
     }
 
     @Override
-    public double getOperationTime() {
-        return service.getServiceDuration();
+    public double operationTime() {
+        return service.serviceTime;
     }
 
     @Override
-    public Location getLocation() {
-        return service.getLocation();
+    public Location location() {
+        return service.location;
     }
 
 
     @Override
-    public Service getJob() {
+    public Service job() {
         return service;
     }
 
 
     @Override
     public String toString() {
-        return "[type=" + getName() + "][locationId=" + getLocation().getId()
-            + "][size=" + getSize().toString()
-            + "][twStart=" + Activities.round(getTheoreticalEarliestOperationStartTime())
-            + "][twEnd=" + Activities.round(getTheoreticalLatestOperationStartTime()) + "]";
+        return "[type=" + name() + "][locationId=" + location().id
+            + "][size=" + size()
+            + "][twStart=" + Activities.round(startEarliest())
+            + "][twEnd=" + Activities.round(startLatest()) + ']';
     }
 
     @Override
-    public String getName() {
-        return service.getType();
+    public String name() {
+        return service.type;
     }
 
     @Override
-    public TourActivity duplicate() {
+    public ServiceActivity clone() {
         return new ServiceActivity(this);
     }
 
     @Override
-    public Capacity getSize() {
-        return service.getSize();
+    public Capacity size() {
+        return service.size;
     }
 
 

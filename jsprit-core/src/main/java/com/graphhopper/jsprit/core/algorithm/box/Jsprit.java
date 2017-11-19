@@ -25,12 +25,14 @@ import com.graphhopper.jsprit.core.algorithm.acceptor.SchrimpfAcceptance;
 import com.graphhopper.jsprit.core.algorithm.acceptor.SolutionAcceptor;
 import com.graphhopper.jsprit.core.algorithm.listener.AlgorithmEndsListener;
 import com.graphhopper.jsprit.core.algorithm.listener.IterationStartsListener;
+import com.graphhopper.jsprit.core.algorithm.listener.VehicleRoutingAlgorithmListener;
 import com.graphhopper.jsprit.core.algorithm.module.RuinAndRecreateModule;
 import com.graphhopper.jsprit.core.algorithm.recreate.*;
 import com.graphhopper.jsprit.core.algorithm.ruin.*;
 import com.graphhopper.jsprit.core.algorithm.ruin.distance.AvgServiceAndShipmentDistance;
 import com.graphhopper.jsprit.core.algorithm.selector.SelectBest;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.job.Job;
@@ -38,7 +40,6 @@ import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.BreakActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.FiniteFleetManagerFactory;
 import com.graphhopper.jsprit.core.problem.vehicle.InfiniteFleetManagerFactory;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
@@ -59,7 +60,7 @@ public class Jsprit {
 
         BEST_INSERTION("best_insertion"), REGRET_INSERTION("regret_insertion");
 
-        String name;
+        final String name;
 
         Construction(String name) {
             this.name = name;
@@ -84,7 +85,7 @@ public class Jsprit {
         STRING_BEST("string_best"),
         STRING_REGRET("string_regret");
 
-        String strategyName;
+        final String strategyName;
 
         Strategy(String strategyName) {
             this.strategyName = strategyName;
@@ -127,7 +128,7 @@ public class Jsprit {
         STRING_L_MAX("string_lmax");
 
 
-        String paraName;
+        final String paraName;
 
         Parameter(String name) {
             this.paraName = name;
@@ -145,19 +146,19 @@ public class Jsprit {
 
     public static class Builder {
 
-        private VehicleRoutingProblem vrp;
+        private final VehicleRoutingProblem vrp;
 
         private ExecutorService es;
 
         private Integer noThreads;
 
-        private StateManager stateManager = null;
+        private StateManager stateManager;
 
-        private ConstraintManager constraintManager = null;
+        private ConstraintManager constraintManager;
 
-        private SolutionCostCalculator objectiveFunction = null;
+        private SolutionCostCalculator objectiveFunction;
 
-        private Properties properties;
+        private final Properties properties;
 
         private boolean addConstraints = true;
 
@@ -167,11 +168,11 @@ public class Jsprit {
 
         private SolutionAcceptor solutionAcceptor;
 
-        private ScoringFunction regretScorer = null;
+        private ScoringFunction regretScorer;
 
-        private Map<SearchStrategy, Double> customStrategies = new HashMap<>();
+        private final Map<SearchStrategy, Double> customStrategies = new HashMap<>();
 
-        private VehicleFleetManager fleetManager = null;
+        private VehicleFleetManager fleetManager;
 
         public static Builder newInstance(VehicleRoutingProblem vrp) {
             return new Builder(vrp);
@@ -184,55 +185,55 @@ public class Jsprit {
 
         private Properties createDefaultProperties() {
             Properties defaults = new Properties();
-            defaults.put(Strategy.RADIAL_BEST.toString(), "0.");
-            defaults.put(Strategy.RADIAL_REGRET.toString(), ".5");
-            defaults.put(Strategy.RANDOM_BEST.toString(), ".5");
-            defaults.put(Strategy.RANDOM_REGRET.toString(), ".5");
+            defaults.setProperty(Strategy.RADIAL_BEST.toString(), "0.");
+            defaults.setProperty(Strategy.RADIAL_REGRET.toString(), ".5");
+            defaults.setProperty(Strategy.RANDOM_BEST.toString(), ".5");
+            defaults.setProperty(Strategy.RANDOM_REGRET.toString(), ".5");
 
-            defaults.put(Strategy.STRING_BEST.toString(), "0.0");
-            defaults.put(Strategy.STRING_REGRET.toString(), "0.0");
+            defaults.setProperty(Strategy.STRING_BEST.toString(), "0.0");
+            defaults.setProperty(Strategy.STRING_REGRET.toString(), "0.0");
 
-            defaults.put(Parameter.STRING_K_MIN.toString(), "1");
-            defaults.put(Parameter.STRING_K_MAX.toString(), "6");
-            defaults.put(Parameter.STRING_L_MIN.toString(), "10");
-            defaults.put(Parameter.STRING_L_MAX.toString(), "30");
+            defaults.setProperty(Parameter.STRING_K_MIN.toString(), "1");
+            defaults.setProperty(Parameter.STRING_K_MAX.toString(), "6");
+            defaults.setProperty(Parameter.STRING_L_MIN.toString(), "10");
+            defaults.setProperty(Parameter.STRING_L_MAX.toString(), "30");
 
-            defaults.put(Strategy.WORST_BEST.toString(), "0.");
-            defaults.put(Strategy.WORST_REGRET.toString(), "1.");
-            defaults.put(Strategy.CLUSTER_BEST.toString(), "0.");
-            defaults.put(Strategy.CLUSTER_REGRET.toString(), "1.");
+            defaults.setProperty(Strategy.WORST_BEST.toString(), "0.");
+            defaults.setProperty(Strategy.WORST_REGRET.toString(), "1.");
+            defaults.setProperty(Strategy.CLUSTER_BEST.toString(), "0.");
+            defaults.setProperty(Strategy.CLUSTER_REGRET.toString(), "1.");
 
 
-            defaults.put(Parameter.FIXED_COST_PARAM.toString(), "0.");
-            defaults.put(Parameter.VEHICLE_SWITCH.toString(), "true");
-            defaults.put(Parameter.ITERATIONS.toString(), "2000");
-            defaults.put(Parameter.REGRET_DISTANCE_SCORER.toString(), ".05");
-            defaults.put(Parameter.REGRET_TIME_WINDOW_SCORER.toString(), "-.1");
-            defaults.put(Parameter.THREADS.toString(), "1");
-            int minShare = (int) Math.min(20, Math.max(3, vrp.getJobs().size() * 0.05));
-            int maxShare = (int) Math.min(50, Math.max(5, vrp.getJobs().size() * 0.3));
-            defaults.put(Parameter.RADIAL_MIN_SHARE.toString(), String.valueOf(minShare));
-            defaults.put(Parameter.RADIAL_MAX_SHARE.toString(), String.valueOf(maxShare));
-            defaults.put(Parameter.WORST_MIN_SHARE.toString(), String.valueOf(minShare));
-            defaults.put(Parameter.WORST_MAX_SHARE.toString(), String.valueOf(maxShare));
-            defaults.put(Parameter.CLUSTER_MIN_SHARE.toString(), String.valueOf(minShare));
-            defaults.put(Parameter.CLUSTER_MAX_SHARE.toString(), String.valueOf(maxShare));
-            int minShare_ = (int) Math.min(70, Math.max(5, vrp.getJobs().size() * 0.5));
-            int maxShare_ = (int) Math.min(70, Math.max(5, vrp.getJobs().size() * 0.5));
-            defaults.put(Parameter.RANDOM_REGRET_MIN_SHARE.toString(), String.valueOf(minShare_));
-            defaults.put(Parameter.RANDOM_REGRET_MAX_SHARE.toString(), String.valueOf(maxShare_));
-            defaults.put(Parameter.RANDOM_BEST_MIN_SHARE.toString(), String.valueOf(minShare_));
-            defaults.put(Parameter.RANDOM_BEST_MAX_SHARE.toString(), String.valueOf(maxShare_));
-            defaults.put(Parameter.THRESHOLD_ALPHA.toString(), String.valueOf(0.15));
-            defaults.put(Parameter.THRESHOLD_INI.toString(), String.valueOf(0.03));
-            defaults.put(Parameter.INSERTION_NOISE_LEVEL.toString(), String.valueOf(0.15));
-            defaults.put(Parameter.INSERTION_NOISE_PROB.toString(), String.valueOf(0.2));
-            defaults.put(Parameter.RUIN_WORST_NOISE_LEVEL.toString(), String.valueOf(0.15));
-            defaults.put(Parameter.RUIN_WORST_NOISE_PROB.toString(), String.valueOf(0.2));
-            defaults.put(Parameter.VEHICLE_SWITCH.toString(), String.valueOf(true));
-            defaults.put(Parameter.FAST_REGRET.toString(), String.valueOf(false));
-            defaults.put(Parameter.BREAK_SCHEDULING.toString(), String.valueOf(true));
-            defaults.put(Parameter.CONSTRUCTION.toString(), Construction.REGRET_INSERTION.toString());
+            defaults.setProperty(Parameter.FIXED_COST_PARAM.toString(), "0.");
+            defaults.setProperty(Parameter.VEHICLE_SWITCH.toString(), "true");
+            defaults.setProperty(Parameter.ITERATIONS.toString(), "2000");
+            defaults.setProperty(Parameter.REGRET_DISTANCE_SCORER.toString(), ".05");
+            defaults.setProperty(Parameter.REGRET_TIME_WINDOW_SCORER.toString(), "-.1");
+            defaults.setProperty(Parameter.THREADS.toString(), "1");
+            int minShare = (int) Math.min(20, Math.max(3, vrp.jobs().size() * 0.05));
+            int maxShare = (int) Math.min(50, Math.max(5, vrp.jobs().size() * 0.3));
+            defaults.setProperty(Parameter.RADIAL_MIN_SHARE.toString(), String.valueOf(minShare));
+            defaults.setProperty(Parameter.RADIAL_MAX_SHARE.toString(), String.valueOf(maxShare));
+            defaults.setProperty(Parameter.WORST_MIN_SHARE.toString(), String.valueOf(minShare));
+            defaults.setProperty(Parameter.WORST_MAX_SHARE.toString(), String.valueOf(maxShare));
+            defaults.setProperty(Parameter.CLUSTER_MIN_SHARE.toString(), String.valueOf(minShare));
+            defaults.setProperty(Parameter.CLUSTER_MAX_SHARE.toString(), String.valueOf(maxShare));
+            int minShare_ = (int) Math.min(70, Math.max(5, vrp.jobs().size() * 0.5));
+            int maxShare_ = (int) Math.min(70, Math.max(5, vrp.jobs().size() * 0.5));
+            defaults.setProperty(Parameter.RANDOM_REGRET_MIN_SHARE.toString(), String.valueOf(minShare_));
+            defaults.setProperty(Parameter.RANDOM_REGRET_MAX_SHARE.toString(), String.valueOf(maxShare_));
+            defaults.setProperty(Parameter.RANDOM_BEST_MIN_SHARE.toString(), String.valueOf(minShare_));
+            defaults.setProperty(Parameter.RANDOM_BEST_MAX_SHARE.toString(), String.valueOf(maxShare_));
+            defaults.setProperty(Parameter.THRESHOLD_ALPHA.toString(), String.valueOf(0.15));
+            defaults.setProperty(Parameter.THRESHOLD_INI.toString(), String.valueOf(0.03));
+            defaults.setProperty(Parameter.INSERTION_NOISE_LEVEL.toString(), String.valueOf(0.15));
+            defaults.setProperty(Parameter.INSERTION_NOISE_PROB.toString(), String.valueOf(0.2));
+            defaults.setProperty(Parameter.RUIN_WORST_NOISE_LEVEL.toString(), String.valueOf(0.15));
+            defaults.setProperty(Parameter.RUIN_WORST_NOISE_PROB.toString(), String.valueOf(0.2));
+            defaults.setProperty(Parameter.VEHICLE_SWITCH.toString(), String.valueOf(true));
+            defaults.setProperty(Parameter.FAST_REGRET.toString(), String.valueOf(false));
+            defaults.setProperty(Parameter.BREAK_SCHEDULING.toString(), String.valueOf(true));
+            defaults.setProperty(Parameter.CONSTRUCTION.toString(), Construction.REGRET_INSERTION.toString());
             return defaults;
         }
 
@@ -264,7 +265,7 @@ public class Jsprit {
         }
 
         public Builder setProperty(String key, String value) {
-            properties.put(key, value);
+            properties.setProperty(key, value);
             return this;
         }
 
@@ -314,9 +315,9 @@ public class Jsprit {
 
     {
 
-        private int maxShare;
+        private final int maxShare;
 
-        private int minShare;
+        private final int minShare;
 
         private Random random = RandomNumberGeneration.getRandom();
 
@@ -346,23 +347,23 @@ public class Jsprit {
 
     }
 
-    private StateManager stateManager = null;
+    private StateManager stateManager;
 
-    private ConstraintManager constraintManager = null;
+    private ConstraintManager constraintManager;
 
-    private ExecutorService es = null;
+    private ExecutorService es;
 
     private Integer noThreads;
 
-    private boolean setupExecutorInternally = false;
+    private boolean setupExecutorInternally;
 
-    private boolean addCoreConstraints;
+    private final boolean addCoreConstraints;
 
-    private SolutionCostCalculator objectiveFunction = null;
+    private final SolutionCostCalculator objectiveFunction;
 
-    private Properties properties;
+    private final Properties properties;
 
-    private Random random;
+    private final Random random;
 
     private SolutionAcceptor acceptor;
 
@@ -395,10 +396,10 @@ public class Jsprit {
     private VehicleRoutingAlgorithm create(final VehicleRoutingProblem vrp) {
         ini(vrp);
         if (vehicleFleetManager == null) {
-            if (vrp.getFleetSize().equals(VehicleRoutingProblem.FleetSize.INFINITE)) {
-                vehicleFleetManager = new InfiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
+            if (vrp.getFleetSize() == VehicleRoutingProblem.FleetSize.INFINITE) {
+                vehicleFleetManager = new InfiniteFleetManagerFactory(vrp.vehicles()).createFleetManager();
             } else {
-                FiniteFleetManagerFactory finiteFleetManagerFactory = new FiniteFleetManagerFactory(vrp.getVehicles());
+                FiniteFleetManagerFactory finiteFleetManagerFactory = new FiniteFleetManagerFactory(vrp.vehicles());
                 finiteFleetManagerFactory.setRandom(random);
                 vehicleFleetManager = finiteFleetManagerFactory.createFleetManager();
             }
@@ -424,7 +425,7 @@ public class Jsprit {
         double fixedCostParam = toDouble(getProperty(Parameter.FIXED_COST_PARAM.toString()));
         IncreasingAbsoluteFixedCosts increasingAbsoluteFixedCosts = null;
         if (fixedCostParam > 0d) {
-            increasingAbsoluteFixedCosts = new IncreasingAbsoluteFixedCosts(vrp.getJobs().size());
+            increasingAbsoluteFixedCosts = new IncreasingAbsoluteFixedCosts(vrp.jobs().size());
             increasingAbsoluteFixedCosts.setWeightOfFixCost(fixedCostParam);
             constraintManager.addConstraint(increasingAbsoluteFixedCosts);
         }
@@ -432,16 +433,11 @@ public class Jsprit {
         double noiseLevel = toDouble(getProperty(Parameter.INSERTION_NOISE_LEVEL.toString()));
         double noiseProbability = toDouble(getProperty(Parameter.INSERTION_NOISE_PROB.toString()));
 
-        JobNeighborhoods jobNeighborhoods = new JobNeighborhoodsFactory().createNeighborhoods(vrp, new AvgServiceAndShipmentDistance(vrp.getTransportCosts()), (int) (vrp.getJobs().values().size() * 0.5));
+        JobNeighborhoods jobNeighborhoods = JobNeighborhoodsFactory.createNeighborhoods(vrp, new AvgServiceAndShipmentDistance(vrp.transportCosts()), (int) (vrp.jobs().values().size() * 0.5));
         jobNeighborhoods.initialise();
 
         final double maxCosts;
-        if(properties.containsKey(Parameter.MAX_TRANSPORT_COSTS.toString())){
-            maxCosts = Double.parseDouble(getProperty(Parameter.MAX_TRANSPORT_COSTS.toString()));
-        }
-        else{
-            maxCosts = jobNeighborhoods.getMaxDistance();
-        }
+        maxCosts = properties.containsKey(Parameter.MAX_TRANSPORT_COSTS.toString()) ? Double.parseDouble(getProperty(Parameter.MAX_TRANSPORT_COSTS.toString())) : jobNeighborhoods.getMaxDistance();
 
         IterationStartsListener noiseConfigurator;
         if (noThreads > 1) {
@@ -456,7 +452,7 @@ public class Jsprit {
             noiseConfigurator = noiseMaker;
         }
 
-        RuinRadial radial = new RuinRadial(vrp, vrp.getJobs().size(), jobNeighborhoods);
+        RuinRadial radial = new RuinRadial(vrp, vrp.jobs().size(), jobNeighborhoods);
         radial.setRandom(random);
         radial.setRuinShareFactory(new RuinShareFactoryImpl(
                 toInteger(properties.getProperty(Parameter.RADIAL_MIN_SHARE.toString())),
@@ -480,29 +476,21 @@ public class Jsprit {
                 random)
         );
 
-        final RuinWorst worst = new RuinWorst(vrp, (int) (vrp.getJobs().values().size() * 0.5));
+        final RuinWorst worst = new RuinWorst(vrp, (int) (vrp.jobs().values().size() * 0.5));
         worst.setRandom(random);
         worst.setRuinShareFactory(new RuinShareFactoryImpl(
                 toInteger(properties.getProperty(Parameter.WORST_MIN_SHARE.toString())),
                 toInteger(properties.getProperty(Parameter.WORST_MAX_SHARE.toString())),
                 random)
         );
-        IterationStartsListener noise = new IterationStartsListener() {
-            @Override
-            public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-                worst.setNoiseMaker(new NoiseMaker() {
+        IterationStartsListener noise = (i, problem, solutions) -> worst.setNoiseMaker(() -> {
+            if (random.nextDouble() < toDouble(getProperty(Parameter.RUIN_WORST_NOISE_PROB.toString()))) {
+                return toDouble(getProperty(Parameter.RUIN_WORST_NOISE_LEVEL.toString()))
+                        * maxCosts * random.nextDouble();
+            } else return 0.;
+        });
 
-                    public double makeNoise() {
-                        if (random.nextDouble() < toDouble(getProperty(Parameter.RUIN_WORST_NOISE_PROB.toString()))) {
-                            return toDouble(getProperty(Parameter.RUIN_WORST_NOISE_LEVEL.toString()))
-                                * maxCosts * random.nextDouble();
-                        } else return 0.;
-                    }
-                });
-            }
-        };
-
-        final RuinClusters clusters = new RuinClusters(vrp, (int) (vrp.getJobs().values().size() * 0.5), jobNeighborhoods);
+        final RuinClusters clusters = new RuinClusters(vrp, (int) (vrp.jobs().values().size() * 0.5), jobNeighborhoods);
         clusters.setRandom(random);
         clusters.setRuinShareFactory(new RuinShareFactoryImpl(
                 toInteger(properties.getProperty(Parameter.WORST_MIN_SHARE.toString())),
@@ -580,7 +568,7 @@ public class Jsprit {
         regret.setRandom(random);
 
         AbstractInsertionStrategy best;
-        if (vrp.getJobs().size() < 250 || es == null) {
+        if (vrp.jobs().size() < 250 || es == null) {
             BestInsertion bestInsertion = (BestInsertion) new InsertionBuilder(vrp, vehicleFleetManager, stateManager, constraintManager)
                 .setInsertionStrategy(InsertionBuilder.Strategy.BEST)
                 .considerFixedCosts(Double.valueOf(properties.getProperty(Parameter.FIXED_COST_PARAM.toString())))
@@ -606,13 +594,10 @@ public class Jsprit {
             if (properties.containsKey(Parameter.THRESHOLD_INI_ABS.toString())) {
                 schrimpfAcceptance.setInitialThreshold(Double.valueOf(properties.getProperty(Parameter.THRESHOLD_INI_ABS.toString())));
             } else {
-                schrimpfThreshold = new IterationStartsListener() {
-                    @Override
-                    public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-                        if (i == 1) {
-                            double initialThreshold = Solutions.bestOf(solutions).getCost() * toDouble(getProperty(Parameter.THRESHOLD_INI.toString()));
-                            schrimpfAcceptance.setInitialThreshold(initialThreshold);
-                        }
+                schrimpfThreshold = (i, problem, solutions) -> {
+                    if (i == 1) {
+                        double initialThreshold = Solutions.bestOf(solutions).cost() * toDouble(getProperty(Parameter.THRESHOLD_INI.toString()));
+                        schrimpfAcceptance.setInitialThreshold(initialThreshold);
                     }
                 };
             }
@@ -666,8 +651,8 @@ public class Jsprit {
             .withStrategy(stringBest, toDouble(getProperty(Strategy.STRING_BEST.toString())))
             .withStrategy(stringRegret, toDouble(getProperty(Strategy.STRING_REGRET.toString())));
 
-        for (SearchStrategy customStrategy : customStrategies.keySet()) {
-            prettyBuilder.withStrategy(customStrategy, customStrategies.get(customStrategy));
+        for (Map.Entry<SearchStrategy, Double> searchStrategyDoubleEntry : customStrategies.entrySet()) {
+            prettyBuilder.withStrategy(searchStrategyDoubleEntry.getKey(), searchStrategyDoubleEntry.getValue());
         }
 
         if (getProperty(Parameter.CONSTRUCTION.toString()).equals(Construction.BEST_INSERTION.toString())) {
@@ -697,7 +682,7 @@ public class Jsprit {
 
     }
 
-    private DefaultScorer getRegretScorer(VehicleRoutingProblem vrp) {
+    private ScoringFunction getRegretScorer(VehicleRoutingProblem vrp) {
         DefaultScorer scorer = new DefaultScorer(vrp);
         scorer.setTimeWindowParam(Double.valueOf(properties.getProperty(Parameter.REGRET_TIME_WINDOW_SCORER.toString())));
         scorer.setDepotDistanceParam(Double.valueOf(properties.getProperty(Parameter.REGRET_DISTANCE_SCORER.toString())));
@@ -707,23 +692,16 @@ public class Jsprit {
 
     private void handleExecutorShutdown(VehicleRoutingAlgorithm vra) {
         if (setupExecutorInternally) {
-            final Thread hook = new Thread() {
-                public void run() {
-                    if (!es.isShutdown()) {
-                        System.err.println("shutdownHook shuts down executorService");
-                        es.shutdown();
-                    }
-                }
-            };
-            Runtime.getRuntime().addShutdownHook(hook);
-            vra.addListener(new AlgorithmEndsListener() {
-
-                @Override
-                public void informAlgorithmEnds(VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
+            final Thread hook = new Thread(() -> {
+                if (!es.isShutdown()) {
+                    System.err.println("shutdownHook shuts down executorService");
                     es.shutdown();
-                    Runtime.getRuntime().removeShutdownHook(hook);
                 }
-
+            });
+            Runtime.getRuntime().addShutdownHook(hook);
+            vra.addListener((AlgorithmEndsListener) (problem, solutions) -> {
+                es.shutdown();
+                Runtime.getRuntime().removeShutdownHook(hook);
             });
         }
 //        if (es != null) {
@@ -743,51 +721,48 @@ public class Jsprit {
         return properties.getProperty(key);
     }
 
-    private boolean toBoolean(String property) {
+    private static boolean toBoolean(String property) {
         return Boolean.valueOf(property);
     }
 
-    private int toInteger(String string) {
+    private static int toInteger(String string) {
         return Integer.valueOf(string);
     }
 
-    private double toDouble(String string) {
+    private static double toDouble(String string) {
         return Double.valueOf(string);
     }
 
     private SolutionCostCalculator getObjectiveFunction(final VehicleRoutingProblem vrp, final double maxCosts) {
         if (objectiveFunction != null) return objectiveFunction;
 
-        SolutionCostCalculator solutionCostCalculator = new SolutionCostCalculator() {
-            @Override
-            public double getCosts(VehicleRoutingProblemSolution solution) {
-                double costs = 0.;
+        SolutionCostCalculator solutionCostCalculator = solution -> {
+            double costs = 0.;
 
-                for (VehicleRoute route : solution.getRoutes()) {
-                    costs += route.getVehicle().getType().getVehicleCostParams().fix;
-                    boolean hasBreak = false;
-                    TourActivity prevAct = route.getStart();
-                    for (TourActivity act : route.getActivities()) {
-                        if (act instanceof BreakActivity) hasBreak = true;
-                        costs += vrp.getTransportCosts().getTransportCost(prevAct.getLocation(), act.getLocation(), prevAct.getEndTime(), route.getDriver(), route.getVehicle());
-                        costs += vrp.getActivityCosts().getActivityCost(act, act.getArrTime(), route.getDriver(), route.getVehicle());
-                        prevAct = act;
-                    }
-                    costs += vrp.getTransportCosts().getTransportCost(prevAct.getLocation(), route.getEnd().getLocation(), prevAct.getEndTime(), route.getDriver(), route.getVehicle());
-                    if (route.getVehicle().getBreak() != null) {
-                        if (!hasBreak) {
-                            //break defined and required but not assigned penalty
-                            if (route.getEnd().getArrTime() > route.getVehicle().getBreak().getTimeWindow().getEnd()) {
-                                costs += 4 * (maxCosts * 2 + route.getVehicle().getBreak().getServiceDuration() * route.getVehicle().getType().getVehicleCostParams().perServiceTimeUnit);
-                            }
+            for (VehicleRoute route : solution.routes) {
+                costs += route.vehicle().type().getVehicleCostParams().fix;
+                boolean hasBreak = false;
+                AbstractActivity prevAct = route.start;
+                for (AbstractActivity act : route.activities()) {
+                    if (act instanceof BreakActivity) hasBreak = true;
+                    costs += vrp.transportCosts().transportCost(prevAct.location(), act.location(), prevAct.end(), route.driver, route.vehicle());
+                    costs += vrp.activityCosts().getActivityCost(act, act.arrTime(), route.driver, route.vehicle());
+                    prevAct = act;
+                }
+                costs += vrp.transportCosts().transportCost(prevAct.location(), route.end.location(), prevAct.end(), route.driver, route.vehicle());
+                if (route.vehicle().aBreak() != null) {
+                    if (!hasBreak) {
+                        //break defined and required but not assigned penalty
+                        if (route.end.arrTime() > route.vehicle().aBreak().timeWindow().end) {
+                            costs += 4 * (maxCosts * 2 + route.vehicle().aBreak().serviceTime * route.vehicle().type().getVehicleCostParams().perServiceTimeUnit);
                         }
                     }
                 }
-                for(Job j : solution.getUnassignedJobs()){
-                    costs += maxCosts * 2 * (11 - j.getPriority());
-                }
-                return costs;
             }
+            for(Job j : solution.jobsUnassigned){
+                costs += maxCosts * 2 * (11 - j.pri());
+            }
+            return costs;
         };
         return solutionCostCalculator;
     }

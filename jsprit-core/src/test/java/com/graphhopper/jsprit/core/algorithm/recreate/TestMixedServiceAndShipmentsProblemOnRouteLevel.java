@@ -24,7 +24,7 @@ import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.vehicle.*;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.TestUtils;
 import org.junit.Test;
 
@@ -38,14 +38,14 @@ public class TestMixedServiceAndShipmentsProblemOnRouteLevel {
     public void whenHavingShipmentsAndServicesInOneProblem_andInsertionShouldBeMadeOnRouteLevel_throwException() {
         /* get a vehicle type-builder and build a type with the typeId "vehicleType" and a capacity of 2
          */
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(0, 2);
+        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.the("vehicleType").addCapacityDimension(0, 2);
         VehicleType vehicleType = vehicleTypeBuilder.build();
 
 		/*
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
 		 */
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance(10, 10));
+        vehicleBuilder.setStartLocation(Location.the(10, 10));
         vehicleBuilder.setType(vehicleType);
         VehicleImpl vehicle = vehicleBuilder.build();
 
@@ -58,11 +58,11 @@ public class TestMixedServiceAndShipmentsProblemOnRouteLevel {
 		 * 4: (15,13)->(14,11)
 		 */
 
-        Shipment shipment1 = Shipment.Builder.newInstance("1").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(Coordinate.newInstance(5, 7))).setDeliveryLocation(TestUtils.loc(Coordinate.newInstance(6, 9))).build();
-        Shipment shipment2 = Shipment.Builder.newInstance("2").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(Coordinate.newInstance(5, 13))).setDeliveryLocation(TestUtils.loc(Coordinate.newInstance(6, 11))).build();
+        Shipment shipment1 = Shipment.Builder.newInstance("1").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(v2.the(5, 7))).setDeliveryLocation(TestUtils.loc(v2.the(6, 9))).build();
+        Shipment shipment2 = Shipment.Builder.newInstance("2").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(v2.the(5, 13))).setDeliveryLocation(TestUtils.loc(v2.the(6, 11))).build();
 
-        Shipment shipment3 = Shipment.Builder.newInstance("3").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(Coordinate.newInstance(15, 7))).setDeliveryLocation(TestUtils.loc(Coordinate.newInstance(14, 9))).build();
-        Shipment shipment4 = Shipment.Builder.newInstance("4").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(Coordinate.newInstance(15, 13))).setDeliveryLocation(TestUtils.loc(Coordinate.newInstance(14, 11))).build();
+        Shipment shipment3 = Shipment.Builder.newInstance("3").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(v2.the(15, 7))).setDeliveryLocation(TestUtils.loc(v2.the(14, 9))).build();
+        Shipment shipment4 = Shipment.Builder.newInstance("4").addSizeDimension(0, 1).setPickupLocation(TestUtils.loc(v2.the(15, 13))).setDeliveryLocation(TestUtils.loc(v2.the(14, 11))).build();
 
 		/*
          * build deliveries, (implicitly picked up in the depot)
@@ -71,12 +71,12 @@ public class TestMixedServiceAndShipmentsProblemOnRouteLevel {
 		 * 3: (16,8)
 		 * 4: (16,12)
 		 */
-        Delivery delivery1 = (Delivery) Delivery.Builder.newInstance("5").addSizeDimension(0, 1).setLocation(TestUtils.loc(Coordinate.newInstance(4, 8))).build();
-        Delivery delivery2 = (Delivery) Delivery.Builder.newInstance("6").addSizeDimension(0, 1).setLocation(TestUtils.loc(Coordinate.newInstance(4, 12))).build();
-        Delivery delivery3 = (Delivery) Delivery.Builder.newInstance("7").addSizeDimension(0, 1).setLocation(TestUtils.loc(Coordinate.newInstance(16, 8))).build();
-        Delivery delivery4 = (Delivery) Delivery.Builder.newInstance("8").addSizeDimension(0, 1).setLocation(TestUtils.loc(Coordinate.newInstance(16, 12))).build();
+        Delivery delivery1 = Delivery.Builder.newInstance("5").sizeDimension(0, 1).location(TestUtils.loc(v2.the(4, 8))).build();
+        Delivery delivery2 = Delivery.Builder.newInstance("6").sizeDimension(0, 1).location(TestUtils.loc(v2.the(4, 12))).build();
+        Delivery delivery3 = Delivery.Builder.newInstance("7").sizeDimension(0, 1).location(TestUtils.loc(v2.the(16, 8))).build();
+        Delivery delivery4 = Delivery.Builder.newInstance("8").sizeDimension(0, 1).location(TestUtils.loc(v2.the(16, 12))).build();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addVehicle(vehicle);
         vrpBuilder.addJob(shipment1).addJob(shipment2).addJob(shipment3).addJob(shipment4)
             .addJob(delivery1).addJob(delivery2).addJob(delivery3).addJob(delivery4).build();
@@ -90,7 +90,7 @@ public class TestMixedServiceAndShipmentsProblemOnRouteLevel {
         constraintManager.addLoadConstraint();
         constraintManager.addTimeWindowConstraint();
 
-        VehicleFleetManager fleetManager = new InfiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
+        VehicleFleetManager fleetManager = new InfiniteFleetManagerFactory(vrp.vehicles()).createFleetManager();
 
         BestInsertionBuilder bestIBuilder = new BestInsertionBuilder(vrp, fleetManager, stateManager, constraintManager);
         bestIBuilder.setRouteLevel(2, 2);
@@ -103,14 +103,14 @@ public class TestMixedServiceAndShipmentsProblemOnRouteLevel {
     public void whenHavingOnlyServicesInOneProblem_andInsertionShouldBeMadeOnRouteLevel_itShouldAssertTrue() {
         /* get a vehicle type-builder and build a type with the typeId "vehicleType" and a capacity of 2
          */
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(0, 2);
+        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.the("vehicleType").addCapacityDimension(0, 2);
         VehicleType vehicleType = vehicleTypeBuilder.build();
 
 		/*
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
 		 */
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance(10, 10));
+        vehicleBuilder.setStartLocation(Location.the(10, 10));
         vehicleBuilder.setType(vehicleType);
         VehicleImpl vehicle = vehicleBuilder.build();
 
@@ -122,12 +122,12 @@ public class TestMixedServiceAndShipmentsProblemOnRouteLevel {
 		 * 3: (16,8)
 		 * 4: (16,12)
 		 */
-        Delivery delivery1 = (Delivery) Delivery.Builder.newInstance("5").addSizeDimension(0, 1).setLocation(Location.newInstance(4, 8)).build();
-        Delivery delivery2 = (Delivery) Delivery.Builder.newInstance("6").addSizeDimension(0, 1).setLocation(Location.newInstance(4, 12)).build();
-        Delivery delivery3 = (Delivery) Delivery.Builder.newInstance("7").addSizeDimension(0, 1).setLocation(Location.newInstance(16, 8)).build();
-        Delivery delivery4 = (Delivery) Delivery.Builder.newInstance("8").addSizeDimension(0, 1).setLocation(Location.newInstance(16, 12)).build();
+        Delivery delivery1 = Delivery.Builder.newInstance("5").sizeDimension(0, 1).location(Location.the(4, 8)).build();
+        Delivery delivery2 = Delivery.Builder.newInstance("6").sizeDimension(0, 1).location(Location.the(4, 12)).build();
+        Delivery delivery3 = Delivery.Builder.newInstance("7").sizeDimension(0, 1).location(Location.the(16, 8)).build();
+        Delivery delivery4 = Delivery.Builder.newInstance("8").sizeDimension(0, 1).location(Location.the(16, 12)).build();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.addVehicle(vehicle)
 //		vrpBuilder.addJob(shipment1).addJob(shipment2).addJob(shipment3).addJob(shipment4)
             .addJob(delivery1).addJob(delivery2).addJob(delivery3).addJob(delivery4).build();
@@ -140,7 +140,7 @@ public class TestMixedServiceAndShipmentsProblemOnRouteLevel {
         constraintManager.addLoadConstraint();
         constraintManager.addTimeWindowConstraint();
 
-        VehicleFleetManager fleetManager = new InfiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
+        VehicleFleetManager fleetManager = new InfiniteFleetManagerFactory(vrp.vehicles()).createFleetManager();
 
         BestInsertionBuilder bestIBuilder = new BestInsertionBuilder(vrp, fleetManager, stateManager, constraintManager);
         bestIBuilder.setRouteLevel(2, 2);

@@ -18,12 +18,12 @@
 package com.graphhopper.jsprit.core.problem.constraint;
 
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.DeliverShipment;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.PickupShipment;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.Start;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivityStateGetter;
 
 
@@ -37,9 +37,9 @@ import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivity
  */
 public class PickupAndDeliverShipmentLoadActivityLevelConstraint implements HardActivityConstraint {
 
-    private RouteAndActivityStateGetter stateManager;
+    private final RouteAndActivityStateGetter stateManager;
 
-    private Capacity defaultValue;
+    private final Capacity defaultValue;
 
     /**
      * Constructs the constraint ensuring capacity constraint at each activity.
@@ -50,16 +50,15 @@ public class PickupAndDeliverShipmentLoadActivityLevelConstraint implements Hard
      * @param stateManager the stateManager
      */
     public PickupAndDeliverShipmentLoadActivityLevelConstraint(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
-        defaultValue = Capacity.Builder.newInstance().build();
+        defaultValue = Capacity.Builder.get().build();
     }
 
     /**
      * Checks whether there is enough capacity to insert newAct between prevAct and nextAct.
      */
     @Override
-    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+    public ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
         if (!(newAct instanceof PickupShipment) && !(newAct instanceof DeliverShipment)) {
             return ConstraintsStatus.FULFILLED;
         }
@@ -68,16 +67,16 @@ public class PickupAndDeliverShipmentLoadActivityLevelConstraint implements Hard
             loadAtPrevAct = stateManager.getRouteState(iFacts.getRoute(), InternalStates.LOAD_AT_BEGINNING, Capacity.class);
             if (loadAtPrevAct == null) loadAtPrevAct = defaultValue;
         } else {
-            loadAtPrevAct = stateManager.getActivityState(prevAct, InternalStates.LOAD, Capacity.class);
+            loadAtPrevAct = stateManager.state(prevAct, InternalStates.LOAD, Capacity.class);
             if (loadAtPrevAct == null) loadAtPrevAct = defaultValue;
         }
         if (newAct instanceof PickupShipment) {
-            if (!Capacity.addup(loadAtPrevAct, newAct.getSize()).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions())) {
+            if (!Capacity.addup(loadAtPrevAct, newAct.size()).lessOrEq(iFacts.getNewVehicle().type().getCapacityDimensions())) {
                 return ConstraintsStatus.NOT_FULFILLED;
             }
         }
         if (newAct instanceof DeliverShipment) {
-            if (!Capacity.addup(loadAtPrevAct, Capacity.invert(newAct.getSize())).isLessOrEqual(iFacts.getNewVehicle().getType().getCapacityDimensions()))
+            if (!Capacity.addup(loadAtPrevAct, Capacity.invert(newAct.size())).lessOrEq(iFacts.getNewVehicle().type().getCapacityDimensions()))
                 return ConstraintsStatus.NOT_FULFILLED_BREAK;
         }
         return ConstraintsStatus.FULFILLED;

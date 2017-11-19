@@ -20,7 +20,7 @@ package com.graphhopper.jsprit.instance.reader;
 
 
 import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Locations;
 import junit.framework.Assert;
 import org.junit.Before;
@@ -34,13 +34,13 @@ public class FigliozziTest {
 
     @Before
     public void doBefore() {
-        final Coordinate from = Coordinate.newInstance(0, 0);
-        final Coordinate to = Coordinate.newInstance(100, 0);
+        final v2 from = v2.the(0, 0);
+        final v2 to = v2.the(100, 0);
 
         locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
+            public v2 coord(String id) {
                 if (id.equals("from")) return from;
                 if (id.equals("to")) return to;
                 return null;
@@ -177,11 +177,11 @@ public class FigliozziTest {
     @Test
     public void whenConstantTimeDistribution_forwardTimeShouldBeCalculate100() {
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.CLASSIC, 100);
-        Assert.assertEquals(100., tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null), 0.01);
+        Assert.assertEquals(100., tdCosts.transportTime(loc("from"), loc("to"), 0., null, null), 0.01);
     }
 
     private Location loc(String from) {
-        return Location.Builder.newInstance().setId(from).build();
+        return Location.Builder.the().setId(from).build();
     }
 
     @Test
@@ -197,7 +197,7 @@ public class FigliozziTest {
          20
 
          */
-        Assert.assertEquals(76.875, tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null), 0.01);
+        Assert.assertEquals(76.875, tdCosts.transportTime(loc("from"), loc("to"), 0., null, null), 0.01);
     }
 
     @Test
@@ -214,7 +214,7 @@ public class FigliozziTest {
          20
 
          */
-        Assert.assertEquals(65., tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null), 0.01);
+        Assert.assertEquals(65., tdCosts.transportTime(loc("from"), loc("to"), 0., null, null), 0.01);
     }
 
     @Test
@@ -227,7 +227,7 @@ public class FigliozziTest {
         (20,40) 2.5 = 20 --> 50 dist, 20 time : 70 dist, 40 time
         (40,60) 1.75 = 30 dist, 17.1428571429 time : 100 dist, 57.1428571429 time
         */
-        Assert.assertEquals(57.1428571429, tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null), 0.01);
+        Assert.assertEquals(57.1428571429, tdCosts.transportTime(loc("from"), loc("to"), 0., null, null), 0.01);
     }
 
     @Test
@@ -244,7 +244,7 @@ public class FigliozziTest {
          20
 
          */
-        Assert.assertEquals(65., tdCosts.getBackwardTransportTime(loc("from"), loc("to"), 100., null, null), 0.01);
+        Assert.assertEquals(65., tdCosts.transportTimeReverse(loc("from"), loc("to"), 100., null, null), 0.01);
     }
 
     @Test
@@ -260,13 +260,13 @@ public class FigliozziTest {
          20
 
          */
-        Assert.assertEquals(76.875, tdCosts.getBackwardTransportTime(loc("from"), loc("to"), 100., null, null), 0.01);
+        Assert.assertEquals(76.875, tdCosts.transportTimeReverse(loc("from"), loc("to"), 100., null, null), 0.01);
     }
 
     @Test
     public void backwardTimeShouldBeCalculatedCorrectly() {
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.CLASSIC, 100);
-        Assert.assertEquals(100., tdCosts.getBackwardTransportTime(loc("from"), loc("to"), 100., null, null), 0.01);
+        Assert.assertEquals(100., tdCosts.transportTimeReverse(loc("from"), loc("to"), 100., null, null), 0.01);
     }
 
     @Test
@@ -274,15 +274,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(125., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(125., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD1a, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -291,15 +291,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(125., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(125., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD1b, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -308,15 +308,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(125., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(125., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD1c, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -325,15 +325,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(125., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(125., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD1d, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -342,15 +342,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(150., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(150., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD2a, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -359,15 +359,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(150., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(150., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD2b, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -376,15 +376,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(150., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(150., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD2c, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -393,15 +393,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(150., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(150., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD2d, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -410,15 +410,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(175., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(175., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD3a, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -427,15 +427,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(175., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(175., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD3b, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -444,15 +444,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(175., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(175., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD3c, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 
@@ -461,15 +461,15 @@ public class FigliozziTest {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
-                if (id.equals("from")) return Coordinate.newInstance(0, 0);
-                if (id.equals("to")) return Coordinate.newInstance(175., 0);
+            public v2 coord(String id) {
+                if (id.equals("from")) return v2.the(0, 0);
+                if (id.equals("to")) return v2.the(175., 0);
                 return null;
             }
 
         };
         Figliozzi.TDCosts tdCosts = Figliozzi.TimeDependentTransportCostsFactory.createCosts(locations, Figliozzi.TimeDependentTransportCostsFactory.SpeedDistribution.TD3d, 100);
-        double time = tdCosts.getTransportTime(loc("from"), loc("to"), 0., null, null);
+        double time = tdCosts.transportTime(loc("from"), loc("to"), 0., null, null);
         Assert.assertEquals(100., time, 0.01);
     }
 }

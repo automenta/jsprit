@@ -21,6 +21,6 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 
 public interface RuinStrategyFactory {
 
-    public RuinStrategy createStrategy(VehicleRoutingProblem vrp);
+    RuinStrategy createStrategy(VehicleRoutingProblem vrp);
 
 }

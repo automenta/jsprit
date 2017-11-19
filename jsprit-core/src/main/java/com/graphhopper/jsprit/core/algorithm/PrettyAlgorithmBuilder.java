@@ -21,19 +21,16 @@ package com.graphhopper.jsprit.core.algorithm;
 import com.graphhopper.jsprit.core.algorithm.acceptor.SchrimpfAcceptance;
 import com.graphhopper.jsprit.core.algorithm.acceptor.SolutionAcceptor;
 import com.graphhopper.jsprit.core.algorithm.listener.AlgorithmStartsListener;
+import com.graphhopper.jsprit.core.algorithm.listener.VehicleRoutingAlgorithmListener;
 import com.graphhopper.jsprit.core.algorithm.recreate.InsertionStrategy;
 import com.graphhopper.jsprit.core.algorithm.recreate.VehicleSwitched;
+import com.graphhopper.jsprit.core.algorithm.recreate.listener.InsertionListener;
 import com.graphhopper.jsprit.core.algorithm.state.*;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
-import com.graphhopper.jsprit.core.problem.constraint.SwitchNotFeasible;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
-import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
-import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
 
 import java.util.*;
 
@@ -50,15 +47,15 @@ public class PrettyAlgorithmBuilder {
 
     private final ConstraintManager constraintManager;
 
-    private SearchStrategyManager searchStrategyManager;
+    private final SearchStrategyManager searchStrategyManager;
 
     private InsertionStrategy iniInsertionStrategy;
 
     private SolutionCostCalculator iniObjFunction;
 
-    private boolean coreStuff = false;
+    private boolean coreStuff;
 
-    private SolutionCostCalculator objectiveFunction = null;
+    private SolutionCostCalculator objectiveFunction;
 
     public static PrettyAlgorithmBuilder newInstance(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
         return new PrettyAlgorithmBuilder(vrp, fleetManager, stateManager, constraintManager);
@@ -94,9 +91,9 @@ public class PrettyAlgorithmBuilder {
         }
         VehicleRoutingAlgorithm vra = new VehicleRoutingAlgorithm(vrp, searchStrategyManager, objectiveFunction);
         vra.addListener(stateManager);
-        RemoveEmptyVehicles removeEmptyVehicles = new RemoveEmptyVehicles(fleetManager);
-        ResetAndIniFleetManager resetAndIniFleetManager = new ResetAndIniFleetManager(fleetManager);
-        VehicleSwitched vehicleSwitched = new VehicleSwitched(fleetManager);
+        InsertionListener removeEmptyVehicles = new RemoveEmptyVehicles(fleetManager);
+        InsertionListener resetAndIniFleetManager = new ResetAndIniFleetManager(fleetManager);
+        InsertionListener vehicleSwitched = new VehicleSwitched(fleetManager);
         vra.addListener(removeEmptyVehicles);
         vra.addListener(resetAndIniFleetManager);
         vra.addListener(vehicleSwitched);
@@ -109,12 +106,9 @@ public class PrettyAlgorithmBuilder {
                 iniInsertionStrategy.addListener(vehicleSwitched);
             if (!iniInsertionStrategy.getListeners().contains(stateManager))
                 iniInsertionStrategy.addListener(stateManager);
-            vra.addListener(new AlgorithmStartsListener() {
-                @Override
-                public void informAlgorithmStarts(VehicleRoutingProblem problem, VehicleRoutingAlgorithm algorithm, Collection<VehicleRoutingProblemSolution> solutions) {
-                    if (solutions.isEmpty()) {
-                        solutions.add(new InsertionInitialSolutionFactory(iniInsertionStrategy, iniObjFunction).createSolution(vrp));
-                    }
+            vra.addListener((AlgorithmStartsListener) (problem, algorithm, solutions) -> {
+                if (solutions.isEmpty()) {
+                    solutions.add(new InsertionInitialSolutionFactory(iniInsertionStrategy, iniObjFunction).createSolution(vrp));
                 }
             });
         }
@@ -122,17 +116,17 @@ public class PrettyAlgorithmBuilder {
         return vra;
     }
 
-    private void addArbitraryListener(VehicleRoutingAlgorithm vra) {
+    private static void addArbitraryListener(VehicleRoutingAlgorithm vra) {
         searchSchrimpfAndRegister(vra);
     }
 
-    private void searchSchrimpfAndRegister(VehicleRoutingAlgorithm vra) {
+    private static void searchSchrimpfAndRegister(VehicleRoutingAlgorithm vra) {
         boolean schrimpfAdded = false;
         for (SearchStrategy strategy : vra.getSearchStrategyManager().getStrategies()) {
             SolutionAcceptor acceptor = strategy.getSolutionAcceptor();
             if (acceptor instanceof SchrimpfAcceptance) {
                 if (!schrimpfAdded) {
-                    vra.addListener((SchrimpfAcceptance) acceptor);
+                    vra.addListener((VehicleRoutingAlgorithmListener) acceptor);
                     schrimpfAdded = true;
                 }
             }

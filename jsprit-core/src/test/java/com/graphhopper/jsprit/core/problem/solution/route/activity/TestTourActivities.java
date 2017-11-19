@@ -17,6 +17,7 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
@@ -34,7 +35,7 @@ public class TestTourActivities {
 
     @Before
     public void doBefore() {
-        service = Service.Builder.newInstance("yo").addSizeDimension(0, 10).setLocation(Location.newInstance("loc")).build();
+        service = Service.Builder.newInstance("yo").sizeDimension(0, 10).location(Location.the("loc")).build();
         act = ServiceActivity.newInstance(service);
         tour = new TourActivities();
     }
@@ -64,36 +65,36 @@ public class TestTourActivities {
 
     @Test
     public void whenAddingAServiceAndThenRemovingTheServiceAgain_tourShouldNotServeItAnymore() {
-        assertEquals(0, tour.getActivities().size());
+        assertEquals(0, tour.activities().size());
         tour.addActivity(act);
-        assertEquals(1, tour.getActivities().size());
-        Service anotherServiceInstance = Service.Builder.newInstance("yo").addSizeDimension(0, 10).setLocation(Location.newInstance("loc")).build();
+        assertEquals(1, tour.activities().size());
+        Service anotherServiceInstance = Service.Builder.newInstance("yo").sizeDimension(0, 10).location(Location.the("loc")).build();
         assertTrue(service.equals(anotherServiceInstance));
         boolean removed = tour.removeJob(anotherServiceInstance);
         assertTrue(removed);
-        assertEquals(0, tour.getActivities().size());
+        assertEquals(0, tour.activities().size());
     }
 
     @Test
     public void whenAddingAShipmentActivity_tourShouldServeShipment() {
-        Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1).setDeliveryLocation(Location.newInstance("delLoc"))
-            .setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).build();
+        Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1).setDeliveryLocation(Location.the("delLoc"))
+            .setPickupLocation(Location.Builder.the().setId("pickLoc").build()).build();
         TourShipmentActivityFactory fac = new DefaultShipmentActivityFactory();
-        TourActivity pickupShipment = fac.createPickup(s);
-        TourActivity deliverShipment = fac.createDelivery(s);
+        AbstractActivity pickupShipment = fac.createPickup(s);
+        AbstractActivity deliverShipment = fac.createDelivery(s);
         tour.addActivity(pickupShipment);
         tour.addActivity(deliverShipment);
         assertTrue(tour.servesJob(s));
-        assertEquals(2, tour.getActivities().size());
+        assertEquals(2, tour.activities().size());
     }
 
 
     @Test
     public void whenRemovingShipment_tourShouldNotServiceItAnymore() {
-        Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1).setDeliveryLocation(Location.newInstance("delLoc")).setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).build();
+        Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1).setDeliveryLocation(Location.the("delLoc")).setPickupLocation(Location.Builder.the().setId("pickLoc").build()).build();
         TourShipmentActivityFactory fac = new DefaultShipmentActivityFactory();
-        TourActivity pickupShipment = fac.createPickup(s);
-        TourActivity deliverShipment = fac.createDelivery(s);
+        AbstractActivity pickupShipment = fac.createPickup(s);
+        AbstractActivity deliverShipment = fac.createDelivery(s);
         tour.addActivity(pickupShipment);
         tour.addActivity(deliverShipment);
 
@@ -105,29 +106,29 @@ public class TestTourActivities {
     @Test
     public void whenRemovingShipment_theirCorrespondingActivitiesShouldBeRemoved() {
         Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1)
-            .setDeliveryLocation(Location.newInstance("delLoc"))
-            .setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).build();
+            .setDeliveryLocation(Location.the("delLoc"))
+            .setPickupLocation(Location.Builder.the().setId("pickLoc").build()).build();
         TourShipmentActivityFactory fac = new DefaultShipmentActivityFactory();
-        TourActivity pickupShipment = fac.createPickup(s);
-        TourActivity deliverShipment = fac.createDelivery(s);
+        AbstractActivity pickupShipment = fac.createPickup(s);
+        AbstractActivity deliverShipment = fac.createDelivery(s);
         tour.addActivity(pickupShipment);
         tour.addActivity(deliverShipment);
 
-        assertEquals(2, tour.getActivities().size());
+        assertEquals(2, tour.activities().size());
         tour.removeJob(s);
-        assertEquals(0, tour.getActivities().size());
+        assertEquals(0, tour.activities().size());
     }
 
     @Test
     public void removingActivityShouldWork() {
         tour.addActivity(act);
         assertTrue(tour.servesJob(service));
-        assertTrue(tour.getActivities().contains(act));
+        assertTrue(tour.activities().contains(act));
 
         tour.removeActivity(act);
 
         assertTrue(tour.isEmpty());
-        assertFalse(tour.getActivities().contains(act));
+        assertFalse(tour.activities().contains(act));
         assertFalse(tour.servesJob(service));
         assertEquals(0, tour.jobSize());
     }
@@ -141,52 +142,52 @@ public class TestTourActivities {
         TourActivities acts = TourActivities.copyOf(tour);
 
         assertTrue(acts.servesJob(service));
-        assertTrue(acts.getActivities().contains(act));
+        assertTrue(acts.activities().contains(act));
     }
 
     @Test
     public void removingShipmentActivityShouldWork() {
         Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1)
-            .setDeliveryLocation(Location.newInstance("delLoc"))
-            .setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).build();
+            .setDeliveryLocation(Location.the("delLoc"))
+            .setPickupLocation(Location.Builder.the().setId("pickLoc").build()).build();
         TourShipmentActivityFactory fac = new DefaultShipmentActivityFactory();
-        TourActivity pickupShipment = fac.createPickup(s);
-        TourActivity deliverShipment = fac.createDelivery(s);
+        AbstractActivity pickupShipment = fac.createPickup(s);
+        AbstractActivity deliverShipment = fac.createDelivery(s);
         tour.addActivity(pickupShipment);
         tour.addActivity(deliverShipment);
 
         assertEquals(1, tour.jobSize());
-        assertEquals(2, tour.getActivities().size());
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(deliverShipment));
+        assertEquals(2, tour.activities().size());
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(deliverShipment));
 
         tour.removeActivity(pickupShipment);
 
         assertEquals(1, tour.jobSize());
-        assertEquals(1, tour.getActivities().size());
-        assertTrue(tour.getActivities().contains(deliverShipment));
-        assertFalse(tour.getActivities().contains(pickupShipment));
-        assertFalse(tour.getActivities().contains(pickupShipment));
+        assertEquals(1, tour.activities().size());
+        assertTrue(tour.activities().contains(deliverShipment));
+        assertFalse(tour.activities().contains(pickupShipment));
+        assertFalse(tour.activities().contains(pickupShipment));
 
     }
 
     @Test
     public void whenCopyingShipmentActivitySeq_jobSizeShouldBeCorrect() {
         Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1)
-            .setDeliveryLocation(Location.newInstance("delLoc"))
-            .setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).build();
+            .setDeliveryLocation(Location.the("delLoc"))
+            .setPickupLocation(Location.Builder.the().setId("pickLoc").build()).build();
         TourShipmentActivityFactory fac = new DefaultShipmentActivityFactory();
-        TourActivity pickupShipment = fac.createPickup(s);
-        TourActivity deliverShipment = fac.createDelivery(s);
+        AbstractActivity pickupShipment = fac.createPickup(s);
+        AbstractActivity deliverShipment = fac.createDelivery(s);
         tour.addActivity(pickupShipment);
         tour.addActivity(deliverShipment);
 
         assertEquals(1, tour.jobSize());
-        assertEquals(2, tour.getActivities().size());
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(deliverShipment));
+        assertEquals(2, tour.activities().size());
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(deliverShipment));
 
         TourActivities copiedTour = TourActivities.copyOf(tour);
 
@@ -196,39 +197,39 @@ public class TestTourActivities {
     @Test
     public void whenCopyingShipmentActivitySeq_noActivitiesShouldBeCorrect() {
         Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1)
-            .setDeliveryLocation(Location.newInstance("delLoc")).setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).build();
+            .setDeliveryLocation(Location.the("delLoc")).setPickupLocation(Location.Builder.the().setId("pickLoc").build()).build();
         TourShipmentActivityFactory fac = new DefaultShipmentActivityFactory();
-        TourActivity pickupShipment = fac.createPickup(s);
-        TourActivity deliverShipment = fac.createDelivery(s);
+        AbstractActivity pickupShipment = fac.createPickup(s);
+        AbstractActivity deliverShipment = fac.createDelivery(s);
         tour.addActivity(pickupShipment);
         tour.addActivity(deliverShipment);
 
         assertEquals(1, tour.jobSize());
-        assertEquals(2, tour.getActivities().size());
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(deliverShipment));
+        assertEquals(2, tour.activities().size());
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(deliverShipment));
 
         TourActivities copiedTour = TourActivities.copyOf(tour);
 
-        assertEquals(2, copiedTour.getActivities().size());
+        assertEquals(2, copiedTour.activities().size());
     }
 
     @Test
     public void whenCopyingShipmentActivitySeq_itShouldContaintPickupAct() {
         Shipment s = Shipment.Builder.newInstance("s").addSizeDimension(0, 1)
-            .setDeliveryLocation(Location.newInstance("delLoc")).setPickupLocation(Location.Builder.newInstance().setId("pickLoc").build()).build();
+            .setDeliveryLocation(Location.the("delLoc")).setPickupLocation(Location.Builder.the().setId("pickLoc").build()).build();
         TourShipmentActivityFactory fac = new DefaultShipmentActivityFactory();
-        TourActivity pickupShipment = fac.createPickup(s);
-        TourActivity deliverShipment = fac.createDelivery(s);
+        AbstractActivity pickupShipment = fac.createPickup(s);
+        AbstractActivity deliverShipment = fac.createDelivery(s);
         tour.addActivity(pickupShipment);
         tour.addActivity(deliverShipment);
 
         assertEquals(1, tour.jobSize());
-        assertEquals(2, tour.getActivities().size());
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(pickupShipment));
-        assertTrue(tour.getActivities().contains(deliverShipment));
+        assertEquals(2, tour.activities().size());
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(pickupShipment));
+        assertTrue(tour.activities().contains(deliverShipment));
 
         TourActivities copiedTour = TourActivities.copyOf(tour);
 

@@ -22,6 +22,7 @@ import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
+import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 
 /**
  * @author stefan schroeder
@@ -29,12 +30,11 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 public class ManhattanCosts extends AbstractForwardVehicleRoutingTransportCosts {
 
-    public double speed = 1;
+    public final double speed = 1;
 
     private Locations locations;
 
     public ManhattanCosts(Locations locations) {
-        super();
         this.locations = locations;
     }
 
@@ -43,7 +43,7 @@ public class ManhattanCosts extends AbstractForwardVehicleRoutingTransportCosts 
     }
 
     @Override
-    public double getTransportCost(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
+    public double transportCost(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
         double distance;
         try {
             distance = calculateDistance(from, to);
@@ -52,38 +52,39 @@ public class ManhattanCosts extends AbstractForwardVehicleRoutingTransportCosts 
         }
         double costs = distance;
         if (vehicle != null) {
-            if (vehicle.getType() != null) {
-                costs = distance * vehicle.getType().getVehicleCostParams().perDistanceUnit;
+            VehicleType t = vehicle.type();
+            if (t != null) {
+                costs = distance * t.getVehicleCostParams().perDistanceUnit;
             }
         }
         return costs;
     }
 
     @Override
-    public double getTransportTime(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
+    public double transportTime(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
         return calculateDistance(from, to) / speed;
     }
 
     private double calculateDistance(Location fromLocation, Location toLocation) {
-        Coordinate from = null;
-        Coordinate to = null;
-        if (fromLocation.getCoordinate() != null & toLocation.getCoordinate() != null) {
-            from = fromLocation.getCoordinate();
-            to = toLocation.getCoordinate();
+        v2 from = null;
+        v2 to = null;
+        if (fromLocation.coord != null && toLocation.coord != null) {
+            from = fromLocation.coord;
+            to = toLocation.coord;
         } else if (locations != null) {
-            from = locations.getCoord(fromLocation.getId());
-            to = locations.getCoord(toLocation.getId());
+            from = locations.coord(fromLocation.id);
+            to = locations.coord(toLocation.id);
         }
         if (from == null || to == null) throw new NullPointerException();
         return calculateDistance(from, to);
     }
 
-    private double calculateDistance(Coordinate from, Coordinate to) {
-        return Math.abs(from.getX() - to.getX()) + Math.abs(from.getY() - to.getY());
+    private static double calculateDistance(v2 from, v2 to) {
+        return Math.abs(from.x - to.x) + Math.abs(from.y - to.y);
     }
 
     @Override
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
+    public double distance(Location from, Location to, double departureTime, Vehicle vehicle) {
         return calculateDistance(from, to);
     }
 }

@@ -36,7 +36,7 @@ public class FiniteVehicleFleetManagerIdentifiesDistinctVehicle_IT {
     public void whenEmployingVehicleWhereOnlyOneDistinctVehicleCanServeAParticularJobWith_jspritAlgorithmShouldFoundDistinctSolution() {
         final List<Boolean> testFailed = new ArrayList<Boolean>();
         for (int i = 0; i < 10; i++) {
-            VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+            VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
             new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("biggerProblem.xml"));
             VehicleRoutingProblem vrp = vrpBuilder.build();
 

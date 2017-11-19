@@ -29,21 +29,21 @@ public class VehicleTypeImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void whenTypeHasNegativeCapacityVal_throwIllegalStateExpception() {
         @SuppressWarnings("unused")
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("t").addCapacityDimension(0, -10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("t").addCapacityDimension(0, -10).build();
     }
 
     @Test
     public void whenAddingTwoCapDimension_nuOfDimsShouldBeTwo() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("t")
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("t")
             .addCapacityDimension(0, 2)
             .addCapacityDimension(1, 4)
             .build();
-        assertEquals(2, type.getCapacityDimensions().getNuOfDimensions());
+        assertEquals(2, type.getCapacityDimensions().dim());
     }
 
     @Test
     public void whenAddingTwoCapDimension_dimValuesMustBeCorrect() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("t")
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("t")
             .addCapacityDimension(0, 2)
             .addCapacityDimension(1, 4)
             .build();
@@ -53,50 +53,50 @@ public class VehicleTypeImplTest {
 
     @Test
     public void whenTypeIsBuiltWithoutSpecifyingCapacity_itShouldHvCapWithOneDim() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("t").build();
-        assertEquals(1, type.getCapacityDimensions().getNuOfDimensions());
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("t").build();
+        assertEquals(1, type.getCapacityDimensions().dim());
     }
 
     @Test
     public void whenTypeIsBuiltWithoutSpecifyingCapacity_itShouldHvCapDimValOfZero() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("t").build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("t").build();
         assertEquals(0, type.getCapacityDimensions().get(0));
     }
 
     @Test
     public void whenCallingStaticNewBuilderInstance_itShouldReturnNewBuilderInstance() {
-        VehicleTypeImpl.Builder builder = VehicleTypeImpl.Builder.newInstance("foo");
+        VehicleTypeImpl.Builder builder = VehicleTypeImpl.Builder.the("foo");
         assertNotNull(builder);
     }
 
     @Test
     public void whenBuildingTypeJustByCallingNewInstance_typeIdMustBeCorrect() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("foo").build();
-        assertEquals("foo", type.getTypeId());
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("foo").build();
+        assertEquals("foo", type.type);
     }
 
     @Test
     public void whenBuildingTypeJustByCallingNewInstance_capMustBeCorrect() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("foo").build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("foo").build();
         assertEquals(0, type.getCapacityDimensions().get(0));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenBuildingTypeWithCapSmallerThanZero_throwIllegalStateException() {
         @SuppressWarnings("unused")
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("foo").addCapacityDimension(0, -10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("foo").addCapacityDimension(0, -10).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenBuildingTypeWithNullId_throwIllegalStateException() {
         @SuppressWarnings("unused")
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance(null).addCapacityDimension(0, 10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the(null).addCapacityDimension(0, 10).build();
     }
 
 
     @Test
     public void whenSettingMaxVelocity_itShouldBeSetCorrectly() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setMaxVelocity(10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setMaxVelocity(10).build();
         assertEquals(10, type.getMaxVelocity(), 0.0);
     }
 
@@ -104,66 +104,66 @@ public class VehicleTypeImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void whenMaxVelocitySmallerThanZero_itShouldThrowException() {
         @SuppressWarnings("unused")
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setMaxVelocity(-10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setMaxVelocity(-10).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenFixedCostsSmallerThanZero_itShouldThrowException() {
         @SuppressWarnings("unused")
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setFixedCost(-10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setFixedCost(-10).build();
     }
 
     public void whenSettingFixedCosts_itShouldBeSetCorrectly() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setFixedCost(10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setFixedCost(10).build();
         assertEquals(10.0, type.getVehicleCostParams().fix, 0.0);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenPerDistanceCostsSmallerThanZero_itShouldThrowException() {
         @SuppressWarnings("unused")
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setCostPerDistance(-10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setCostPerDistance(-10).build();
     }
 
     public void whenSettingPerDistanceCosts_itShouldBeSetCorrectly() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setCostPerDistance(10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setCostPerDistance(10).build();
         assertEquals(10.0, type.getVehicleCostParams().perDistanceUnit, 0.0);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenPerTimeCostsSmallerThanZero_itShouldThrowException() {
         @SuppressWarnings("unused")
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setCostPerTime(-10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setCostPerTime(-10).build();
     }
 
     @Test
     public void whenSettingPerTimeCosts_itShouldBeSetCorrectly() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setCostPerTime(10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setCostPerTime(10).build();
         assertEquals(10.0, type.getVehicleCostParams().perTimeUnit, 0.0);
     }
 
     @Test
     public void whenHavingTwoTypesWithTheSameId_theyShouldBeEqual() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setCostPerTime(10).build();
-        VehicleTypeImpl type2 = VehicleTypeImpl.Builder.newInstance("type").setCostPerTime(10).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setCostPerTime(10).build();
+        VehicleTypeImpl type2 = VehicleTypeImpl.Builder.the("type").setCostPerTime(10).build();
         assertTrue(type.equals(type2));
     }
 
     @Test
     public void whenAddingProfile_itShouldBeCorrect() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("type").setProfile("car").build();
-        assertEquals("car", type.getProfile());
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("type").setProfile("car").build();
+        assertEquals("car", type.profile);
     }
 
 
     @Test
     public void whenSettingUserData_itIsAssociatedWithTheVehicleType() {
-        VehicleType one = VehicleTypeImpl.Builder.newInstance("type").setUserData(new HashMap<String, Object>())
+        VehicleType one = VehicleTypeImpl.Builder.the("type").setUserData(new HashMap<String, Object>())
             .build();
-        VehicleType two = VehicleTypeImpl.Builder.newInstance("type").setUserData(42).build();
-        VehicleType three = VehicleTypeImpl.Builder.newInstance("type").build();
+        VehicleType two = VehicleTypeImpl.Builder.the("type").setUserData(42).build();
+        VehicleType three = VehicleTypeImpl.Builder.the("type").build();
 
-        assertTrue(one.getUserData() instanceof Map);
-        assertEquals(42, two.getUserData());
-        assertNull(three.getUserData());
+        assertTrue(one.data() instanceof Map);
+        assertEquals(42, two.data());
+        assertNull(three.data());
     }
 }

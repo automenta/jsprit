@@ -28,7 +28,6 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -48,12 +47,12 @@ public class RefuseCollectionWithCostsHigherThanTimesAndFiniteFleet_IT {
 		/*
          * create vehicle-type and vehicle
 		 */
-        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("vehicle-type").addCapacityDimension(0, 23);
+        VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("vehicle-type").addCapacityDimension(0, 23);
         typeBuilder.setCostPerDistance(1.0);
         VehicleTypeImpl bigType = typeBuilder.build();
 
         VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance("1"));
+        vehicleBuilder.setStartLocation(Location.the("1"));
         vehicleBuilder.setType(bigType);
         vehicleBuilder.setLatestArrival(220);
         Vehicle bigVehicle = vehicleBuilder.build();
@@ -61,7 +60,7 @@ public class RefuseCollectionWithCostsHigherThanTimesAndFiniteFleet_IT {
 		/*
          * start building the problem
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.INFINITE);
         vrpBuilder.addVehicle(bigVehicle);
 
@@ -87,8 +86,8 @@ public class RefuseCollectionWithCostsHigherThanTimesAndFiniteFleet_IT {
 //        vra.setPrematureAlgorithmTermination(new IterationWithoutImprovementTermination(100));
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
 
-        assertEquals(2. * 397., Solutions.bestOf(solutions).getCost(), 0.01);
-        assertEquals(2, Solutions.bestOf(solutions).getRoutes().size());
+        assertEquals(2. * 397., Solutions.bestOf(solutions).cost(), 0.01);
+        assertEquals(2, Solutions.bestOf(solutions).routes.size());
     }
 
 
@@ -105,8 +104,8 @@ public class RefuseCollectionWithCostsHigherThanTimesAndFiniteFleet_IT {
             /*
              * build service
 			 */
-            Service service = Service.Builder.newInstance(lineTokens[0]).addSizeDimension(0, Integer.parseInt(lineTokens[1]))
-                .setLocation(Location.newInstance(lineTokens[0])).build();
+            Service service = Service.Builder.newInstance(lineTokens[0]).sizeDimension(0, Integer.parseInt(lineTokens[1]))
+                .location(Location.the(lineTokens[0])).build();
             /*
 			 * and add it to problem
 			 */

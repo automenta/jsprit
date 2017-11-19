@@ -24,7 +24,7 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem.FleetSize;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ public class BelhaizaReader {
 		this.variableCostProjectionFactor = costProjectionFactor;
 	}
 
-	private static Logger logger = LoggerFactory.getLogger(BelhaizaReader.class);
+	private static final Logger logger = LoggerFactory.getLogger(BelhaizaReader.class);
 
 	private final VehicleRoutingProblem.Builder vrpBuilder;
 
@@ -64,16 +64,14 @@ public class BelhaizaReader {
 
 	private double variableCostProjectionFactor = 1;
 
-	private double fixedCostPerVehicle = 0.0;
+	private double fixedCostPerVehicle;
 
 	public BelhaizaReader(VehicleRoutingProblem.Builder vrpBuilder) {
-		super();
-		this.vrpBuilder = vrpBuilder;
+        this.vrpBuilder = vrpBuilder;
 	}
 
 	public BelhaizaReader(VehicleRoutingProblem.Builder vrpBuilder, double fixedCostPerVehicle) {
-		super();
-		this.vrpBuilder = vrpBuilder;
+        this.vrpBuilder = vrpBuilder;
 		this.fixedCostPerVehicle=fixedCostPerVehicle;
 	}
 
@@ -92,30 +90,30 @@ public class BelhaizaReader {
 			}
 			if(counter > 2){
 				if(tokens.length < 7) continue;
-                Coordinate coord = makeCoord(tokens[1],tokens[2]);
+                v2 coord = makeCoord(tokens[1],tokens[2]);
 				String customerId = tokens[0];
 				int demand = Integer.parseInt(tokens[4]);
 				double serviceTime = Double.parseDouble(tokens[3])*timeProjectionFactor;
 				if(counter == 3){
-					VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("solomonType").addCapacityDimension(0, vehicleCapacity);
+					VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("solomonType").addCapacityDimension(0, vehicleCapacity);
 					typeBuilder.setCostPerDistance(1.0*variableCostProjectionFactor).setFixedCost(fixedCostPerVehicle)
                     .setCostPerWaitingTime(0.8);
                     System.out.println("fix: " + fixedCostPerVehicle + "; perDistance: 1.0; perWaitingTime: 0.8");
                     VehicleTypeImpl vehicleType = typeBuilder.build();
 					double end = Double.parseDouble(tokens[8])*timeProjectionFactor;
 					VehicleImpl vehicle = VehicleImpl.Builder.newInstance("solomonVehicle").setEarliestStart(0.).setLatestArrival(end)
-							.setStartLocation(Location.Builder.newInstance().setId(customerId)
-										.setCoordinate(coord).build()).setType(vehicleType).build();
+							.setStartLocation(Location.Builder.the().setId(customerId)
+										.setCoord(coord).build()).setType(vehicleType).build();
 					vrpBuilder.addVehicle(vehicle);
 				}
 				else{
 					Service.Builder serviceBuilder = Service.Builder.newInstance(customerId);
-					serviceBuilder.addSizeDimension(0, demand).setLocation(Location.Builder.newInstance().setCoordinate(coord).setId(customerId).build()).setServiceTime(serviceTime);
+					serviceBuilder.sizeDimension(0, demand).location(Location.Builder.the().setCoord(coord).setId(customerId).build()).serviceTime(serviceTime);
 					int noTimeWindows = Integer.parseInt(tokens[7]);
 					for(int i=0;i<noTimeWindows*2;i=i+2){
 						double earliest = Double.parseDouble(tokens[8+i]);
 						double latest = Double.parseDouble(tokens[8+i+1]);
-						serviceBuilder.addTimeWindow(earliest,latest);
+						serviceBuilder.timeWindowAdd(earliest,latest);
 					}
 					vrpBuilder.addJob(serviceBuilder.build());
 				}
@@ -149,10 +147,10 @@ public class BelhaizaReader {
 		}
 	}
 
-	private Coordinate makeCoord(String xString, String yString) {
+	private v2 makeCoord(String xString, String yString) {
 		double x = Double.parseDouble(xString);
 		double y = Double.parseDouble(yString);
-		return new Coordinate(x*coordProjectionFactor,y*coordProjectionFactor);
+		return new v2(x*coordProjectionFactor,y*coordProjectionFactor);
 	}
 
 	private BufferedReader getReader(String solomonFile) {

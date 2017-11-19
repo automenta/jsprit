@@ -44,11 +44,11 @@ public class RegretInsertion extends AbstractInsertionStrategy {
 
 
 
-    private static Logger logger = LoggerFactory.getLogger(RegretInsertionFast.class);
+    private static final Logger logger = LoggerFactory.getLogger(RegretInsertion.class);
 
     private ScoringFunction scoringFunction;
 
-    private JobInsertionCostsCalculator insertionCostsCalculator;
+    private final JobInsertionCostsCalculator insertionCostsCalculator;
 
 
     /**
@@ -72,7 +72,7 @@ public class RegretInsertion extends AbstractInsertionStrategy {
 
     @Override
     public String toString() {
-        return "[name=regretInsertion][additionalScorer=" + scoringFunction + "]";
+        return "[name=regretInsertion][additionalScorer=" + scoringFunction + ']';
     }
 
 
@@ -83,7 +83,7 @@ public class RegretInsertion extends AbstractInsertionStrategy {
      */
     @Override
     public Collection<Job> insertUnassignedJobs(Collection<VehicleRoute> routes, Collection<Job> unassignedJobs) {
-        List<Job> badJobs = new ArrayList<Job>(unassignedJobs.size());
+        Collection<Job> badJobs = new ArrayList<>(unassignedJobs.size());
 
         Iterator<Job> jobIterator = unassignedJobs.iterator();
         while (jobIterator.hasNext()){
@@ -107,7 +107,7 @@ public class RegretInsertion extends AbstractInsertionStrategy {
 
         List<Job> jobs = new ArrayList<>(unassignedJobs);
         while (!jobs.isEmpty()) {
-            List<Job> unassignedJobList = new ArrayList<>(jobs);
+            Collection<Job> unassignedJobList = new ArrayList<>(jobs);
             List<ScoredJob> badJobList = new ArrayList<>();
             ScoredJob bestScoredJob = nextJob(routes, unassignedJobList, badJobList);
             if (bestScoredJob != null) {
@@ -127,14 +127,14 @@ public class RegretInsertion extends AbstractInsertionStrategy {
         return badJobs;
     }
 
-    private VehicleRoute findRoute(Collection<VehicleRoute> routes, Job job) {
+    private static VehicleRoute findRoute(Iterable<VehicleRoute> routes, Job job) {
         for(VehicleRoute r : routes){
-            if(r.getVehicle().getBreak() == job) return r;
+            if(r.vehicle().aBreak() == job) return r;
         }
         return null;
     }
 
-    private ScoredJob nextJob(Collection<VehicleRoute> routes, Collection<Job> unassignedJobList, List<ScoredJob> badJobs) {
+    private ScoredJob nextJob(Collection<VehicleRoute> routes, Iterable<Job> unassignedJobList, Collection<ScoredJob> badJobs) {
         ScoredJob bestScoredJob = null;
         for (Job unassignedJob : unassignedJobList) {
             ScoredJob scoredJob = getScoredJob(routes, unassignedJob, insertionCostsCalculator, scoringFunction);
@@ -147,7 +147,7 @@ public class RegretInsertion extends AbstractInsertionStrategy {
                 if (scoredJob.getScore() > bestScoredJob.getScore()) {
                     bestScoredJob = scoredJob;
                 } else if (scoredJob.getScore() == bestScoredJob.getScore()) {
-                    if (scoredJob.getJob().getId().compareTo(bestScoredJob.getJob().getId()) <= 0) {
+                    if (scoredJob.getJob().id().compareTo(bestScoredJob.getJob().id()) <= 0) {
                         bestScoredJob = scoredJob;
                     }
                 }
@@ -156,7 +156,7 @@ public class RegretInsertion extends AbstractInsertionStrategy {
         return bestScoredJob;
     }
 
-    static ScoredJob getScoredJob(Collection<VehicleRoute> routes, Job unassignedJob, JobInsertionCostsCalculator insertionCostsCalculator, ScoringFunction scoringFunction) {
+    static ScoredJob getScoredJob(Iterable<VehicleRoute> routes, Job unassignedJob, JobInsertionCostsCalculator insertionCostsCalculator, ScoringFunction scoringFunction) {
         InsertionData best = null;
         InsertionData secondBest = null;
         VehicleRoute bestRoute = null;
@@ -203,9 +203,7 @@ public class RegretInsertion extends AbstractInsertionStrategy {
         }
         double score = score(unassignedJob, best, secondBest, scoringFunction);
         ScoredJob scoredJob;
-        if (bestRoute == emptyRoute) {
-            scoredJob = new ScoredJob(unassignedJob, score, best, bestRoute, true);
-        } else scoredJob = new ScoredJob(unassignedJob, score, best, bestRoute, false);
+        scoredJob = bestRoute == emptyRoute ? new ScoredJob(unassignedJob, score, best, bestRoute, true) : new ScoredJob(unassignedJob, score, best, bestRoute, false);
         return scoredJob;
     }
 

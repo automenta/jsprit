@@ -18,16 +18,17 @@
 
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.solution.route.RouteVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
 public class UpdateVehicleDependentPracticalTimeWindows implements RouteVisitor, StateUpdater {
@@ -35,27 +36,20 @@ public class UpdateVehicleDependentPracticalTimeWindows implements RouteVisitor,
     @Override
     public void visit(VehicleRoute route) {
         begin(route);
-        Iterator<TourActivity> revIterator = route.getTourActivities().reverseActivityIterator();
+        Iterator<AbstractActivity> revIterator = route.tourActivities().reverseActivityIterator();
         while (revIterator.hasNext()) {
             visit(revIterator.next());
         }
         finish();
     }
 
-    public static interface VehiclesToUpdate {
+    public interface VehiclesToUpdate {
 
-        public Collection<Vehicle> get(VehicleRoute route);
+        Collection<Vehicle> get(VehicleRoute route);
 
     }
 
-    private VehiclesToUpdate vehiclesToUpdate = new VehiclesToUpdate() {
-
-        @Override
-        public Collection<Vehicle> get(VehicleRoute route) {
-            return Arrays.asList(route.getVehicle());
-        }
-
-    };
+    private VehiclesToUpdate vehiclesToUpdate = route -> Collections.singletonList(route.vehicle());
 
     private final StateManager stateManager;
 
@@ -65,14 +59,13 @@ public class UpdateVehicleDependentPracticalTimeWindows implements RouteVisitor,
 
     private VehicleRoute route;
 
-    private double[] latest_arrTimes_at_prevAct;
+    private final double[] latest_arrTimes_at_prevAct;
 
-    private Location[] location_of_prevAct;
+    private final Location[] location_of_prevAct;
 
     private Collection<Vehicle> vehicles;
 
     public UpdateVehicleDependentPracticalTimeWindows(StateManager stateManager, VehicleRoutingTransportCosts tpCosts, VehicleRoutingActivityCosts activityCosts) {
-        super();
         this.stateManager = stateManager;
         this.transportCosts = tpCosts;
         this.activityCosts = activityCosts;
@@ -89,29 +82,29 @@ public class UpdateVehicleDependentPracticalTimeWindows implements RouteVisitor,
         this.route = route;
         vehicles = vehiclesToUpdate.get(route);
         for (Vehicle vehicle : vehicles) {
-            latest_arrTimes_at_prevAct[vehicle.getVehicleTypeIdentifier().getIndex()] = vehicle.getLatestArrival();
-            Location location = vehicle.getEndLocation();
+            latest_arrTimes_at_prevAct[vehicle.vehicleType().index()] = vehicle.latestArrival();
+            Location location = vehicle.end();
             if(!vehicle.isReturnToDepot()){
-                location = route.getEnd().getLocation();
+                location = route.end.location();
             }
-            location_of_prevAct[vehicle.getVehicleTypeIdentifier().getIndex()] = location;
+            location_of_prevAct[vehicle.vehicleType().index()] = location;
         }
     }
 
 
-    public void visit(TourActivity activity) {
+    public void visit(AbstractActivity activity) {
         for (Vehicle vehicle : vehicles) {
-            double latestArrTimeAtPrevAct = latest_arrTimes_at_prevAct[vehicle.getVehicleTypeIdentifier().getIndex()];
-            Location prevLocation = location_of_prevAct[vehicle.getVehicleTypeIdentifier().getIndex()];
-            double potentialLatestArrivalTimeAtCurrAct = latestArrTimeAtPrevAct - transportCosts.getBackwardTransportTime(activity.getLocation(), prevLocation,
-                latestArrTimeAtPrevAct, route.getDriver(), vehicle) - activityCosts.getActivityDuration(activity, latestArrTimeAtPrevAct, route.getDriver(), route.getVehicle());
-            double latestArrivalTime = Math.min(activity.getTheoreticalLatestOperationStartTime(), potentialLatestArrivalTimeAtCurrAct);
-            if (latestArrivalTime < activity.getTheoreticalEarliestOperationStartTime()) {
+            double latestArrTimeAtPrevAct = latest_arrTimes_at_prevAct[vehicle.vehicleType().index()];
+            Location prevLocation = location_of_prevAct[vehicle.vehicleType().index()];
+            double potentialLatestArrivalTimeAtCurrAct = latestArrTimeAtPrevAct - transportCosts.transportTimeReverse(activity.location(), prevLocation,
+                latestArrTimeAtPrevAct, route.driver, vehicle) - activityCosts.getActivityDuration(activity, latestArrTimeAtPrevAct, route.driver, route.vehicle());
+            double latestArrivalTime = Math.min(activity.startLatest(), potentialLatestArrivalTimeAtCurrAct);
+            if (latestArrivalTime < activity.startEarliest()) {
                 stateManager.putTypedInternalRouteState(route, vehicle, InternalStates.SWITCH_NOT_FEASIBLE, true);
             }
             stateManager.putInternalTypedActivityState(activity, vehicle, InternalStates.LATEST_OPERATION_START_TIME, latestArrivalTime);
-            latest_arrTimes_at_prevAct[vehicle.getVehicleTypeIdentifier().getIndex()] = latestArrivalTime;
-            location_of_prevAct[vehicle.getVehicleTypeIdentifier().getIndex()] = activity.getLocation();
+            latest_arrTimes_at_prevAct[vehicle.vehicleType().index()] = latestArrivalTime;
+            location_of_prevAct[vehicle.vehicleType().index()] = activity.location();
         }
     }
 

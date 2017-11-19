@@ -40,44 +40,44 @@ import java.util.Collection;
 public class SolomonWithSkillsExample {
 
     public static void main(String[] args) {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(vrpBuilder).read("input/C101_solomon.txt");
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
         //y >= 50 skill1 otherwise skill2
         //two vehicles: v1 - skill1 #5; v2 - skill2 #6
-        Vehicle solomonVehicle = vrp.getVehicles().iterator().next();
-        VehicleType newType = solomonVehicle.getType();
-        VehicleRoutingProblem.Builder skillProblemBuilder = VehicleRoutingProblem.Builder.newInstance();
+        Vehicle solomonVehicle = vrp.vehicles().iterator().next();
+        VehicleType newType = solomonVehicle.type();
+        VehicleRoutingProblem.Builder skillProblemBuilder = VehicleRoutingProblem.Builder.get();
         for (int i = 0; i < 5; i++) {
             VehicleImpl skill1Vehicle = VehicleImpl.Builder.newInstance("skill1_vehicle_" + i).addSkill("skill1")
-                .setStartLocation(Location.Builder.newInstance().setId(solomonVehicle.getStartLocation().getId()).setCoordinate(solomonVehicle.getStartLocation().getCoordinate()).build())
-                .setEarliestStart(solomonVehicle.getEarliestDeparture())
+                .setStartLocation(Location.Builder.the().setId(solomonVehicle.start().id).setCoord(solomonVehicle.start().coord).build())
+                .setEarliestStart(solomonVehicle.earliestDeparture())
                 .setType(newType).build();
             VehicleImpl skill2Vehicle = VehicleImpl.Builder.newInstance("skill2_vehicle_" + i).addSkill("skill2")
-                .setStartLocation(Location.Builder.newInstance().setId(solomonVehicle.getStartLocation().getId())
-                    .setCoordinate(solomonVehicle.getStartLocation().getCoordinate()).build())
-                .setEarliestStart(solomonVehicle.getEarliestDeparture())
+                .setStartLocation(Location.Builder.the().setId(solomonVehicle.start().id)
+                    .setCoord(solomonVehicle.start().coord).build())
+                .setEarliestStart(solomonVehicle.earliestDeparture())
                 .setType(newType).build();
             skillProblemBuilder.addVehicle(skill1Vehicle).addVehicle(skill2Vehicle);
         }
-        for (Job job : vrp.getJobs().values()) {
+        for (Job job : vrp.jobs().values()) {
             Service service = (Service) job;
             Service.Builder skillServiceBuilder;
-            if (service.getLocation().getCoordinate().getY() < 50.) {
-                skillServiceBuilder = Service.Builder.newInstance(service.getId() + "_skill2").setServiceTime(service.getServiceDuration())
-                    .setLocation(Location.Builder.newInstance().setId(service.getLocation().getId())
-                        .setCoordinate(service.getLocation().getCoordinate()).build()).setTimeWindow(service.getTimeWindow())
-                    .addSizeDimension(0, service.getSize().get(0));
-                skillServiceBuilder.addRequiredSkill("skill2");
+            if (service.location.coord.y < 50.) {
+                skillServiceBuilder = Service.Builder.newInstance(service.id + "_skill2").serviceTime(service.serviceTime)
+                    .location(Location.Builder.the().setId(service.location.id)
+                        .setCoord(service.location.coord).build()).timeWindowSet(service.timeWindow())
+                    .sizeDimension(0, service.size.get(0));
+                skillServiceBuilder.skillRequired("skill2");
             } else {
-                skillServiceBuilder = Service.Builder.newInstance(service.getId() + "_skill1").setServiceTime(service.getServiceDuration())
-                    .setLocation(
-                        Location.Builder.newInstance().setId(service.getLocation().getId())
-                            .setCoordinate(service.getLocation().getCoordinate()).build()
-                    ).setTimeWindow(service.getTimeWindow())
-                    .addSizeDimension(0, service.getSize().get(0));
-                skillServiceBuilder.addRequiredSkill("skill1");
+                skillServiceBuilder = Service.Builder.newInstance(service.id + "_skill1").serviceTime(service.serviceTime)
+                    .location(
+                        Location.Builder.the().setId(service.location.id)
+                            .setCoord(service.location.coord).build()
+                    ).timeWindowSet(service.timeWindow())
+                    .sizeDimension(0, service.size.get(0));
+                skillServiceBuilder.skillRequired("skill1");
             }
             skillProblemBuilder.addJob(skillServiceBuilder.build());
         }

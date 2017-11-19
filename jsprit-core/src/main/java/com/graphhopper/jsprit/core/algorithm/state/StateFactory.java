@@ -30,17 +30,17 @@ class StateFactory {
         , "future_max_load", "past_max_load", "skills");
 
 
-    static StateId createId(String name) {
+    static State createId(String name) {
         if (reservedIds.contains(name)) {
             throwReservedIdException(name);
         }
-        return new StateIdImpl(name, -1);
+        return new StateImpl(name, -1);
     }
 
-    static StateId createId(String name, int index) {
+    static State createId(String name, int index) {
         if (reservedIds.contains(name)) throwReservedIdException(name);
         if (index < 10) throwReservedIdException(name);
-        return new StateIdImpl(name, index);
+        return new StateImpl(name, index);
     }
 
 
@@ -48,8 +48,8 @@ class StateFactory {
         return reservedIds.contains(stateId);
     }
 
-    static boolean isReservedId(StateId stateId) {
-        return reservedIds.contains(stateId.toString());
+    static boolean isReservedId(State state) {
+        return reservedIds.contains(state.toString());
     }
 
     static void throwReservedIdException(String name) {
@@ -57,11 +57,12 @@ class StateFactory {
     }
 
 
-    static class StateIdImpl implements StateId {
+    static class StateImpl implements State {
 
-        private int index;
+        private final int index;
 
-        public int getIndex() {
+        @Override
+        public int index() {
             return index;
         }
 
@@ -87,19 +88,13 @@ class StateFactory {
                 return false;
             if (getClass() != obj.getClass())
                 return false;
-            StateIdImpl other = (StateIdImpl) obj;
-            if (name == null) {
-                if (other.name != null)
-                    return false;
-            } else if (!name.equals(other.name))
-                return false;
-            return true;
+            StateImpl other = (StateImpl) obj;
+            return name == null ? other.name == null : name.equals(other.name);
         }
 
-        private String name;
+        private final String name;
 
-        public StateIdImpl(String name, int index) {
-            super();
+        public StateImpl(String name, int index) {
             this.name = name;
             this.index = index;
         }

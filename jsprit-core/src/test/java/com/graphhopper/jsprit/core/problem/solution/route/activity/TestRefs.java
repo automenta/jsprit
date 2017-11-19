@@ -35,8 +35,8 @@ public class TestRefs {
 
         doSmth(starts);
 
-        assertTrue(starts.get(0).getLocation().getId().startsWith("foo"));
-        assertTrue(starts.get(1).getLocation().getId().startsWith("foo"));
+        assertTrue(starts.get(0).location().id.startsWith("foo"));
+        assertTrue(starts.get(1).location().id.startsWith("foo"));
     }
 
     private void doSmth(List<Start> starts) {

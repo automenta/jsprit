@@ -37,11 +37,11 @@ import java.util.*;
  */
 public final class RuinRadial extends AbstractRuinStrategy {
 
-    private Logger logger = LoggerFactory.getLogger(RuinRadial.class);
+    private final Logger logger = LoggerFactory.getLogger(RuinRadial.class);
 
-    private VehicleRoutingProblem vrp;
 
-    private JobNeighborhoods jobNeighborhoods;
+
+    private final JobNeighborhoods jobNeighborhoods;
 
     private final int noJobsToMemorize;
 
@@ -54,17 +54,9 @@ public final class RuinRadial extends AbstractRuinStrategy {
      */
     public RuinRadial(VehicleRoutingProblem vrp, double fraction2beRemoved, JobDistance jobDistance) {
         super(vrp);
-        this.vrp = vrp;
-        noJobsToMemorize = (int) Math.ceil(vrp.getJobs().values().size() * fraction2beRemoved);
-        ruinShareFactory = new RuinShareFactory() {
-
-            @Override
-            public int createNumberToBeRemoved() {
-                return noJobsToMemorize;
-            }
-
-        };
-        JobNeighborhoodsImplWithCapRestriction jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
+        noJobsToMemorize = (int) Math.ceil(vrp.jobs().values().size() * fraction2beRemoved);
+        ruinShareFactory = () -> noJobsToMemorize;
+        JobNeighborhoods jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
         jobNeighborhoodsImpl.initialise();
         jobNeighborhoods = jobNeighborhoodsImpl;
         logger.debug("initialise {}", this);
@@ -72,18 +64,10 @@ public final class RuinRadial extends AbstractRuinStrategy {
 
     public RuinRadial(VehicleRoutingProblem vrp, int noJobs2beRemoved, JobDistance jobDistance) {
         super(vrp);
-        this.vrp = vrp;
 //		this.fractionOfAllNodes2beRuined = fraction2beRemoved;
         noJobsToMemorize = noJobs2beRemoved;
-        ruinShareFactory = new RuinShareFactory() {
-
-            @Override
-            public int createNumberToBeRemoved() {
-                return noJobsToMemorize;
-            }
-
-        };
-        JobNeighborhoodsImplWithCapRestriction jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
+        ruinShareFactory = () -> noJobsToMemorize;
+        JobNeighborhoods jobNeighborhoodsImpl = new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, noJobsToMemorize);
         jobNeighborhoodsImpl.initialise();
         jobNeighborhoods = jobNeighborhoodsImpl;
         logger.debug("initialise {}", this);
@@ -91,23 +75,15 @@ public final class RuinRadial extends AbstractRuinStrategy {
 
     public RuinRadial(VehicleRoutingProblem vrp, int noJobs2beRemoved, JobNeighborhoods neighborhoods) {
         super(vrp);
-        this.vrp = vrp;
         noJobsToMemorize = noJobs2beRemoved;
-        ruinShareFactory = new RuinShareFactory() {
-
-            @Override
-            public int createNumberToBeRemoved() {
-                return noJobsToMemorize;
-            }
-
-        };
+        ruinShareFactory = () -> noJobsToMemorize;
         jobNeighborhoods = neighborhoods;
         logger.debug("initialise {}", this);
     }
 
     @Override
     public String toString() {
-        return "[name=radialRuin][noJobsToBeRemoved=" + noJobsToMemorize + "]";
+        return "[name=radialRuin][noJobsToBeRemoved=" + noJobsToMemorize + ']';
     }
 
     /**
@@ -123,7 +99,7 @@ public final class RuinRadial extends AbstractRuinStrategy {
         if (nOfJobs2BeRemoved == 0) {
             return Collections.emptyList();
         }
-        Job randomJob = RandomUtils.nextJob(vrp.getJobs().values(), random);
+        Job randomJob = RandomUtils.nextJob(vrp.jobs().values(), random);
         return ruinRoutes(vehicleRoutes, randomJob, nOfJobs2BeRemoved);
     }
 
@@ -132,7 +108,7 @@ public final class RuinRadial extends AbstractRuinStrategy {
      *
      */
     private Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes, Job targetJob, int nOfJobs2BeRemoved) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+        Collection<Job> unassignedJobs = new ArrayList<>();
         int nNeighbors = nOfJobs2BeRemoved - 1;
         removeJob(targetJob, vehicleRoutes);
         unassignedJobs.add(targetJob);

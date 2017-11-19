@@ -23,6 +23,6 @@ package com.graphhopper.jsprit.core.util;
  */
 public interface NoiseMaker {
 
-    public double makeNoise();
+    double makeNoise();
 
 }

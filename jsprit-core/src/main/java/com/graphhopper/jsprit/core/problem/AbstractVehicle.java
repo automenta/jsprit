@@ -26,12 +26,12 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
  */
 public abstract class AbstractVehicle implements Vehicle {
 
-    public abstract static class AbstractTypeKey implements HasIndex {
+    public abstract static class AbstractTypeKey implements Indexed {
 
         private int index;
 
         @Override
-        public int getIndex() {
+        public int index() {
             return index;
         }
 
@@ -51,16 +51,16 @@ public abstract class AbstractVehicle implements Vehicle {
      * @return User-specific domain data associated with the vehicle
      */
     @Override
-    public Object getUserData() {
+    public Object data() {
         return userData;
     }
 
-    protected void setUserData(Object userData) {
+    protected void data(Object userData) {
         this.userData = userData;
     }
 
     @Override
-    public int getIndex() {
+    public int index() {
         return index;
     }
 
@@ -69,11 +69,11 @@ public abstract class AbstractVehicle implements Vehicle {
     }
 
     @Override
-    public VehicleTypeKey getVehicleTypeIdentifier() {
+    public VehicleTypeKey vehicleType() {
         return vehicleIdentifier;
     }
 
-    protected void setVehicleIdentifier(VehicleTypeKey vehicleTypeIdentifier) {
+    protected void vehicleType(VehicleTypeKey vehicleTypeIdentifier) {
         this.vehicleIdentifier = vehicleTypeIdentifier;
     }
 }

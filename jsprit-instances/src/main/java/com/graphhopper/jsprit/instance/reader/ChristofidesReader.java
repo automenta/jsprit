@@ -24,7 +24,7 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem.FleetSize;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +43,7 @@ import java.io.IOException;
  */
 public class ChristofidesReader {
 
-    private static Logger logger = LoggerFactory.getLogger(ChristofidesReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(ChristofidesReader.class);
 
     private final VehicleRoutingProblem.Builder vrpBuilder;
 
@@ -55,7 +55,6 @@ public class ChristofidesReader {
      * @param vrpBuilder the builder
      */
     public ChristofidesReader(VehicleRoutingProblem.Builder vrpBuilder) {
-        super();
         this.vrpBuilder = vrpBuilder;
     }
 
@@ -82,17 +81,17 @@ public class ChristofidesReader {
                 endTime = Double.parseDouble(tokens[2].trim());
                 serviceTime = Double.parseDouble(tokens[3].trim());
             } else if (counter == 1) {
-                Coordinate depotCoord = makeCoord(tokens[0].trim(), tokens[1].trim());
-                VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.newInstance("christophidesType").addCapacityDimension(0, vehicleCapacity).
+                v2 depotCoord = makeCoord(tokens[0].trim(), tokens[1].trim());
+                VehicleTypeImpl vehicleType = VehicleTypeImpl.Builder.the("christophidesType").addCapacityDimension(0, vehicleCapacity).
                     setCostPerDistance(1.0).build();
-                VehicleImpl vehicle = VehicleImpl.Builder.newInstance("christophidesVehicle").setLatestArrival(endTime).setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY())).
+                VehicleImpl vehicle = VehicleImpl.Builder.newInstance("christophidesVehicle").setLatestArrival(endTime).setStartLocation(Location.the(depotCoord.x, depotCoord.y)).
                     setType(vehicleType).build();
                 vrpBuilder.addVehicle(vehicle);
             } else {
-                Coordinate customerCoord = makeCoord(tokens[0].trim(), tokens[1].trim());
+                v2 customerCoord = makeCoord(tokens[0].trim(), tokens[1].trim());
                 int demand = Integer.parseInt(tokens[2].trim());
                 String customer = Integer.valueOf(counter - 1).toString();
-                Service service = Service.Builder.newInstance(customer).addSizeDimension(0, demand).setServiceTime(serviceTime).setLocation(Location.newInstance(customerCoord.getX(), customerCoord.getY())).build();
+                Service service = Service.Builder.newInstance(customer).sizeDimension(0, demand).serviceTime(serviceTime).location(Location.the(customerCoord.x, customerCoord.y)).build();
                 vrpBuilder.addJob(service);
             }
             counter++;
@@ -120,10 +119,10 @@ public class ChristofidesReader {
         }
     }
 
-    private Coordinate makeCoord(String xString, String yString) {
+    private v2 makeCoord(String xString, String yString) {
         double x = Double.parseDouble(xString);
         double y = Double.parseDouble(yString);
-        return new Coordinate(x * coordProjectionFactor, y * coordProjectionFactor);
+        return new v2(x * coordProjectionFactor, y * coordProjectionFactor);
     }
 
     private BufferedReader getReader(String solomonFile) {

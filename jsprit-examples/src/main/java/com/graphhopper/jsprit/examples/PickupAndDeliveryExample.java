@@ -47,7 +47,7 @@ public class PickupAndDeliveryExample {
 		 *
 		 * But define a problem-builder first.
 		 */
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
 
 		/*
          * A solomonReader reads solomon-instance files, and stores the required information in the builder.
@@ -97,7 +97,7 @@ public class PickupAndDeliveryExample {
         plotter.plot("output/pd_solomon_r101_solution.png", "pd_r101");
 
         //some stats
-        SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.getTransportCosts());
+        SolutionAnalyser analyser = new SolutionAnalyser(vrp, solution, vrp.transportCosts());
 
         System.out.println("tp_distance: " + analyser.getDistance());
         System.out.println("tp_time: " + analyser.getTransportTime());

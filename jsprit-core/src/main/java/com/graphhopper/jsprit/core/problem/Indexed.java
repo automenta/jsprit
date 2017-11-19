@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package com.graphhopper.jsprit.core.algorithm.state;
-
-import com.graphhopper.jsprit.core.problem.HasIndex;
+package com.graphhopper.jsprit.core.problem;
 
 /**
- * Created by schroeder on 28.07.14.
+ * Created by schroeder on 14.07.14.
  */
-public interface StateId extends HasIndex {
+public interface Indexed {
+
+    int index();
 
 }

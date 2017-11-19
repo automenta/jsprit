@@ -37,11 +37,11 @@ public class GreatCircleDistanceCalculator {
      * @param coord2 - to coord
      * @return great circle distance
      */
-    public static double calculateDistance(Coordinate coord1, Coordinate coord2, DistanceUnit distanceUnit) {
-        double lon1 = coord1.getX();
-        double lon2 = coord2.getX();
-        double lat1 = coord1.getY();
-        double lat2 = coord2.getY();
+    public static double calculateDistance(v2 coord1, v2 coord2, DistanceUnit distanceUnit) {
+        double lon1 = coord1.x;
+        double lon2 = coord2.x;
+        double lat1 = coord1.y;
+        double lat2 = coord2.y;
 
         double delta_Lat = Math.toRadians(lat2 - lat1);
         double delta_Lon = Math.toRadians(lon2 - lon1);
@@ -51,7 +51,7 @@ public class GreatCircleDistanceCalculator {
         double a = Math.sin(delta_Lat / 2) * Math.sin(delta_Lat / 2) + Math.sin(delta_Lon / 2) * Math.sin(delta_Lon / 2) * Math.cos(lat1) * Math.cos(lat2);
         double c = 2 * Math.asin(Math.sqrt(a));
         double distance = R * c;
-        if (distanceUnit.equals(DistanceUnit.Meter)) {
+        if (distanceUnit == DistanceUnit.Meter) {
             distance = distance * 1000.;
         }
         return distance;

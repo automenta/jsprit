@@ -25,7 +25,7 @@ public enum TimeUnit {
 
     SEC("sec"), MIN("min"), HOUR("hour");
 
-    String abbr;
+    final String abbr;
 
     TimeUnit(String abbr) {
         this.abbr = abbr;

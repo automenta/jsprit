@@ -29,7 +29,7 @@ public abstract class AbstractJob implements Job {
     private Object userData;
 
     @Override
-    public int getIndex() {
+    public int index() {
         return index;
     }
 

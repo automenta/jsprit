@@ -17,11 +17,11 @@
  */
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.BreakActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ReverseActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 /**
  * Updates and memorizes latest operation start times at activities.
@@ -30,16 +30,15 @@ import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
  */
 public class UpdateFutureWaitingTimes implements ReverseActivityVisitor, StateUpdater {
 
-    private StateManager states;
+    private final StateManager states;
 
     private VehicleRoute route;
 
-    private VehicleRoutingTransportCosts transportCosts;
+    private final VehicleRoutingTransportCosts transportCosts;
 
     private double futureWaiting;
 
     public UpdateFutureWaitingTimes(StateManager states, VehicleRoutingTransportCosts tpCosts) {
-        super();
         this.states = states;
         this.transportCosts = tpCosts;
     }
@@ -51,10 +50,10 @@ public class UpdateFutureWaitingTimes implements ReverseActivityVisitor, StateUp
     }
 
     @Override
-    public void visit(TourActivity activity) {
-        states.putInternalTypedActivityState(activity, route.getVehicle(), InternalStates.FUTURE_WAITING, futureWaiting);
+    public void visit(AbstractActivity activity) {
+        states.putInternalTypedActivityState(activity, route.vehicle(), InternalStates.FUTURE_WAITING, futureWaiting);
 		if(!(activity instanceof BreakActivity)) {
-            futureWaiting += Math.max(activity.getTheoreticalEarliestOperationStartTime() - activity.getArrTime(), 0);
+            futureWaiting += Math.max(activity.startEarliest() - activity.arrTime(), 0);
 		}
     }
 

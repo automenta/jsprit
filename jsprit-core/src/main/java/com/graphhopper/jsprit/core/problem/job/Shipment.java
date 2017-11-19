@@ -22,7 +22,7 @@ import com.graphhopper.jsprit.core.problem.Capacity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.Skills;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindowsImpl;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindows;
 
 import java.util.Collection;
 
@@ -55,17 +55,17 @@ public class Shipment extends AbstractJob {
      */
     public static class Builder {
 
-        private String id;
+        private final String id;
 
-        private double pickupServiceTime = 0.0;
+        private double pickupServiceTime;
 
-        private double deliveryServiceTime = 0.0;
+        private double deliveryServiceTime;
 
-        private Capacity.Builder capacityBuilder = Capacity.Builder.newInstance();
+        private final Capacity.Builder capacityBuilder = Capacity.Builder.get();
 
         private Capacity capacity;
 
-        private Skills.Builder skillBuilder = Skills.Builder.newInstance();
+        private final Skills.Builder skillBuilder = Skills.Builder.newInstance();
 
         private Skills skills;
 
@@ -73,15 +73,15 @@ public class Shipment extends AbstractJob {
 
         private Location pickupLocation_;
 
-        private Location deliveryLocation_;
+        private Location deliveryLocation;
 
-        protected TimeWindowsImpl deliveryTimeWindows;
+        protected TimeWindows deliveryTimeWindows;
 
-        private boolean deliveryTimeWindowAdded = false;
+        private boolean deliveryTimeWindowAdded;
 
-        private boolean pickupTimeWindowAdded = false;
+        private boolean pickupTimeWindowAdded;
 
-        private TimeWindowsImpl pickupTimeWindows;
+        private TimeWindows pickupTimeWindows;
 
         private int priority = 2;
 
@@ -102,10 +102,10 @@ public class Shipment extends AbstractJob {
         Builder(String id) {
             if (id == null) throw new IllegalArgumentException("id must not be null");
             this.id = id;
-            pickupTimeWindows = new TimeWindowsImpl();
-            pickupTimeWindows.add(TimeWindow.newInstance(0.0, Double.MAX_VALUE));
-            deliveryTimeWindows = new TimeWindowsImpl();
-            deliveryTimeWindows.add(TimeWindow.newInstance(0.0, Double.MAX_VALUE));
+            pickupTimeWindows = new TimeWindows();
+            pickupTimeWindows.add(TimeWindow.the(0.0, Double.MAX_VALUE));
+            deliveryTimeWindows = new TimeWindows();
+            deliveryTimeWindows.add(TimeWindow.the(0.0, Double.MAX_VALUE));
         }
 
         /**
@@ -165,7 +165,7 @@ public class Shipment extends AbstractJob {
          */
         public Builder setPickupTimeWindow(TimeWindow timeWindow) {
             if (timeWindow == null) throw new IllegalArgumentException("delivery time-window must not be null");
-            this.pickupTimeWindows = new TimeWindowsImpl();
+            this.pickupTimeWindows = new TimeWindows();
             this.pickupTimeWindows.add(timeWindow);
             return this;
         }
@@ -179,7 +179,7 @@ public class Shipment extends AbstractJob {
          * @return builder
          */
         public Builder setDeliveryLocation(Location deliveryLocation) {
-            this.deliveryLocation_ = deliveryLocation;
+            this.deliveryLocation = deliveryLocation;
             return this;
         }
 
@@ -210,7 +210,7 @@ public class Shipment extends AbstractJob {
          */
         public Builder setDeliveryTimeWindow(TimeWindow timeWindow) {
             if (timeWindow == null) throw new IllegalArgumentException("delivery time-window must not be null");
-            this.deliveryTimeWindows = new TimeWindowsImpl();
+            this.deliveryTimeWindows = new TimeWindows();
             this.deliveryTimeWindows.add(timeWindow);
             return this;
         }
@@ -230,7 +230,7 @@ public class Shipment extends AbstractJob {
         }
 
         public Builder addAllSizeDimensions(Capacity size) {
-            for (int i = 0; i < size.getNuOfDimensions(); i++) {
+            for (int i = 0; i < size.dim(); i++) {
                 addSizeDimension(i, size.get(i));
             }
             return this;
@@ -246,7 +246,7 @@ public class Shipment extends AbstractJob {
          */
         public Shipment build() {
             if (pickupLocation_ == null) throw new IllegalArgumentException("pickup location is missing");
-            if (deliveryLocation_ == null) throw new IllegalArgumentException("delivery location is missing");
+            if (deliveryLocation == null) throw new IllegalArgumentException("delivery location is missing");
             capacity = capacityBuilder.build();
             skills = skillBuilder.build();
             return new Shipment(this);
@@ -273,7 +273,7 @@ public class Shipment extends AbstractJob {
         public Builder addDeliveryTimeWindow(TimeWindow timeWindow) {
             if(timeWindow == null) throw new IllegalArgumentException("time-window arg must not be null");
             if(!deliveryTimeWindowAdded){
-                deliveryTimeWindows = new TimeWindowsImpl();
+                deliveryTimeWindows = new TimeWindows();
                 deliveryTimeWindowAdded = true;
             }
             deliveryTimeWindows.add(timeWindow);
@@ -281,11 +281,11 @@ public class Shipment extends AbstractJob {
         }
 
         public Builder addDeliveryTimeWindow(double earliest, double latest) {
-            addDeliveryTimeWindow(TimeWindow.newInstance(earliest, latest));
+            addDeliveryTimeWindow(TimeWindow.the(earliest, latest));
             return this;
         }
 
-        public Builder addAllDeliveryTimeWindows(Collection<TimeWindow> timeWindow) {
+        public Builder addAllDeliveryTimeWindows(Iterable<TimeWindow> timeWindow) {
             for (TimeWindow tw : timeWindow) addDeliveryTimeWindow(tw);
             return this;
         }
@@ -293,7 +293,7 @@ public class Shipment extends AbstractJob {
         public Builder addPickupTimeWindow(TimeWindow timeWindow) {
             if(timeWindow == null) throw new IllegalArgumentException("time-window arg must not be null");
             if(!pickupTimeWindowAdded){
-                pickupTimeWindows = new TimeWindowsImpl();
+                pickupTimeWindows = new TimeWindows();
                 pickupTimeWindowAdded = true;
             }
             pickupTimeWindows.add(timeWindow);
@@ -301,10 +301,10 @@ public class Shipment extends AbstractJob {
         }
 
         public Builder addPickupTimeWindow(double earliest, double latest) {
-            return addPickupTimeWindow(TimeWindow.newInstance(earliest, latest));
+            return addPickupTimeWindow(TimeWindow.the(earliest, latest));
         }
 
-        public Builder addAllPickupTimeWindows(Collection<TimeWindow> timeWindow) {
+        public Builder addAllPickupTimeWindows(Iterable<TimeWindow> timeWindow) {
             for (TimeWindow tw : timeWindow) addPickupTimeWindow(tw);
             return this;
         }
@@ -351,11 +351,11 @@ public class Shipment extends AbstractJob {
 
     private final Location pickupLocation_;
 
-    private final Location deliveryLocation_;
+    private final Location deliveryLocation;
 
-    private final TimeWindowsImpl deliveryTimeWindows;
+    private final TimeWindows deliveryTimeWindows;
 
-    private final TimeWindowsImpl pickupTimeWindows;
+    private final TimeWindows pickupTimeWindows;
 
     private final int priority;
 
@@ -364,13 +364,13 @@ public class Shipment extends AbstractJob {
     Shipment(Builder builder) {
         setUserData(builder.userData);
         this.id = builder.id;
+        this.deliveryLocation = builder.deliveryLocation;
         this.pickupServiceTime = builder.pickupServiceTime;
         this.deliveryServiceTime = builder.deliveryServiceTime;
         this.capacity = builder.capacity;
         this.skills = builder.skills;
         this.name = builder.name;
         this.pickupLocation_ = builder.pickupLocation_;
-        this.deliveryLocation_ = builder.deliveryLocation_;
         this.deliveryTimeWindows = builder.deliveryTimeWindows;
         this.pickupTimeWindows = builder.pickupTimeWindows;
         this.priority = builder.priority;
@@ -378,7 +378,7 @@ public class Shipment extends AbstractJob {
     }
 
     @Override
-    public String getId() {
+    public String id() {
         return id;
     }
 
@@ -398,7 +398,7 @@ public class Shipment extends AbstractJob {
     }
 
     public Location getDeliveryLocation() {
-        return deliveryLocation_;
+        return deliveryLocation;
     }
 
     /**
@@ -416,11 +416,11 @@ public class Shipment extends AbstractJob {
      * @return time-window of delivery
      */
     public TimeWindow getDeliveryTimeWindow() {
-        return deliveryTimeWindows.getTimeWindows().iterator().next();
+        return deliveryTimeWindows.iterator().next();
     }
 
     public Collection<TimeWindow> getDeliveryTimeWindows() {
-        return deliveryTimeWindows.getTimeWindows();
+        return deliveryTimeWindows;
     }
 
     /**
@@ -429,11 +429,11 @@ public class Shipment extends AbstractJob {
      * @return time-window of pickup
      */
     public TimeWindow getPickupTimeWindow() {
-        return pickupTimeWindows.getTimeWindows().iterator().next();
+        return pickupTimeWindows.iterator().next();
     }
 
     public Collection<TimeWindow> getPickupTimeWindows() {
-        return pickupTimeWindows.getTimeWindows();
+        return pickupTimeWindows;
     }
 
     
@@ -445,10 +445,10 @@ public class Shipment extends AbstractJob {
     @Override
     public String toString() {
         return "[id=" + id + "][name=" + name + "][pickupLocation=" + pickupLocation_
-                + "][deliveryLocation=" + deliveryLocation_ + "][capacity=" + capacity
+                + "][deliveryLocation=" + deliveryLocation + "][capacity=" + capacity
                 + "][pickupServiceTime=" + pickupServiceTime + "][deliveryServiceTime="
                 + deliveryServiceTime + "][pickupTimeWindows=" + pickupTimeWindows
-                + "][deliveryTimeWindows=" + deliveryTimeWindows + "]";
+                + "][deliveryTimeWindows=" + deliveryTimeWindows + ']';
     }
 
 
@@ -474,26 +474,21 @@ public class Shipment extends AbstractJob {
         if (getClass() != obj.getClass())
             return false;
         Shipment other = (Shipment) obj;
-        if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
-        return true;
+        return id == null ? other.id == null : id.equals(other.id);
     }
 
     @Override
-    public Capacity getSize() {
+    public Capacity size() {
         return capacity;
     }
 
     @Override
-    public Skills getRequiredSkills() {
+    public Skills skillsRequired() {
         return skills;
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return name;
     }
 
@@ -505,12 +500,12 @@ public class Shipment extends AbstractJob {
      * @return priority
      */
     @Override
-    public int getPriority() {
+    public int pri() {
         return priority;
     }
 
     @Override
-    public double getMaxTimeInVehicle() {
+    public double vehicleTimeInMax() {
         return maxTimeInVehicle;
     }
 }

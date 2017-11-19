@@ -25,7 +25,7 @@ public enum DistanceUnit {
 
     Meter("m"), Kilometer("km");
 
-    private String abbr;
+    private final String abbr;
 
     DistanceUnit(String abbr) {
         this.abbr = abbr;

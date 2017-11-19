@@ -25,7 +25,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
 
 public class VehicleSwitched implements VehicleSwitchedListener {
 
-    private VehicleFleetManager fleetManager;
+    private final VehicleFleetManager fleetManager;
 
     public VehicleSwitched(VehicleFleetManager fleetManager) {
         this.fleetManager = fleetManager;

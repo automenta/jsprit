@@ -18,11 +18,13 @@
 
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
+
 /**
  * Created by schroeder on 08/07/15.
  */
 public interface ActivityStartStrategy {
 
-    public double getActivityStartTime(TourActivity activity, double arrivalTime);
+    double getActivityStartTime(AbstractActivity activity, double arrivalTime);
 
 }

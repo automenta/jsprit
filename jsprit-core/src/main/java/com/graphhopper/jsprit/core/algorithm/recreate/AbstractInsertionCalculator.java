@@ -18,12 +18,12 @@
 
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint.ConstraintsStatus;
 import com.graphhopper.jsprit.core.problem.constraint.HardRouteConstraint;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import java.util.List;
  */
 abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculator {
 
-    InsertionData checkRouteContraints(JobInsertionContext insertionContext, ConstraintManager constraintManager) {
+    static InsertionData checkRouteContraints(JobInsertionContext insertionContext, ConstraintManager constraintManager) {
         for (HardRouteConstraint hardRouteConstraint : constraintManager.getHardRouteConstraints()) {
             if (!hardRouteConstraint.fulfilled(insertionContext)) {
                 InsertionData emptyInsertionData = new InsertionData.NoInsertionFound();
@@ -45,16 +45,16 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
         return null;
     }
 
-    ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime, Collection<String> failedActivityConstraints, ConstraintManager constraintManager) {
+    static ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime, Collection<String> failedActivityConstraints, ConstraintManager constraintManager) {
         ConstraintsStatus notFulfilled = null;
-        List<String> failed = new ArrayList<>();
+        Collection<String> failed = new ArrayList<>();
         for (HardActivityConstraint c : constraintManager.getCriticalHardActivityConstraints()) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 failedActivityConstraints.add(c.getClass().getSimpleName());
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     failed.add(c.getClass().getSimpleName());
                     notFulfilled = status;
                 }
@@ -67,11 +67,11 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
 
         for (HardActivityConstraint c : constraintManager.getHighPrioHardActivityConstraints()) {
             ConstraintsStatus status = c.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                 failedActivityConstraints.add(c.getClass().getSimpleName());
                 return status;
             } else {
-                if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (status == ConstraintsStatus.NOT_FULFILLED) {
                     failed.add(c.getClass().getSimpleName());
                     notFulfilled = status;
                 }
@@ -84,7 +84,7 @@ abstract class AbstractInsertionCalculator implements JobInsertionCostsCalculato
 
         for (HardActivityConstraint constraint : constraintManager.getLowPrioHardActivityConstraints()) {
             ConstraintsStatus status = constraint.fulfilled(iFacts, prevAct, newAct, nextAct, prevActDepTime);
-            if (status.equals(ConstraintsStatus.NOT_FULFILLED_BREAK) || status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+            if (status == ConstraintsStatus.NOT_FULFILLED_BREAK || status == ConstraintsStatus.NOT_FULFILLED) {
                 failedActivityConstraints.add(constraint.getClass().getSimpleName());
                 return status;
             }

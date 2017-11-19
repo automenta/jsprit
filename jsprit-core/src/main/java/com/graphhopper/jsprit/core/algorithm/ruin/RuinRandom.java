@@ -38,11 +38,9 @@ import java.util.List;
 
 public final class RuinRandom extends AbstractRuinStrategy {
 
-    private Logger logger = LoggerFactory.getLogger(RuinRandom.class);
+    private final Logger logger = LoggerFactory.getLogger(RuinRandom.class);
 
-    private VehicleRoutingProblem vrp;
-
-    private double fractionOfAllNodes2beRuined;
+    private final double fractionOfAllNodes2beRuined;
 
     /**
      * Constructs ruinRandom.
@@ -52,14 +50,8 @@ public final class RuinRandom extends AbstractRuinStrategy {
      */
     public RuinRandom(VehicleRoutingProblem vrp, double fraction) {
         super(vrp);
-        this.vrp = vrp;
         this.fractionOfAllNodes2beRuined = fraction;
-        setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return selectNuOfJobs2BeRemoved();
-            }
-        });
+        setRuinShareFactory(() -> selectNuOfJobs2BeRemoved());
         logger.debug("initialise {}", this);
     }
 
@@ -70,14 +62,14 @@ public final class RuinRandom extends AbstractRuinStrategy {
      */
     @Override
     public Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+        List<Job> unassignedJobs = new ArrayList<>();
         int nOfJobs2BeRemoved = getRuinShareFactory().createNumberToBeRemoved();
         ruin(vehicleRoutes, nOfJobs2BeRemoved, unassignedJobs);
         return unassignedJobs;
     }
 
-    private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, List<Job> unassignedJobs) {
-        ArrayList<Job> availableJobs = new ArrayList<Job>(vrp.getJobs().values());
+    private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, Collection<Job> unassignedJobs) {
+        List<Job> availableJobs = new ArrayList<>(vrp.jobs().values());
         Collections.shuffle(availableJobs, random);
         int removed = 0;
         for (Job job : availableJobs) {
@@ -91,11 +83,11 @@ public final class RuinRandom extends AbstractRuinStrategy {
 
     @Override
     public String toString() {
-        return "[name=randomRuin][noJobsToBeRemoved=" + selectNuOfJobs2BeRemoved() + "]";
+        return "[name=randomRuin][noJobsToBeRemoved=" + selectNuOfJobs2BeRemoved() + ']';
     }
 
     private int selectNuOfJobs2BeRemoved() {
-        return (int) Math.ceil(vrp.getJobs().values().size() * fractionOfAllNodes2beRuined);
+        return (int) Math.ceil(vrp.jobs().values().size() * fractionOfAllNodes2beRuined);
     }
 
 

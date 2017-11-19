@@ -30,13 +30,13 @@ public class AlgorithmEventsViewer {
 
     private static class DelayContainer {
 
-        long delay = 0;
+        long delay;
 
     }
 
     public static class DelaySink implements Sink {
 
-        private DelayContainer delayContainer;
+        private final DelayContainer delayContainer;
 
         private long delay = 2;
 
@@ -147,13 +147,13 @@ public class AlgorithmEventsViewer {
 
     private double zoomFactor;
 
-    private double scaling = 1.0;
+    private final double scaling = 1.0;
 
     private long delayRecreation = 5;
 
     private long delayRuin = 5;
 
-    private long delay = 2;
+    private final long delay = 2;
 
     public void setRecreationDelay(long delay_in_ms) {
         this.delayRecreation = delay_in_ms;
@@ -197,7 +197,7 @@ public class AlgorithmEventsViewer {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         AlgorithmEventsViewer viewer = new AlgorithmEventsViewer();
         viewer.setRuinDelay(10);
         viewer.setRecreationDelay(5);

@@ -24,6 +24,7 @@ import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
+import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 
 
 /**
@@ -31,9 +32,9 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 public class EuclideanCosts extends AbstractForwardVehicleRoutingTransportCosts {
 
-    public int speed = 1;
+    public final int speed = 1;
 
-    public double detourFactor = 1.0;
+    public final double detourFactor = 1.0;
 
     @Override
     public String toString() {
@@ -41,19 +42,22 @@ public class EuclideanCosts extends AbstractForwardVehicleRoutingTransportCosts 
     }
 
     @Override
-    public double getTransportCost(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
-        double distance = calculateDistance(from, to);
-        if (vehicle != null && vehicle.getType() != null) {
-            return distance * vehicle.getType().getVehicleCostParams().perDistanceUnit;
+    public double transportCost(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
+        double distance = distance(from, to);
+        if (vehicle != null) {
+            VehicleType t = vehicle.type();
+            if (t != null) {
+                return distance * t.getVehicleCostParams().perDistanceUnit;
+            }
         }
         return distance;
     }
 
-    double calculateDistance(Location fromLocation, Location toLocation) {
-        return calculateDistance(fromLocation.getCoordinate(), toLocation.getCoordinate());
+    double distance(Location fromLocation, Location toLocation) {
+        return distance(fromLocation.coord, toLocation.coord);
     }
 
-    double calculateDistance(Coordinate from, Coordinate to) {
+    double distance(v2 from, v2 to) {
         try {
             return EuclideanDistanceCalculator.calculateDistance(from, to) * detourFactor;
         } catch (NullPointerException e) {
@@ -62,12 +66,12 @@ public class EuclideanCosts extends AbstractForwardVehicleRoutingTransportCosts 
     }
 
     @Override
-    public double getTransportTime(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
-        return calculateDistance(from, to) / speed;
+    public double transportTime(Location from, Location to, double time, Driver driver, Vehicle vehicle) {
+        return distance(from, to) / speed;
     }
 
     @Override
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
-            return calculateDistance(from, to);
+    public double distance(Location from, Location to, double departureTime, Vehicle vehicle) {
+            return distance(from, to);
     }
 }

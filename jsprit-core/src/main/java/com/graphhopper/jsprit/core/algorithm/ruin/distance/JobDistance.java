@@ -22,6 +22,6 @@ import com.graphhopper.jsprit.core.problem.job.Job;
 
 public interface JobDistance {
 
-    public double getDistance(Job i, Job j);
+    double getDistance(Job i, Job j);
 
 }

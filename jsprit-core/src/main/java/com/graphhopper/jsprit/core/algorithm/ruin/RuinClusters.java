@@ -18,11 +18,12 @@
 package com.graphhopper.jsprit.core.algorithm.ruin;
 
 import com.graphhopper.jsprit.core.algorithm.listener.IterationStartsListener;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 import com.graphhopper.jsprit.core.util.RandomUtils;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.slf4j.Logger;
@@ -48,28 +49,25 @@ public final class RuinClusters extends AbstractRuinStrategy implements Iteratio
 
     public static class JobActivityWrapper implements Clusterable {
 
-        private TourActivity.JobActivity jobActivity;
+        private final JobActivity jobActivity;
 
-        public JobActivityWrapper(TourActivity.JobActivity jobActivity) {
+        public JobActivityWrapper(JobActivity jobActivity) {
             this.jobActivity = jobActivity;
         }
 
         @Override
         public double[] getPoint() {
-            return new double[]{jobActivity.getLocation().getCoordinate().getX(), jobActivity.getLocation().getCoordinate().getY()};
+            return new double[]{jobActivity.location().coord.x, jobActivity.location().coord.y};
         }
 
-        public TourActivity.JobActivity getActivity() {
+        public JobActivity getActivity() {
             return jobActivity;
         }
     }
 
-    private Logger logger = LoggerFactory.getLogger(RuinClusters.class);
+    private final Logger logger = LoggerFactory.getLogger(RuinClusters.class);
 
-    private VehicleRoutingProblem vrp;
-
-
-    private JobNeighborhoods jobNeighborhoods;
+    private final JobNeighborhoods jobNeighborhoods;
 
     private int noClusters = 2;
 
@@ -79,13 +77,7 @@ public final class RuinClusters extends AbstractRuinStrategy implements Iteratio
 
     public RuinClusters(VehicleRoutingProblem vrp, final int initialNumberJobsToRemove, JobNeighborhoods jobNeighborhoods) {
         super(vrp);
-        this.vrp = vrp;
-        setRuinShareFactory(new RuinShareFactory() {
-            @Override
-            public int createNumberToBeRemoved() {
-                return initialNumberJobsToRemove;
-            }
-        });
+        setRuinShareFactory(() -> initialNumberJobsToRemove);
         this.jobNeighborhoods = jobNeighborhoods;
         logger.debug("initialise {}", this);
     }
@@ -101,35 +93,38 @@ public final class RuinClusters extends AbstractRuinStrategy implements Iteratio
      */
     @Override
     public Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes) {
-        List<Job> unassignedJobs = new ArrayList<Job>();
+        List<Job> unassignedJobs = new ArrayList<>();
         int nOfJobs2BeRemoved = getRuinShareFactory().createNumberToBeRemoved();
         ruin(vehicleRoutes, nOfJobs2BeRemoved, unassignedJobs);
         return unassignedJobs;
     }
 
-    private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, List<Job> unassignedJobs) {
-        if (vrp.getJobs().values().size() == 0) return;
+    private void ruin(Collection<VehicleRoute> vehicleRoutes, int nOfJobs2BeRemoved, Collection<Job> unassignedJobs) {
+        if (vrp.jobs().values().isEmpty()) return;
         Map<Job, VehicleRoute> mappedRoutes = map(vehicleRoutes);
         int toRemove = nOfJobs2BeRemoved;
 
-        Collection<Job> lastRemoved = new ArrayList<Job>();
-        Set<VehicleRoute> ruined = new HashSet<VehicleRoute>();
-        Set<Job> removed = new HashSet<Job>();
-        Set<VehicleRoute> cycleCandidates = new HashSet<VehicleRoute>();
+        Collection<Job> lastRemoved = new ArrayList<>();
+        Collection<VehicleRoute> ruined = new HashSet<>();
+//        Set<Job> removed = new HashSet<Job>();
+        Collection<VehicleRoute> cycleCandidates = new HashSet<>();
         while (toRemove > 0) {
             Job target;
             VehicleRoute targetRoute = null;
             if (lastRemoved.isEmpty()) {
-                target = RandomUtils.nextJob(vrp.getJobs().values(), random);
+                target = RandomUtils.nextJob(vrp.jobs().values(), random);
                 targetRoute = mappedRoutes.get(target);
             } else {
                 target = RandomUtils.nextJob(lastRemoved, random);
                 Iterator<Job> neighborIterator = jobNeighborhoods.getNearestNeighborsIterator(nOfJobs2BeRemoved, target);
                 while (neighborIterator.hasNext()) {
                     Job j = neighborIterator.next();
-                    if (!removed.contains(j) && !ruined.contains(mappedRoutes.get(j))) {
-                        targetRoute = mappedRoutes.get(j);
-                        break;
+                    if (!lastRemoved.contains(j)) {
+                        VehicleRoute mj = mappedRoutes.get(j);
+                        if (!ruined.contains(mj)) {
+                            targetRoute = mj;
+                            break;
+                        }
                     }
                 }
                 lastRemoved.clear();
@@ -140,35 +135,34 @@ public final class RuinClusters extends AbstractRuinStrategy implements Iteratio
                 cycleCandidates.add(targetRoute);
                 break;
             }
-            DBSCANClusterer dbscan = new DBSCANClusterer(vrp.getTransportCosts());
+            DBSCANClusterer dbscan = new DBSCANClusterer(vrp.transportCosts());
             dbscan.setRandom(random);
             dbscan.setMinPts(minPts);
             dbscan.setEpsFactor(epsFactor);
             List<Job> cluster = dbscan.getRandomCluster(targetRoute);
             for (Job j : cluster) {
-                if (toRemove == 0) break;
                 if (removeJob(j, vehicleRoutes)) {
                     lastRemoved.add(j);
                     unassignedJobs.add(j);
+                    if (--toRemove == 0) break;
                 }
-                toRemove--;
             }
             ruined.add(targetRoute);
         }
     }
 
-    private List<JobActivityWrapper> wrap(List<TourActivity> activities) {
-        List<JobActivityWrapper> wl = new ArrayList<JobActivityWrapper>();
-        for (TourActivity act : activities) {
-            wl.add(new JobActivityWrapper((TourActivity.JobActivity) act));
-        }
-        return wl;
-    }
+//    private List<JobActivityWrapper> wrap(List<AbstractActivity> activities) {
+//        List<JobActivityWrapper> wl = new ArrayList<JobActivityWrapper>();
+//        for (AbstractActivity act : activities) {
+//            wl.add(new JobActivityWrapper((JobActivity) act));
+//        }
+//        return wl;
+//    }
 
-    private Map<Job, VehicleRoute> map(Collection<VehicleRoute> vehicleRoutes) {
-        Map<Job, VehicleRoute> map = new HashMap<Job, VehicleRoute>(vrp.getJobs().size());
+    private Map<Job, VehicleRoute> map(Iterable<VehicleRoute> vehicleRoutes) {
+        Map<Job, VehicleRoute> map = new HashMap<>(vrp.jobs().size());
         for (VehicleRoute r : vehicleRoutes) {
-            for (Job j : r.getTourActivities().getJobs()) {
+            for (Job j : r.tourActivities().jobs()) {
                 map.put(j, r);
             }
         }

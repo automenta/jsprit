@@ -25,6 +25,7 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivityStateGetter;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleFleetManager;
 
 import java.util.ArrayList;
@@ -45,20 +46,13 @@ public class JobInsertionCostsCalculatorLightFactory {
      * @param constraintManager constraint manager
      * @return insertion calculator
      */
-    public static JobInsertionCostsCalculatorLight createStandardCalculator(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, StateManager stateManager, ConstraintManager constraintManager) {
-        List<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener> al = new ArrayList<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener>();
-        List<InsertionListener> il = new ArrayList<InsertionListener>();
+    public static JobInsertionCostsCalculatorLight createStandardCalculator(VehicleRoutingProblem vrp, VehicleFleetManager fleetManager, RouteAndActivityStateGetter stateManager, ConstraintManager constraintManager) {
+        List<VehicleRoutingAlgorithmListeners.PrioritizedVRAListener> al = new ArrayList<>();
+        List<InsertionListener> il = new ArrayList<>();
         JobInsertionCostsCalculatorBuilder builder = new JobInsertionCostsCalculatorBuilder(il, al);
         builder.setVehicleRoutingProblem(vrp).setConstraintManager(constraintManager).setStateManager(stateManager).setVehicleFleetManager(fleetManager);
         final JobInsertionCostsCalculator calculator = builder.build();
-        return new JobInsertionCostsCalculatorLight() {
-
-            @Override
-            public InsertionData getInsertionData(Job unassignedJob, VehicleRoute route, double bestKnownCosts) {
-                return calculator.getInsertionData(route, unassignedJob, AbstractInsertionStrategy.NO_NEW_VEHICLE_YET, AbstractInsertionStrategy.NO_NEW_DEPARTURE_TIME_YET, AbstractInsertionStrategy.NO_NEW_DRIVER_YET, bestKnownCosts);
-            }
-
-        };
+        return (unassignedJob, route, bestKnownCosts) -> calculator.getInsertionData(route, unassignedJob, AbstractInsertionStrategy.NO_NEW_VEHICLE_YET, AbstractInsertionStrategy.NO_NEW_DEPARTURE_TIME_YET, AbstractInsertionStrategy.NO_NEW_DRIVER_YET, bestKnownCosts);
     }
 
 }

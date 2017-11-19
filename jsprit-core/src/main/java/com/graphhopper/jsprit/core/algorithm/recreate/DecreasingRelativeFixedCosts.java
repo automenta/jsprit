@@ -34,7 +34,7 @@ public final class DecreasingRelativeFixedCosts extends SolutionCompletenessRati
 
     private double weightDeltaFixCost = 0.5;
 
-    private RouteAndActivityStateGetter stateGetter;
+    private final RouteAndActivityStateGetter stateGetter;
 
     public DecreasingRelativeFixedCosts(RouteAndActivityStateGetter stateGetter, int noJobs) {
         super(noJobs);
@@ -50,12 +50,12 @@ public final class DecreasingRelativeFixedCosts extends SolutionCompletenessRati
 
     @Override
     public String toString() {
-        return "[name=DecreasingRelativeFixedCosts][weightOfFixedCostSavings=" + weightDeltaFixCost + "]";
+        return "[name=DecreasingRelativeFixedCosts][weightOfFixedCostSavings=" + weightDeltaFixCost + ']';
     }
 
     private Capacity getCurrentMaxLoadInRoute(VehicleRoute route) {
         Capacity maxLoad = stateGetter.getRouteState(route, InternalStates.MAXLOAD, Capacity.class);
-        if (maxLoad == null) maxLoad = Capacity.Builder.newInstance().build();
+        if (maxLoad == null) maxLoad = Capacity.Builder.get().build();
         return maxLoad;
     }
 
@@ -63,12 +63,12 @@ public final class DecreasingRelativeFixedCosts extends SolutionCompletenessRati
     public double getCosts(JobInsertionContext insertionContext) {
         VehicleRoute route = insertionContext.getRoute();
         Capacity currentLoad = getCurrentMaxLoadInRoute(route);
-        Capacity load = Capacity.addup(currentLoad, insertionContext.getJob().getSize());
+        Capacity load = Capacity.addup(currentLoad, insertionContext.getJob().size());
         double currentRelFix = 0d;
-        if (route.getVehicle() != null && !(route.getVehicle() instanceof VehicleImpl.NoVehicle)) {
-            currentRelFix = route.getVehicle().getType().getVehicleCostParams().fix * Capacity.divide(currentLoad, route.getVehicle().getType().getCapacityDimensions());
+        if (route.vehicle() != null && !(route.vehicle() instanceof VehicleImpl.NoVehicle)) {
+            currentRelFix = route.vehicle().type().getVehicleCostParams().fix * Capacity.divide(currentLoad, route.vehicle().type().getCapacityDimensions());
         }
-        double newRelFix = insertionContext.getNewVehicle().getType().getVehicleCostParams().fix * (Capacity.divide(load, insertionContext.getNewVehicle().getType().getCapacityDimensions()));
+        double newRelFix = insertionContext.getNewVehicle().type().getVehicleCostParams().fix * (Capacity.divide(load, insertionContext.getNewVehicle().type().getCapacityDimensions()));
         double decreasingRelativeFixedCosts = (1 - solutionCompletenessRatio) * (newRelFix - currentRelFix);
         return weightDeltaFixCost * solutionCompletenessRatio * decreasingRelativeFixedCosts;
     }

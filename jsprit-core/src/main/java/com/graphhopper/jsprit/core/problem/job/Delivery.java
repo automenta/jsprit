@@ -42,6 +42,7 @@ public class Delivery extends Service {
         }
 
 
+        @Override
         public Builder setMaxTimeInVehicle(double maxTimeInVehicle){
             if(maxTimeInVehicle < 0) throw new IllegalArgumentException("maxTimeInVehicle should be positive");
             this.maxTimeInVehicle = maxTimeInVehicle;
@@ -54,11 +55,12 @@ public class Delivery extends Service {
          * @return delivery
          * @throws IllegalArgumentException if neither locationId nor coord is set
          */
+        @Override
         public Delivery build() {
             if (location == null) throw new IllegalArgumentException("location is missing");
-            this.setType("delivery");
-            super.capacity = super.capacityBuilder.build();
-            super.skills = super.skillBuilder.build();
+            this.type("delivery");
+            capacity = capacityBuilder.build();
+            skills = skillBuilder.build();
             return new Delivery(this);
         }
 

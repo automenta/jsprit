@@ -18,12 +18,14 @@
 
 package com.graphhopper.jsprit.core.problem;
 
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 
 /**
  * Created by schroeder on 16.12.14.
  */
-public final class Location implements HasIndex, HasId {
+public final class Location implements Indexed, HasId {
+
+    private final int hash;
 
     /**
      * Factory method (and shortcut) for creating a location object just with x and y coordinates.
@@ -32,8 +34,8 @@ public final class Location implements HasIndex, HasId {
      * @param y coordinate
      * @return location
      */
-    public static Location newInstance(double x, double y) {
-        return Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(x, y)).build();
+    public static Location the(double x, double y) {
+        return Location.Builder.the().setCoord(v2.the(x, y)).build();
     }
 
     /**
@@ -42,8 +44,8 @@ public final class Location implements HasIndex, HasId {
      * @param id location id
      * @return location
      */
-    public static Location newInstance(String id) {
-        return Location.Builder.newInstance().setId(id).build();
+    public static Location the(String id) {
+        return Location.Builder.the().setId(id).build();
     }
 
     /**
@@ -52,8 +54,8 @@ public final class Location implements HasIndex, HasId {
      * @param index
      * @return
      */
-    public static Location newInstance(int index) {
-        return Location.Builder.newInstance().setIndex(index).build();
+    public static Location the(int index) {
+        return Location.Builder.the().setIndex(index).build();
     }
 
     public static class Builder {
@@ -62,13 +64,13 @@ public final class Location implements HasIndex, HasId {
 
         private int index = Location.NO_INDEX;
 
-        private Coordinate coordinate;
+        private v2 coord;
 
         private String name = "";
 
-        private Object userData;
+        private Object data;
 
-        public static Builder newInstance() {
+        public static Builder the() {
             return new Builder();
         }
 
@@ -80,12 +82,12 @@ public final class Location implements HasIndex, HasId {
          * but never interacts with it in any way.
          * </p>
          *
-         * @param userData any object holding the domain specific user data
+         * @param data any object holding the domain specific user data
          *                 associated with the object.
          * @return builder
          */
-        public Builder setUserData(Object userData) {
-            this.userData = userData;
+        public Builder setData(Object data) {
+            this.data = data;
             return this;
         }
 
@@ -104,11 +106,11 @@ public final class Location implements HasIndex, HasId {
         /**
          * Sets coordinate of location
          *
-         * @param coordinate
+         * @param coord
          * @return
          */
-        public Builder setCoordinate(Coordinate coordinate) {
-            this.coordinate = coordinate;
+        public Builder setCoord(v2 coord) {
+            this.coord = coord;
             return this;
         }
 
@@ -135,11 +137,11 @@ public final class Location implements HasIndex, HasId {
         }
 
         public Location build() {
-            if (id == null && coordinate == null) {
+            if (id == null && coord == null) {
                 if (index == -1) throw new IllegalArgumentException("either id or coordinate or index must be set");
             }
-            if (coordinate != null && id == null) {
-                this.id = coordinate.toString();
+            if (coord != null && id == null) {
+                this.id = coord.toString();
             }
             if (index != -1 && id == null) {
                 this.id = Integer.toString(index);
@@ -151,73 +153,73 @@ public final class Location implements HasIndex, HasId {
 
     public final static int NO_INDEX = -1;
 
-    private final int index;
+    public final int index;
 
-    private final Coordinate coordinate;
+    public final v2 coord;
 
-    private final String id;
+    public final String id;
 
-    private final String name;
+    public final String name;
 
-    private Object userData;
+    public final Object data;
 
     private Location(Builder builder) {
-        this.userData = builder.userData;
+        this.data = builder.data;
         this.index = builder.index;
-        this.coordinate = builder.coordinate;
+        this.coord = builder.coord;
         this.id = builder.id;
         this.name = builder.name;
+
+         int hash = index;
+        hash = 31 * hash + (coord != null ? coord.hashCode() : 0);
+        hash = 31 * hash + (id != null ? id.hashCode() : 0);
+        this.hash = hash;
     }
 
     /**
      * @return User-specific domain data associated by the job
      */
-    public Object getUserData() {
-        return userData;
+    public final Object data() {
+        return data;
     }
 
     @Override
-    public String getId() {
+    public final String id() {
         return id;
     }
 
     @Override
-    public int getIndex() {
+    public final int index() {
         return index;
     }
 
-    public Coordinate getCoordinate() {
-        return coordinate;
+    public final v2 coord() {
+        return coord;
     }
 
-    public String getName() {
+    public final String name() {
         return name;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Location)) return false;
+        if (!(o instanceof Location) || hash != o.hashCode()) return false;
 
         Location location = (Location) o;
 
         if (index != location.index) return false;
-        if (coordinate != null ? !coordinate.equals(location.coordinate) : location.coordinate != null) return false;
-        if (id != null ? !id.equals(location.id) : location.id != null) return false;
-
-        return true;
+        if (coord != null ? !coord.equals(location.coord) : location.coord != null) return false;
+        return id != null ? id.equals(location.id) : location.id == null;
     }
 
     @Override
-    public int hashCode() {
-        int result = index;
-        result = 31 * result + (coordinate != null ? coordinate.hashCode() : 0);
-        result = 31 * result + (id != null ? id.hashCode() : 0);
-        return result;
+    public final int hashCode() {
+       return hash;
     }
 
     @Override
     public String toString() {
-        return "[id=" + id + "][index=" + index + "][coordinate=" + coordinate + "]";
+        return "[id=" + id + "][index=" + index + "][coordinate=" + coord + ']';
     }
 }

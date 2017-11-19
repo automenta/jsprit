@@ -19,45 +19,44 @@
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.Start;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivityStateGetter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Deprecated
 class RouteLevelActivityInsertionCostsEstimator implements ActivityInsertionCostsCalculator {
 
-    private VehicleRoutingActivityCosts activityCosts;
+    private final VehicleRoutingActivityCosts activityCosts;
 
-    private AuxilliaryCostCalculator auxilliaryPathCostCalculator;
+    private final AuxilliaryCostCalculator auxilliaryPathCostCalculator;
 
-    private RouteAndActivityStateGetter stateManager;
+    private final RouteAndActivityStateGetter stateManager;
 
-    private int nuOfActivities2LookForward = 0;
+    private int nuOfActivities2LookForward;
 
     public RouteLevelActivityInsertionCostsEstimator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts actCosts, RouteAndActivityStateGetter stateManager) {
-        super();
         this.activityCosts = actCosts;
         this.stateManager = stateManager;
         auxilliaryPathCostCalculator = new AuxilliaryCostCalculator(routingCosts, activityCosts);
     }
 
     @Override
-    public double getCosts(JobInsertionContext iFacts, TourActivity prevAct, TourActivity nextAct, TourActivity newAct, double depTimeAtPrevAct) {
-        List<TourActivity> path = new ArrayList<TourActivity>();
+    public double getCosts(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity nextAct, AbstractActivity newAct, double depTimeAtPrevAct) {
+        List<AbstractActivity> path = new ArrayList<>();
         path.add(prevAct);
         path.add(newAct);
         path.add(nextAct);
         int actIndex;
-        if (prevAct instanceof Start) actIndex = 0;
-        else actIndex = iFacts.getRoute().getTourActivities().getActivities().indexOf(nextAct);
+        actIndex = prevAct instanceof Start ? 0 : iFacts.getRoute().tourActivities().activities().indexOf(nextAct);
         if (nuOfActivities2LookForward > 0 && !(nextAct instanceof End)) {
             path.addAll(getForwardLookingPath(iFacts.getRoute(), actIndex));
         }
@@ -69,28 +68,24 @@ class RouteLevelActivityInsertionCostsEstimator implements ActivityInsertionCost
         return forwardPathCost_newVehicle - (actCostsOld(iFacts.getRoute(), path.get(path.size() - 1)) - actCostsOld(iFacts.getRoute(), prevAct));
     }
 
-    private double actCostsOld(VehicleRoute vehicleRoute, TourActivity act) {
+    private double actCostsOld(VehicleRoute vehicleRoute, AbstractActivity act) {
         Double cost_at_act;
-        if (act instanceof End) {
-            cost_at_act = stateManager.getRouteState(vehicleRoute, InternalStates.COSTS, Double.class);
-        } else {
-            cost_at_act = stateManager.getActivityState(act, InternalStates.COSTS, Double.class);
-        }
+        cost_at_act = act instanceof End ? stateManager.getRouteState(vehicleRoute, InternalStates.COSTS, Double.class) : stateManager.state(act, InternalStates.COSTS, Double.class);
         if (cost_at_act == null) cost_at_act = 0.;
         return cost_at_act;
     }
 
-    private List<TourActivity> getForwardLookingPath(VehicleRoute route, int actIndex) {
-        List<TourActivity> forwardLookingPath = new ArrayList<TourActivity>();
+    private Collection<AbstractActivity> getForwardLookingPath(VehicleRoute route, int actIndex) {
+        List<AbstractActivity> forwardLookingPath = new ArrayList<>();
         int nuOfActsInPath = 0;
         int index = actIndex + 1;
-        while (index < route.getTourActivities().getActivities().size() && nuOfActsInPath < nuOfActivities2LookForward) {
-            forwardLookingPath.add(route.getTourActivities().getActivities().get(index));
+        while (index < route.tourActivities().activities().size() && nuOfActsInPath < nuOfActivities2LookForward) {
+            forwardLookingPath.add(route.tourActivities().activities().get(index));
             index++;
             nuOfActsInPath++;
         }
         if (nuOfActsInPath < nuOfActivities2LookForward) {
-            forwardLookingPath.add(route.getEnd());
+            forwardLookingPath.add(route.end);
         }
         return forwardLookingPath;
     }

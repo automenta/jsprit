@@ -22,9 +22,10 @@ package com.graphhopper.jsprit.examples;
 import com.graphhopper.jsprit.analysis.toolbox.GraphStreamViewer;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
-import com.graphhopper.jsprit.core.algorithm.state.StateId;
+import com.graphhopper.jsprit.core.algorithm.state.State;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.algorithm.state.StateUpdater;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
@@ -35,7 +36,7 @@ import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
 import com.graphhopper.jsprit.core.util.Solutions;
@@ -55,20 +56,20 @@ public class JobAndActivityDependenciesExample {
 
         StateManager stateManager;
 
-        StateId keyPickedStateId;
+        State keyPickedState;
 
-        StateId keyUsedStateId;
+        State keyUsedState;
 
-        private StateId keyDeliveredStateId;
+        private final State keyDeliveredState;
 
         private VehicleRoute route;
 
 
-        KeyStatusUpdater(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
+        KeyStatusUpdater(StateManager stateManager, State keyPickedState, State keyUsedState, State keyDeliveredState) {
             this.stateManager = stateManager;
-            this.keyPickedStateId = keyPickedStateId;
-            this.keyUsedStateId = keyUsedStateId;
-            this.keyDeliveredStateId = keyDeliveredStateId;
+            this.keyPickedState = keyPickedState;
+            this.keyUsedState = keyUsedState;
+            this.keyDeliveredState = keyDeliveredState;
         }
 
         @Override
@@ -77,13 +78,13 @@ public class JobAndActivityDependenciesExample {
         }
 
         @Override
-        public void visit(TourActivity activity) {
-            if (((TourActivity.JobActivity) activity).getJob().getName().equals("use key")) {
-                stateManager.putProblemState(keyUsedStateId, VehicleRoute.class, route);
-            } else if (((TourActivity.JobActivity) activity).getJob().getName().equals("get key")) {
-                stateManager.putProblemState(keyPickedStateId, VehicleRoute.class, route);
-            } else if (((TourActivity.JobActivity) activity).getJob().getName().equals("deliver key")) {
-                stateManager.putProblemState(keyDeliveredStateId, VehicleRoute.class, route);
+        public void visit(AbstractActivity activity) {
+            if (((JobActivity) activity).job().name().equals("use key")) {
+                stateManager.putProblemState(keyUsedState, VehicleRoute.class, route);
+            } else if (((JobActivity) activity).job().name().equals("get key")) {
+                stateManager.putProblemState(keyPickedState, VehicleRoute.class, route);
+            } else if (((JobActivity) activity).job().name().equals("deliver key")) {
+                stateManager.putProblemState(keyDeliveredState, VehicleRoute.class, route);
             }
         }
 
@@ -96,26 +97,26 @@ public class JobAndActivityDependenciesExample {
 
         StateManager stateManager;
 
-        StateId keyPickedStateId;
+        State keyPickedState;
 
-        StateId keyUsedStateId;
+        State keyUsedState;
 
-        StateId keyDeliveredStateId;
+        State keyDeliveredState;
 
-        public GetUseAndDeliverHardRouteContraint(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
+        public GetUseAndDeliverHardRouteContraint(StateManager stateManager, State keyPickedState, State keyUsedState, State keyDeliveredState) {
             this.stateManager = stateManager;
-            this.keyPickedStateId = keyPickedStateId;
-            this.keyUsedStateId = keyUsedStateId;
-            this.keyDeliveredStateId = keyDeliveredStateId;
+            this.keyPickedState = keyPickedState;
+            this.keyUsedState = keyUsedState;
+            this.keyDeliveredState = keyDeliveredState;
         }
 
         @Override
         public boolean fulfilled(JobInsertionContext iFacts) {
-            if (iFacts.getJob().getName().equals("get key") || iFacts.getJob().getName().equals("use key")
-                || iFacts.getJob().getName().equals("deliver key")) {
-                VehicleRoute routeOfPickupKey = stateManager.getProblemState(keyPickedStateId, VehicleRoute.class);
-                VehicleRoute routeOfUseKey = stateManager.getProblemState(keyUsedStateId, VehicleRoute.class);
-                VehicleRoute routeOfDeliverKey = stateManager.getProblemState(keyDeliveredStateId, VehicleRoute.class);
+            if (iFacts.getJob().name().equals("get key") || iFacts.getJob().name().equals("use key")
+                || iFacts.getJob().name().equals("deliver key")) {
+                VehicleRoute routeOfPickupKey = stateManager.problemState(keyPickedState, VehicleRoute.class);
+                VehicleRoute routeOfUseKey = stateManager.problemState(keyUsedState, VehicleRoute.class);
+                VehicleRoute routeOfDeliverKey = stateManager.problemState(keyDeliveredState, VehicleRoute.class);
 
                 if (routeOfPickupKey != null) {
                     if (routeOfPickupKey != iFacts.getRoute()) return false;
@@ -124,7 +125,7 @@ public class JobAndActivityDependenciesExample {
                     if (routeOfUseKey != iFacts.getRoute()) return false;
                 }
                 if (routeOfDeliverKey != null) {
-                    if (routeOfDeliverKey != iFacts.getRoute()) return false;
+                    return routeOfDeliverKey == iFacts.getRoute();
                 }
             }
             return true;
@@ -136,25 +137,25 @@ public class JobAndActivityDependenciesExample {
 
         StateManager stateManager;
 
-        StateId keyPickedStateId;
+        State keyPickedState;
 
-        StateId keyUsedStateId;
+        State keyUsedState;
 
-        StateId keyDeliveredStateId;
+        State keyDeliveredState;
 
-        GetUseAndDeliverKeySimpleHardActivityConstraint(StateManager stateManager, StateId keyPickedStateId, StateId keyUsedStateId, StateId keyDeliveredStateId) {
+        GetUseAndDeliverKeySimpleHardActivityConstraint(StateManager stateManager, State keyPickedState, State keyUsedState, State keyDeliveredState) {
             this.stateManager = stateManager;
-            this.keyPickedStateId = keyPickedStateId;
-            this.keyUsedStateId = keyUsedStateId;
-            this.keyDeliveredStateId = keyDeliveredStateId;
+            this.keyPickedState = keyPickedState;
+            this.keyUsedState = keyUsedState;
+            this.keyDeliveredState = keyDeliveredState;
         }
 
         @Override
-        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double prevActDepTime) {
+        public ConstraintsStatus fulfilled(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double prevActDepTime) {
 
-            VehicleRoute routeOfPickupKey = stateManager.getProblemState(keyPickedStateId, VehicleRoute.class);
-            VehicleRoute routeOfUseKey = stateManager.getProblemState(keyUsedStateId, VehicleRoute.class);
-            VehicleRoute routeOfDeliverKey = stateManager.getProblemState(keyDeliveredStateId, VehicleRoute.class);
+            VehicleRoute routeOfPickupKey = stateManager.problemState(keyPickedState, VehicleRoute.class);
+            VehicleRoute routeOfUseKey = stateManager.problemState(keyUsedState, VehicleRoute.class);
+            VehicleRoute routeOfDeliverKey = stateManager.problemState(keyDeliveredState, VehicleRoute.class);
 
             if (!isPickupKey(newAct) && !isUseKey(newAct) && !isDeliverKey(newAct)) {
                 if (isPickupKey(prevAct) && isUseKey(nextAct)) return ConstraintsStatus.NOT_FULFILLED;
@@ -187,19 +188,19 @@ public class JobAndActivityDependenciesExample {
             return ConstraintsStatus.FULFILLED;
         }
 
-        private boolean isPickupKey(TourActivity act) {
-            if (!(act instanceof TourActivity.JobActivity)) return false;
-            return ((TourActivity.JobActivity) act).getJob().getName().equals("get key");
+        private boolean isPickupKey(AbstractActivity act) {
+            if (!(act instanceof JobActivity)) return false;
+            return ((JobActivity) act).job().name().equals("get key");
         }
 
-        private boolean isUseKey(TourActivity act) {
-            if (!(act instanceof TourActivity.JobActivity)) return false;
-            return ((TourActivity.JobActivity) act).getJob().getName().equals("use key");
+        private boolean isUseKey(AbstractActivity act) {
+            if (!(act instanceof JobActivity)) return false;
+            return ((JobActivity) act).job().name().equals("use key");
         }
 
-        private boolean isDeliverKey(TourActivity act) {
-            if (!(act instanceof TourActivity.JobActivity)) return false;
-            return ((TourActivity.JobActivity) act).getJob().getName().equals("deliver key");
+        private boolean isDeliverKey(AbstractActivity act) {
+            if (!(act instanceof JobActivity)) return false;
+            return ((JobActivity) act).job().name().equals("deliver key");
         }
 
 
@@ -209,56 +210,56 @@ public class JobAndActivityDependenciesExample {
 
         VehicleImpl driver1 = VehicleImpl.Builder.newInstance("driver1")
             .addSkill("driver1")
-            .setStartLocation(Location.newInstance(0, 0)).setReturnToDepot(false).build();
+            .setStartLocation(Location.the(0, 0)).setReturnToDepot(false).build();
 
         VehicleImpl driver3 = VehicleImpl.Builder.newInstance("driver3")
             .addSkill("driver3")
-            .setStartLocation(Location.newInstance(-3, 5)).setReturnToDepot(true).build();
+            .setStartLocation(Location.the(-3, 5)).setReturnToDepot(true).build();
 
         Service s1 = Service.Builder.newInstance("s1")
-            .addRequiredSkill("driver1")
-            .setName("install new device")
-            .setLocation(Location.newInstance(2, 2)).build();
+            .skillRequired("driver1")
+            .name("install new device")
+            .location(Location.the(2, 2)).build();
         Service s2 = Service.Builder.newInstance("s2")
-            .addRequiredSkill("driver3")
-            .setName("deliver key")
-            .setLocation(Location.newInstance(2, 4)).build();
+            .skillRequired("driver3")
+            .name("deliver key")
+            .location(Location.the(2, 4)).build();
 
         Service s3 = Service.Builder.newInstance("s3")
-            .addRequiredSkill("driver1")
-            .setName("repair heater")
-            .setLocation(Location.newInstance(-2, 2)).build();
+            .skillRequired("driver1")
+            .name("repair heater")
+            .location(Location.the(-2, 2)).build();
 
         Service s4 = Service.Builder.newInstance("s4")
-            .addRequiredSkill("driver3")
-            .setName("get key")
-            .setLocation(Location.newInstance(-2.3, 4)).build();
+            .skillRequired("driver3")
+            .name("get key")
+            .location(Location.the(-2.3, 4)).build();
 
         Service s5 = Service.Builder.newInstance("s5")
-            .addRequiredSkill("driver1")
-            .setName("cleaning")
-            .setLocation(Location.newInstance(1, 5)).build();
+            .skillRequired("driver1")
+            .name("cleaning")
+            .location(Location.the(1, 5)).build();
 
         Service s6 = Service.Builder.newInstance("s6")
-            .addRequiredSkill("driver3")
-            .setName("use key")
-            .setLocation(Location.newInstance(-2, 3)).build();
+            .skillRequired("driver3")
+            .name("use key")
+            .location(Location.the(-2, 3)).build();
 
         Service s7 = Service.Builder.newInstance("s7")
-            .addRequiredSkill("driver3")
-            .setName("maintenance")
-            .setLocation(Location.newInstance(-1.7, 3.5)).build();
+            .skillRequired("driver3")
+            .name("maintenance")
+            .location(Location.the(-1.7, 3.5)).build();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get().setFleetSize(VehicleRoutingProblem.FleetSize.FINITE)
             .addJob(s1).addJob(s2).addJob(s3).addJob(s4).addJob(s5).addJob(s6).addJob(s7)
             .addVehicle(driver1).addVehicle(driver3);
 
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
         StateManager stateManager = new StateManager(vrp);
-        StateId keyPicked = stateManager.createStateId("key-picked");
-        StateId keyUsed = stateManager.createStateId("key-used");
-        StateId keyDelivered = stateManager.createStateId("key-delivered");
+        State keyPicked = stateManager.createStateId("key-picked");
+        State keyUsed = stateManager.createStateId("key-used");
+        State keyDelivered = stateManager.createStateId("key-delivered");
         stateManager.addStateUpdater(new KeyStatusUpdater(stateManager, keyPicked, keyUsed, keyDelivered));
 
         ConstraintManager constraintManager = new ConstraintManager(vrp, stateManager);

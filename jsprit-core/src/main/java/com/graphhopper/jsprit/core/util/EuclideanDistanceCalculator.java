@@ -20,9 +20,9 @@ package com.graphhopper.jsprit.core.util;
 
 public class EuclideanDistanceCalculator {
 
-    public static double calculateDistance(Coordinate coord1, Coordinate coord2) {
-        double xDiff = coord1.getX() - coord2.getX();
-        double yDiff = coord1.getY() - coord2.getY();
+    public static double calculateDistance(v2 coord1, v2 coord2) {
+        double xDiff = coord1.x - coord2.x;
+        double yDiff = coord1.y - coord2.y;
         return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
     }
 

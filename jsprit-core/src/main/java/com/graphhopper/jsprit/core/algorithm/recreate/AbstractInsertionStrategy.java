@@ -37,14 +37,13 @@ import java.util.Random;
 
 public abstract class AbstractInsertionStrategy implements InsertionStrategy {
 
-    protected class Insertion {
+    protected static class Insertion {
 
         private final VehicleRoute route;
 
         private final InsertionData insertionData;
 
         public Insertion(VehicleRoute vehicleRoute, InsertionData insertionData) {
-            super();
             this.route = vehicleRoute;
             this.insertionData = insertionData;
         }
@@ -69,9 +68,9 @@ public abstract class AbstractInsertionStrategy implements InsertionStrategy {
 
     protected final static Driver NO_NEW_DRIVER_YET = null;
 
-    private InsertionListeners insertionsListeners;
+    private final InsertionListeners insertionsListeners;
 
-    private EventListeners eventListeners;
+    private final EventListeners eventListeners;
 
     protected VehicleRoutingProblem vrp;
 
@@ -116,10 +115,10 @@ public abstract class AbstractInsertionStrategy implements InsertionStrategy {
     }
 
     protected void insertJob(Job unassignedJob, InsertionData iData, VehicleRoute inRoute) {
-        logger.trace("insert: [jobId={}]{}", unassignedJob.getId(), iData);
+        logger.trace("insert: [jobId={}]{}", unassignedJob.id(), iData);
         insertionsListeners.informBeforeJobInsertion(unassignedJob, iData, inRoute);
-        if (!(inRoute.getVehicle().getId().equals(iData.getSelectedVehicle().getId()))) {
-            insertionsListeners.informVehicleSwitched(inRoute, inRoute.getVehicle(), iData.getSelectedVehicle());
+        if (!(inRoute.vehicle().id().equals(iData.getSelectedVehicle().id()))) {
+            insertionsListeners.informVehicleSwitched(inRoute, inRoute.vehicle(), iData.getSelectedVehicle());
         }
         for (Event e : iData.getEvents()) {
             eventListeners.inform(e);

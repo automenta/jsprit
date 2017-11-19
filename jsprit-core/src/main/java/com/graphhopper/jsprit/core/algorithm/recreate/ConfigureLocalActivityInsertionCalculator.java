@@ -31,9 +31,9 @@ import java.util.Collection;
  */
 public class ConfigureLocalActivityInsertionCalculator implements InsertionStartsListener, JobInsertedListener {
 
-    private VehicleRoutingProblem vrp;
+    private final VehicleRoutingProblem vrp;
 
-    private LocalActivityInsertionCostsCalculator localActivityInsertionCostsCalculator;
+    private final LocalActivityInsertionCostsCalculator localActivityInsertionCostsCalculator;
 
     private int nuOfJobsToRecreate;
 
@@ -45,14 +45,14 @@ public class ConfigureLocalActivityInsertionCalculator implements InsertionStart
     @Override
     public void informInsertionStarts(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
         this.nuOfJobsToRecreate = unassignedJobs.size();
-        double completenessRatio = (1 - ((double) nuOfJobsToRecreate / (double) vrp.getJobs().values().size()));
+        double completenessRatio = (1 - ((double) nuOfJobsToRecreate / (double) vrp.jobs().values().size()));
         localActivityInsertionCostsCalculator.setSolutionCompletenessRatio(Math.max(0.5, completenessRatio));
     }
 
     @Override
     public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
         nuOfJobsToRecreate--;
-        double completenessRatio = (1 - ((double) nuOfJobsToRecreate / (double) vrp.getJobs().values().size()));
+        double completenessRatio = (1 - ((double) nuOfJobsToRecreate / (double) vrp.jobs().values().size()));
         localActivityInsertionCostsCalculator.setSolutionCompletenessRatio(Math.max(0.5, completenessRatio));
     }
 }

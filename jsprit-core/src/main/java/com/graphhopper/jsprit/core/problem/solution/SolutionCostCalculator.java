@@ -32,6 +32,6 @@ public interface SolutionCostCalculator {
      * @param solution
      * @return costs
      */
-    public double getCosts(VehicleRoutingProblemSolution solution);
+    double getCosts(VehicleRoutingProblemSolution solution);
 
 }

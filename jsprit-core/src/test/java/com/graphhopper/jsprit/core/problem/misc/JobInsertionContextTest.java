@@ -19,10 +19,10 @@
 package com.graphhopper.jsprit.core.problem.misc;
 
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,8 +82,8 @@ public class JobInsertionContextTest {
 
     @Test
     public void relatedActivitiesShouldBeAssigned() {
-        context.getAssociatedActivities().add(mock(TourActivity.class));
-        context.getAssociatedActivities().add(mock(TourActivity.class));
+        context.getAssociatedActivities().add(mock(AbstractActivity.class));
+        context.getAssociatedActivities().add(mock(AbstractActivity.class));
         assertEquals(2, context.getAssociatedActivities().size());
     }
 

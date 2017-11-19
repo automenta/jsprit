@@ -42,6 +42,7 @@ import com.graphhopper.jsprit.core.algorithm.termination.IterationWithoutImprove
 import com.graphhopper.jsprit.core.algorithm.termination.PrematureAlgorithmTermination;
 import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
 import com.graphhopper.jsprit.core.algorithm.termination.VariationCoefficientTermination;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem.FleetSize;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
@@ -51,7 +52,6 @@ import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolutio
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.ReverseActivityVisitor;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.*;
 import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
 import com.graphhopper.jsprit.io.algorithm.VehicleRoutingAlgorithms.TypedMap.*;
@@ -70,17 +70,16 @@ public class VehicleRoutingAlgorithms {
 
     static class TypedMap {
 
-        static interface AbstractKey<K> {
+        interface AbstractKey<K> {
 
             Class<K> getType();
         }
 
         static class AcceptorKey implements AbstractKey<SolutionAcceptor> {
 
-            private ModKey modKey;
+            private final ModKey modKey;
 
             public AcceptorKey(ModKey modKey) {
-                super();
                 this.modKey = modKey;
             }
 
@@ -105,11 +104,8 @@ public class VehicleRoutingAlgorithms {
                     return false;
                 AcceptorKey other = (AcceptorKey) obj;
                 if (modKey == null) {
-                    if (other.modKey != null)
-                        return false;
-                } else if (!modKey.equals(other.modKey))
-                    return false;
-                return true;
+                    return other.modKey == null;
+                } else return modKey.equals(other.modKey);
             }
 
 
@@ -122,10 +118,9 @@ public class VehicleRoutingAlgorithms {
 
         static class SelectorKey implements AbstractKey<SolutionSelector> {
 
-            private ModKey modKey;
+            private final ModKey modKey;
 
             public SelectorKey(ModKey modKey) {
-                super();
                 this.modKey = modKey;
             }
 
@@ -148,11 +143,8 @@ public class VehicleRoutingAlgorithms {
                     return false;
                 SelectorKey other = (SelectorKey) obj;
                 if (modKey == null) {
-                    if (other.modKey != null)
-                        return false;
-                } else if (!modKey.equals(other.modKey))
-                    return false;
-                return true;
+                    return other.modKey == null;
+                } else return modKey.equals(other.modKey);
             }
 
 
@@ -165,10 +157,9 @@ public class VehicleRoutingAlgorithms {
 
         static class StrategyModuleKey implements AbstractKey<SearchStrategyModule> {
 
-            private ModKey modKey;
+            private final ModKey modKey;
 
             public StrategyModuleKey(ModKey modKey) {
-                super();
                 this.modKey = modKey;
             }
 
@@ -191,11 +182,8 @@ public class VehicleRoutingAlgorithms {
                     return false;
                 StrategyModuleKey other = (StrategyModuleKey) obj;
                 if (modKey == null) {
-                    if (other.modKey != null)
-                        return false;
-                } else if (!modKey.equals(other.modKey))
-                    return false;
-                return true;
+                    return other.modKey == null;
+                } else return modKey.equals(other.modKey);
             }
 
 
@@ -208,10 +196,9 @@ public class VehicleRoutingAlgorithms {
 
         static class RuinStrategyKey implements AbstractKey<RuinStrategy> {
 
-            private ModKey modKey;
+            private final ModKey modKey;
 
             public RuinStrategyKey(ModKey modKey) {
-                super();
                 this.modKey = modKey;
             }
 
@@ -234,11 +221,8 @@ public class VehicleRoutingAlgorithms {
                     return false;
                 RuinStrategyKey other = (RuinStrategyKey) obj;
                 if (modKey == null) {
-                    if (other.modKey != null)
-                        return false;
-                } else if (!modKey.equals(other.modKey))
-                    return false;
-                return true;
+                    return other.modKey == null;
+                } else return modKey.equals(other.modKey);
             }
 
 
@@ -251,10 +235,9 @@ public class VehicleRoutingAlgorithms {
 
         static class InsertionStrategyKey implements AbstractKey<InsertionStrategy> {
 
-            private ModKey modKey;
+            private final ModKey modKey;
 
             public InsertionStrategyKey(ModKey modKey) {
-                super();
                 this.modKey = modKey;
             }
 
@@ -277,11 +260,8 @@ public class VehicleRoutingAlgorithms {
                     return false;
                 InsertionStrategyKey other = (InsertionStrategyKey) obj;
                 if (modKey == null) {
-                    if (other.modKey != null)
-                        return false;
-                } else if (!modKey.equals(other.modKey))
-                    return false;
-                return true;
+                    return other.modKey == null;
+                } else return modKey.equals(other.modKey);
             }
 
 
@@ -292,7 +272,7 @@ public class VehicleRoutingAlgorithms {
 
         }
 
-        private Map<AbstractKey<?>, Object> map = new HashMap<AbstractKey<?>, Object>();
+        private final Map<AbstractKey<?>, Object> map = new HashMap<AbstractKey<?>, Object>();
 
         public <T> T get(AbstractKey<T> key) {
             if (map.get(key) == null) return null;
@@ -309,11 +289,10 @@ public class VehicleRoutingAlgorithms {
     }
 
     static class ModKey {
-        private String name;
-        private String id;
+        private final String name;
+        private final String id;
 
         public ModKey(String name, String id) {
-            super();
             this.name = name;
             this.id = id;
         }
@@ -342,16 +321,13 @@ public class VehicleRoutingAlgorithms {
             } else if (!id.equals(other.id))
                 return false;
             if (name == null) {
-                if (other.name != null)
-                    return false;
-            } else if (!name.equals(other.name))
-                return false;
-            return true;
+                return other.name == null;
+            } else return name.equals(other.name);
         }
 
     }
 
-    private static Logger log = LoggerFactory.getLogger(VehicleRoutingAlgorithms.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(VehicleRoutingAlgorithms.class.getName());
 
     private VehicleRoutingAlgorithms() {
     }
@@ -437,17 +413,15 @@ public class VehicleRoutingAlgorithms {
 
         @Override
         public void begin(VehicleRoute route) {
-            end = route.getEnd();
-            vehicle = route.getVehicle();
+            end = route.end;
+            vehicle = route.vehicle();
         }
 
         @Override
-        public void visit(TourActivity activity) {
+        public void visit(AbstractActivity activity) {
             if (firstAct) {
                 firstAct = false;
-                if (!vehicle.isReturnToDepot()) {
-                    assert activity.getLocation().getId().equals(end.getLocation().getId()) : "route end and last activity are not equal even route is open. this should not be.";
-                }
+                assert vehicle.isReturnToDepot() || activity.location().id.equals(end.location().id) : "route end and last activity are not equal even route is open. this should not be.";
             }
 
         }
@@ -534,10 +508,11 @@ public class VehicleRoutingAlgorithms {
 
                 @Override
                 public void uncaughtException(Thread arg0, Throwable arg1) {
-                    System.err.println(arg1.toString());
+                    System.err.println(arg1);
                 }
             });
             Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
                 public void run() {
                     if (!executorService.isShutdown()) {
                         System.err.println("shutdowHook shuts down executorService");
@@ -558,16 +533,16 @@ public class VehicleRoutingAlgorithms {
         } else switchAllowed = true;
         ActivityTimeTracker.ActivityPolicy activityPolicy;
         if (stateManager.timeWindowUpdateIsActivated()) {
-            UpdateVehicleDependentPracticalTimeWindows timeWindowUpdater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, vrp.getTransportCosts(), vrp.getActivityCosts());
+            UpdateVehicleDependentPracticalTimeWindows timeWindowUpdater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, vrp.transportCosts(), vrp.activityCosts());
             timeWindowUpdater.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
                 Map<VehicleTypeKey, Vehicle> uniqueTypes = new HashMap<VehicleTypeKey, Vehicle>();
 
                 @Override
                 public Collection<Vehicle> get(VehicleRoute vehicleRoute) {
                     if (uniqueTypes.isEmpty()) {
-                        for (Vehicle v : vrp.getVehicles()) {
-                            if (!uniqueTypes.containsKey(v.getVehicleTypeIdentifier())) {
-                                uniqueTypes.put(v.getVehicleTypeIdentifier(), v);
+                        for (Vehicle v : vrp.vehicles()) {
+                            if (!uniqueTypes.containsKey(v.vehicleType())) {
+                                uniqueTypes.put(v.vehicleType(), v);
                             }
                         }
                     }
@@ -581,8 +556,8 @@ public class VehicleRoutingAlgorithms {
         } else {
             activityPolicy = ActivityTimeTracker.ActivityPolicy.AS_SOON_AS_ARRIVED;
         }
-        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), activityPolicy, vrp.getActivityCosts()));
-        stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager, activityPolicy));
+        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.transportCosts(), activityPolicy, vrp.activityCosts()));
+        stateManager.addStateUpdater(new UpdateVariableCosts(vrp.activityCosts(), vrp.transportCosts(), stateManager, activityPolicy));
 
         final SolutionCostCalculator costCalculator;
         if (solutionCostCalculator == null) costCalculator = getDefaultCostCalculator(stateManager);
@@ -649,10 +624,10 @@ public class VehicleRoutingAlgorithms {
 
     private static VehicleFleetManager createFleetManager(final VehicleRoutingProblem vrp) {
         if (vrp.getFleetSize().equals(FleetSize.INFINITE)) {
-            return new InfiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
+            return new InfiniteFleetManagerFactory(vrp.vehicles()).createFleetManager();
 
         } else if (vrp.getFleetSize().equals(FleetSize.FINITE)) {
-            return new FiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
+            return new FiniteFleetManagerFactory(vrp.vehicles()).createFleetManager();
         }
         throw new IllegalStateException("fleet size can only be infinite or finite. " +
             "makes sure your config file contains one of these options");
@@ -867,7 +842,7 @@ public class VehicleRoutingAlgorithms {
                 String shareToRuinString = moduleConfig.getString("ruin.share");
                 if (shareToRuinString == null) throw new IllegalStateException("module.ruin.share is missing.");
                 double shareToRuin = Double.valueOf(shareToRuinString);
-                JobDistance jobDistance = new AvgServiceAndShipmentDistance(vrp.getTransportCosts());
+                JobDistance jobDistance = new AvgServiceAndShipmentDistance(vrp.transportCosts());
                 ruin = getRadialRuin(vrp, routeStates, definedClasses, ruinKey, shareToRuin, jobDistance);
             } else if (ruin_name.equals("clusterRuin")) {
                 String initialNumberJobsToRemoveString = moduleConfig.getString("ruin.initRemoveJobs");
@@ -916,7 +891,7 @@ public class VehicleRoutingAlgorithms {
     }
 
     private static RuinStrategy getClusterRuin(final VehicleRoutingProblem vrp, final StateManager routeStates, TypedMap definedClasses, ModKey modKey, int initialNumberJobsToRemove) {
-    	JobNeighborhoods jobNeighborhoods = new JobNeighborhoodsFactory().createNeighborhoods(vrp, new AvgServiceAndShipmentDistance(vrp.getTransportCosts()));
+    	JobNeighborhoods jobNeighborhoods = JobNeighborhoodsFactory.createNeighborhoods(vrp, new AvgServiceAndShipmentDistance(vrp.transportCosts()));
     	RuinStrategyKey stratKey = new RuinStrategyKey(modKey);
         RuinStrategy ruin = definedClasses.get(stratKey);
         if (ruin == null) {

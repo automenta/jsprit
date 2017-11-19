@@ -37,39 +37,39 @@ public class InitialRoutesTest {
     @Test
     public void whenReading_jobMapShouldOnlyContainJob2() {
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("simpleProblem_iniRoutes.xml"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
         assertEquals(1, getNuServices(vrp));
-        assertTrue(vrp.getJobs().containsKey("2"));
+        assertTrue(vrp.jobs().containsKey("2"));
     }
 
     @Test
     public void whenReadingProblem2_jobMapShouldContain_service2() {
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("simpleProblem_inclShipments_iniRoutes.xml"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
         assertEquals(1, getNuServices(vrp));
-        assertTrue(vrp.getJobs().containsKey("2"));
+        assertTrue(vrp.jobs().containsKey("2"));
     }
 
     @Test
     public void whenReading_jobMapShouldContain_shipment4() {
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("simpleProblem_inclShipments_iniRoutes.xml"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
         assertEquals(1, getNuShipments(vrp));
-        assertTrue(vrp.getJobs().containsKey("4"));
+        assertTrue(vrp.jobs().containsKey("4"));
     }
 
     private int getNuShipments(VehicleRoutingProblem vrp) {
         int nuShipments = 0;
-        for (Job job : vrp.getJobs().values()) {
+        for (Job job : vrp.jobs().values()) {
             if (job instanceof Shipment) nuShipments++;
         }
         return nuShipments;
@@ -77,7 +77,7 @@ public class InitialRoutesTest {
 
     private int getNuServices(VehicleRoutingProblem vrp) {
         int nuServices = 0;
-        for (Job job : vrp.getJobs().values()) {
+        for (Job job : vrp.jobs().values()) {
             if (job instanceof Service) nuServices++;
         }
         return nuServices;
@@ -86,32 +86,32 @@ public class InitialRoutesTest {
     @Test
     public void whenReading_thereShouldBeOnlyOneActAssociatedToJob2() {
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("simpleProblem_iniRoutes.xml"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
-        assertEquals(1, vrp.getActivities(vrp.getJobs().get("2")).size());
+        assertEquals(1, vrp.activities(vrp.jobs().get("2")).size());
     }
 
     @Test
     public void whenReading_thereShouldBeOnlyOneActAssociatedToJob2_v2() {
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("simpleProblem_inclShipments_iniRoutes.xml"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
-        assertEquals(1, vrp.getActivities(vrp.getJobs().get("2")).size());
+        assertEquals(1, vrp.activities(vrp.jobs().get("2")).size());
     }
 
     @Test
     public void whenReading_thereShouldBeTwoActsAssociatedToShipment4() {
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new VrpXMLReader(vrpBuilder).read(getClass().getResourceAsStream("simpleProblem_inclShipments_iniRoutes.xml"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
-        Job job = vrp.getJobs().get("4");
-        List<AbstractActivity> activities = vrp.getActivities(job);
+        Job job = vrp.jobs().get("4");
+        List<AbstractActivity> activities = vrp.activities(job);
 
         assertEquals(2, activities.size());
     }

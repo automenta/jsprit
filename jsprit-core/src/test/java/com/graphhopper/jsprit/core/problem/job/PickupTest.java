@@ -30,90 +30,90 @@ public class PickupTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void whenNeitherLocationIdNorCoordIsSet_itThrowsException() {
-        Pickup.Builder.newInstance("p").build();
+        Pickup.Builder.the("p").build();
     }
 
     @Test
     public void whenAddingTwoCapDimension_nuOfDimsShouldBeTwo() {
-        Pickup one = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("foofoo"))
-            .addSizeDimension(0, 2)
-            .addSizeDimension(1, 4)
+        Pickup one = Pickup.Builder.the("s").location(Location.the("foofoo"))
+            .sizeDimension(0, 2)
+            .sizeDimension(1, 4)
             .build();
-        assertEquals(2, one.getSize().getNuOfDimensions());
-        assertEquals(2, one.getSize().get(0));
-        assertEquals(4, one.getSize().get(1));
+        assertEquals(2, one.size.dim());
+        assertEquals(2, one.size.get(0));
+        assertEquals(4, one.size.get(1));
 
     }
 
     @Test
     public void whenPickupIsBuiltWithoutSpecifyingCapacity_itShouldHvCapWithOneDimAndDimValOfZero() {
-        Pickup one = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("foofoo"))
+        Pickup one = Pickup.Builder.the("s").location(Location.the("foofoo"))
             .build();
-        assertEquals(1, one.getSize().getNuOfDimensions());
-        assertEquals(0, one.getSize().get(0));
+        assertEquals(1, one.size.dim());
+        assertEquals(0, one.size.get(0));
     }
 
     @Test
     public void whenPickupIsBuiltWithConstructorWhereSizeIsSpecified_capacityShouldBeSetCorrectly() {
-        Pickup one = Pickup.Builder.newInstance("s").addSizeDimension(0, 1).setLocation(Location.newInstance("foofoo"))
+        Pickup one = Pickup.Builder.the("s").sizeDimension(0, 1).location(Location.the("foofoo"))
             .build();
-        assertEquals(1, one.getSize().getNuOfDimensions());
-        assertEquals(1, one.getSize().get(0));
+        assertEquals(1, one.size.dim());
+        assertEquals(1, one.size.get(0));
     }
 
     @Test
     public void whenAddingSkills_theyShouldBeAddedCorrectly() {
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addRequiredSkill("drill").addRequiredSkill("screwdriver").build();
-        assertTrue(s.getRequiredSkills().containsSkill("drill"));
-        assertTrue(s.getRequiredSkills().containsSkill("drill"));
-        assertTrue(s.getRequiredSkills().containsSkill("ScrewDriver"));
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
+            .skillRequired("drill").skillRequired("screwdriver").build();
+        assertTrue(s.skills.containsSkill("drill"));
+        assertTrue(s.skills.containsSkill("drill"));
+        assertTrue(s.skills.containsSkill("ScrewDriver"));
     }
 
     @Test
     public void whenAddingSkillsCaseSens_theyShouldBeAddedCorrectly() {
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addRequiredSkill("DriLl").addRequiredSkill("screwDriver").build();
-        assertTrue(s.getRequiredSkills().containsSkill("drill"));
-        assertTrue(s.getRequiredSkills().containsSkill("drilL"));
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
+            .skillRequired("DriLl").skillRequired("screwDriver").build();
+        assertTrue(s.skills.containsSkill("drill"));
+        assertTrue(s.skills.containsSkill("drilL"));
     }
 
     @Test
     public void whenAddingSkillsCaseSensV2_theyShouldBeAddedCorrectly() {
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .addRequiredSkill("screwDriver").build();
-        assertFalse(s.getRequiredSkills().containsSkill("drill"));
-        assertFalse(s.getRequiredSkills().containsSkill("drilL"));
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
+            .skillRequired("screwDriver").build();
+        assertFalse(s.skills.containsSkill("drill"));
+        assertFalse(s.skills.containsSkill("drilL"));
     }
 
     @Test
     public void nameShouldBeAssigned() {
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .setName("name").build();
-        assertEquals("name", s.getName());
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
+            .name("name").build();
+        assertEquals("name", s.name);
     }
 
 
     @Test
     public void whenSettingPriorities_itShouldBeSetCorrectly(){
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
             .setPriority(3).build();
-        Assert.assertEquals(3, s.getPriority());
+        Assert.assertEquals(3, s.priority);
     }
 
     @Test
     public void whenNotSettingPriorities_defaultShouldBe(){
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
             .build();
-        Assert.assertEquals(2, s.getPriority());
+        Assert.assertEquals(2, s.priority);
     }
 
     @Test
     public void whenSettingUserData_itIsAssociatedWithTheJob() {
-        Pickup one = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
-            .setUserData(new HashMap<String, Object>()).build();
-        Pickup two = Pickup.Builder.newInstance("s2").setLocation(Location.newInstance("loc")).setUserData(42).build();
-        Pickup three = Pickup.Builder.newInstance("s3").setLocation(Location.newInstance("loc")).build();
+        Pickup one = Pickup.Builder.the("s").location(Location.the("loc"))
+            .userData(new HashMap<String, Object>()).build();
+        Pickup two = Pickup.Builder.the("s2").location(Location.the("loc")).userData(42).build();
+        Pickup three = Pickup.Builder.the("s3").location(Location.the("loc")).build();
 
         assertTrue(one.getUserData() instanceof Map);
         assertEquals(42, two.getUserData());
@@ -122,16 +122,16 @@ public class PickupTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void whenAddingMaxTimeInVehicle_itShouldThrowEx(){
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
             .setMaxTimeInVehicle(10)
             .build();
     }
 
     @Test
     public void whenNotAddingMaxTimeInVehicle_itShouldBeDefault(){
-        Pickup s = Pickup.Builder.newInstance("s").setLocation(Location.newInstance("loc"))
+        Pickup s = Pickup.Builder.the("s").location(Location.the("loc"))
             .build();
-        Assert.assertEquals(Double.MAX_VALUE, s.getMaxTimeInVehicle(),0.001);
+        Assert.assertEquals(Double.MAX_VALUE, s.maxTimeInVehicle,0.001);
     }
 
 }

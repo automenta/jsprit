@@ -23,7 +23,6 @@ import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolutio
 import com.graphhopper.jsprit.core.util.LiLimReader;
 import com.graphhopper.jsprit.core.util.Solutions;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.Collection;
 
@@ -33,13 +32,13 @@ public class PickupsAndDeliveries_IT {
 
     @Test
     public void whenSolvingLR101InstanceOfLiLim_solutionsMustNoBeWorseThan5PercentOfBestKnownSolution() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new LiLimReader(vrpBuilder).read(getClass().getResourceAsStream("lr101.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp).setProperty(Jsprit.Parameter.FAST_REGRET,"true").buildAlgorithm();
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-        assertEquals(1650.8, Solutions.bestOf(solutions).getCost(), 80.);
-        assertEquals(19, Solutions.bestOf(solutions).getRoutes().size(), 1);
+        assertEquals(1650.8, Solutions.bestOf(solutions).cost(), 80.);
+        assertEquals(19, Solutions.bestOf(solutions).routes.size(), 1);
     }
 
 }

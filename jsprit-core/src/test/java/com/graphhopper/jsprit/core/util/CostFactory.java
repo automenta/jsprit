@@ -33,10 +33,10 @@ public class CostFactory {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
+            public v2 coord(String id) {
                 //assume: locationId="x,y"
                 String[] splitted = id.split(",");
-                return Coordinate.newInstance(Double.parseDouble(splitted[0]),
+                return v2.the(Double.parseDouble(splitted[0]),
                     Double.parseDouble(splitted[1]));
             }
 
@@ -56,10 +56,10 @@ public class CostFactory {
         Locations locations = new Locations() {
 
             @Override
-            public Coordinate getCoord(String id) {
+            public v2 coord(String id) {
                 //assume: locationId="x,y"
                 String[] splitted = id.split(",");
-                return Coordinate.newInstance(Double.parseDouble(splitted[0]),
+                return v2.the(Double.parseDouble(splitted[0]),
                     Double.parseDouble(splitted[1]));
             }
 

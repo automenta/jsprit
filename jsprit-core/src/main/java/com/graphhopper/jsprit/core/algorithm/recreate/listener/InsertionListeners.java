@@ -29,7 +29,7 @@ import java.util.List;
 
 public class InsertionListeners {
 
-    private Collection<InsertionListener> listeners = new ArrayList<InsertionListener>();
+    private final Collection<InsertionListener> listeners = new ArrayList<>();
 
     public Collection<InsertionListener> getListeners() {
         return listeners;
@@ -75,7 +75,7 @@ public class InsertionListeners {
         }
     }
 
-    public void informJobUnassignedListeners(Job unassigned, List<String> reasons) {
+    public void informJobUnassignedListeners(Job unassigned, Collection<String> reasons) {
         for (InsertionListener l : listeners) {
             if (l instanceof JobUnassignedListener) {
                 ((JobUnassignedListener) l).informJobUnassigned(unassigned, reasons);
@@ -91,7 +91,7 @@ public class InsertionListeners {
         listeners.remove(insertionListener);
     }
 
-    public void addAllListeners(Collection<InsertionListener> listeners) {
+    public void addAllListeners(Iterable<InsertionListener> listeners) {
         for (InsertionListener l : listeners) addListener(l);
     }
 

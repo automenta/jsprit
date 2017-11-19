@@ -38,8 +38,8 @@ public class SelectRandomlyTest {
         VehicleRoutingProblemSolution sol1 = mock(VehicleRoutingProblemSolution.class);
         VehicleRoutingProblemSolution sol2 = mock(VehicleRoutingProblemSolution.class);
 
-        when(sol1.getCost()).thenReturn(1.0);
-        when(sol2.getCost()).thenReturn(2.0);
+        when(sol1.cost()).thenReturn(1.0);
+        when(sol2.cost()).thenReturn(2.0);
 
         Random random = mock(Random.class);
         when(random.nextInt(2)).thenReturn(1);
@@ -56,8 +56,8 @@ public class SelectRandomlyTest {
         VehicleRoutingProblemSolution sol1 = mock(VehicleRoutingProblemSolution.class);
         VehicleRoutingProblemSolution sol2 = mock(VehicleRoutingProblemSolution.class);
 
-        when(sol1.getCost()).thenReturn(1.0);
-        when(sol2.getCost()).thenReturn(2.0);
+        when(sol1.cost()).thenReturn(1.0);
+        when(sol2.cost()).thenReturn(2.0);
 
         Random random = mock(Random.class);
         when(random.nextInt(2)).thenReturn(0);
@@ -76,6 +76,6 @@ public class SelectRandomlyTest {
         SelectRandomly selectRandomly = new SelectRandomly();
         selectRandomly.setRandom(random);
 
-        assertNull(selectRandomly.selectSolution(Collections.<VehicleRoutingProblemSolution>emptyList()));
+        assertNull(selectRandomly.selectSolution(Collections.emptyList()));
     }
 }

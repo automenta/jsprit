@@ -17,25 +17,25 @@
  */
 package com.graphhopper.jsprit.core.algorithm.state;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.RouteVisitor;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 
 public class UpdateEndLocationIfRouteIsOpen implements StateUpdater, RouteVisitor {
 
     @Override
     public void visit(VehicleRoute route) {
-        if (route.getVehicle() != null) {
-            if (!route.getVehicle().isReturnToDepot()) {
+        if (route.vehicle() != null) {
+            if (!route.vehicle().isReturnToDepot()) {
                 setRouteEndToLastActivity(route);
             }
         }
     }
 
-    private void setRouteEndToLastActivity(VehicleRoute route) {
-        if (!route.getActivities().isEmpty()) {
-            TourActivity lastAct = route.getActivities().get(route.getActivities().size() - 1);
-            route.getEnd().setLocation(lastAct.getLocation());
+    private static void setRouteEndToLastActivity(VehicleRoute route) {
+        if (!route.activities().isEmpty()) {
+            AbstractActivity lastAct = route.activities().get(route.activities().size() - 1);
+            route.end.location(lastAct.location());
         }
     }
 

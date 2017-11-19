@@ -21,6 +21,7 @@ import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public class InsertionData {
 
     }
 
-    private static InsertionData noInsertion = new NoInsertionFound();
+    private static final InsertionData noInsertion = new NoInsertionFound();
 
     /**
      * Returns an instance of InsertionData that represents an EmptyInsertionData (which might indicate
@@ -54,7 +55,7 @@ public class InsertionData {
         return noInsertion;
     }
 
-    static int NO_INDEX = -1;
+    static final int NO_INDEX = -1;
 
     private final double insertionCost;
 
@@ -70,13 +71,13 @@ public class InsertionData {
 
     private double additionalTime;
 
-    private List<Event> events = new ArrayList<Event>();
+    private final List<Event> events = new ArrayList<>();
 
-    List<Event> getEvents() {
+    Collection<Event> getEvents() {
         return events;
     }
 
-    private List<String> reasons = new ArrayList<>();
+    private final List<String> reasons = new ArrayList<>();
 
     /**
      * @return the additionalTime
@@ -110,7 +111,7 @@ public class InsertionData {
 
     @Override
     public String toString() {
-        return "[iCost=" + insertionCost + "][pickupIndex=" + pickupInsertionIndex + "][deliveryIndex=" + deliveryInsertionIndex + "][depTime=" + departureTime + "][vehicle=" + selectedVehicle + "][driver=" + selectedDriver + "]";
+        return "[iCost=" + insertionCost + "][pickupIndex=" + pickupInsertionIndex + "][deliveryIndex=" + deliveryInsertionIndex + "][depTime=" + departureTime + "][vehicle=" + selectedVehicle + "][driver=" + selectedDriver + ']';
     }
 
     /**

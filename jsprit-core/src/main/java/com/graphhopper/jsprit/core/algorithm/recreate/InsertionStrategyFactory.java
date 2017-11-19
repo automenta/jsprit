@@ -21,6 +21,6 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 
 public interface InsertionStrategyFactory {
 
-    public InsertionStrategy createStrategy(VehicleRoutingProblem vrp);
+    InsertionStrategy createStrategy(VehicleRoutingProblem vrp);
 
 }

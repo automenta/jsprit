@@ -17,11 +17,11 @@
  */
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 /**
@@ -33,7 +33,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 class AdditionalAccessEgressCalculator {
 
-    private VehicleRoutingTransportCosts routingCosts;
+    private final VehicleRoutingTransportCosts routingCosts;
 
     /**
      * Constructs the estimator that estimates additional access/egress costs when operating route with a new vehicle that has different start/end-location.
@@ -54,17 +54,17 @@ class AdditionalAccessEgressCalculator {
         Driver newDriver = insertionContext.getNewDriver();
         double newVehicleDepartureTime = insertionContext.getNewDepTime();
         if (!currentRoute.isEmpty()) {
-            double accessTransportCostNew = routingCosts.getTransportCost(newVehicle.getStartLocation(), currentRoute.getActivities().get(0).getLocation(), newVehicleDepartureTime, newDriver, newVehicle);
-            double accessTransportCostOld = routingCosts.getTransportCost(currentRoute.getStart().getLocation(), currentRoute.getActivities().get(0).getLocation(), currentRoute.getDepartureTime(), currentRoute.getDriver(), currentRoute.getVehicle());
+            double accessTransportCostNew = routingCosts.transportCost(newVehicle.start(), currentRoute.activities().get(0).location(), newVehicleDepartureTime, newDriver, newVehicle);
+            double accessTransportCostOld = routingCosts.transportCost(currentRoute.start.location(), currentRoute.activities().get(0).location(), currentRoute.getDepartureTime(), currentRoute.driver, currentRoute.vehicle());
 
             delta_access = accessTransportCostNew - accessTransportCostOld;
 
             if (newVehicle.isReturnToDepot()) {
-                TourActivity lastActivityBeforeEndOfRoute = currentRoute.getActivities().get(currentRoute.getActivities().size() - 1);
-                double lastActivityEndTimeWithOldVehicleAndDepartureTime = lastActivityBeforeEndOfRoute.getEndTime();
+                AbstractActivity lastActivityBeforeEndOfRoute = currentRoute.activities().get(currentRoute.activities().size() - 1);
+                double lastActivityEndTimeWithOldVehicleAndDepartureTime = lastActivityBeforeEndOfRoute.end();
                 double lastActivityEndTimeEstimationWithNewVehicleAndNewDepartureTime = Math.max(0.0, lastActivityEndTimeWithOldVehicleAndDepartureTime + (newVehicleDepartureTime - currentRoute.getDepartureTime()));
-                double egressTransportCostNew = routingCosts.getTransportCost(lastActivityBeforeEndOfRoute.getLocation(), newVehicle.getEndLocation(), lastActivityEndTimeEstimationWithNewVehicleAndNewDepartureTime, newDriver, newVehicle);
-                double egressTransportCostOld = routingCosts.getTransportCost(lastActivityBeforeEndOfRoute.getLocation(), currentRoute.getEnd().getLocation(), lastActivityEndTimeWithOldVehicleAndDepartureTime, currentRoute.getDriver(), currentRoute.getVehicle());
+                double egressTransportCostNew = routingCosts.transportCost(lastActivityBeforeEndOfRoute.location(), newVehicle.end(), lastActivityEndTimeEstimationWithNewVehicleAndNewDepartureTime, newDriver, newVehicle);
+                double egressTransportCostOld = routingCosts.transportCost(lastActivityBeforeEndOfRoute.location(), currentRoute.end.location(), lastActivityEndTimeWithOldVehicleAndDepartureTime, currentRoute.driver, currentRoute.vehicle());
 
                 delta_egress = egressTransportCostNew - egressTransportCostOld;
             }

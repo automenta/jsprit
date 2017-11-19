@@ -17,6 +17,7 @@
  */
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.JobActivityFactory;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint.ConstraintsStatus;
@@ -30,10 +31,7 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.misc.ActivityContext;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.Start;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.*;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,24 +53,23 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
 
 //    private HardActivityConstraint hardActivityLevelConstraint;
 
-    private SoftRouteConstraint softRouteConstraint;
+    private final SoftRouteConstraint softRouteConstraint;
 
-    private SoftActivityConstraint softActivityConstraint;
+    private final SoftActivityConstraint softActivityConstraint;
 
-    private VehicleRoutingTransportCosts transportCosts;
+    private final VehicleRoutingTransportCosts transportCosts;
 
     private final VehicleRoutingActivityCosts activityCosts;
 
-    private ActivityInsertionCostsCalculator additionalTransportCostsCalculator;
+    private final ActivityInsertionCostsCalculator additionalTransportCostsCalculator;
 
     private JobActivityFactory activityFactory;
 
-    private AdditionalAccessEgressCalculator additionalAccessEgressCalculator;
+    private final AdditionalAccessEgressCalculator additionalAccessEgressCalculator;
 
-    private ConstraintManager constraintManager;
+    private final ConstraintManager constraintManager;
 
     public ServiceInsertionCalculator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts activityCosts, ActivityInsertionCostsCalculator additionalTransportCostsCalculator, ConstraintManager constraintManager) {
-        super();
         this.transportCosts = routingCosts;
         this.activityCosts = activityCosts;
         this.constraintManager = constraintManager;
@@ -102,7 +99,7 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
         Service service = (Service) jobToInsert;
         int insertionIndex = InsertionData.NO_INDEX;
 
-        TourActivity deliveryAct2Insert = activityFactory.createActivities(service).get(0);
+        AbstractActivity deliveryAct2Insert = activityFactory.the(service).get(0);
         insertionContext.getAssociatedActivities().add(deliveryAct2Insert);
 
         /*
@@ -125,31 +122,31 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
         /*
         generate new start and end for new vehicle
          */
-        Start start = new Start(newVehicle.getStartLocation(), newVehicle.getEarliestDeparture(), Double.MAX_VALUE);
-        start.setEndTime(newVehicleDepartureTime);
-        End end = new End(newVehicle.getEndLocation(), 0.0, newVehicle.getLatestArrival());
+        Start start = new Start(newVehicle.start(), newVehicle.earliestDeparture(), Double.MAX_VALUE);
+        start.end(newVehicleDepartureTime);
+        End end = new End(newVehicle.end(), 0.0, newVehicle.latestArrival());
 
-        TourActivity prevAct = start;
+        AbstractActivity prevAct = start;
         double prevActStartTime = newVehicleDepartureTime;
         int actIndex = 0;
-        Iterator<TourActivity> activityIterator = currentRoute.getActivities().iterator();
+        Iterator<AbstractActivity> activityIterator = currentRoute.activities().iterator();
         boolean tourEnd = false;
         while(!tourEnd){
-            TourActivity nextAct;
+            AbstractActivity nextAct;
             if(activityIterator.hasNext()) nextAct = activityIterator.next();
             else{
                 nextAct = end;
                 tourEnd = true;
             }
             boolean not_fulfilled_break = true;
-			for(TimeWindow timeWindow : service.getTimeWindows()) {
-                deliveryAct2Insert.setTheoreticalEarliestOperationStartTime(timeWindow.getStart());
-                deliveryAct2Insert.setTheoreticalLatestOperationStartTime(timeWindow.getEnd());
+            for(TimeWindow timeWindow : service.timeWindows) {
+                deliveryAct2Insert.startEarliest(timeWindow.start);
+                deliveryAct2Insert.startLatest(timeWindow.end);
                 ActivityContext activityContext = new ActivityContext();
                 activityContext.setInsertionIndex(actIndex);
                 insertionContext.setActivityContext(activityContext);
                 ConstraintsStatus status = fulfilled(insertionContext, prevAct, deliveryAct2Insert, nextAct, prevActStartTime, failedActivityConstraints, constraintManager);
-                if (status.equals(ConstraintsStatus.FULFILLED)) {
+                if (status == ConstraintsStatus.FULFILLED) {
                     double additionalICostsAtActLevel = softActivityConstraint.getCosts(insertionContext, prevAct, deliveryAct2Insert, nextAct, prevActStartTime);
                     double additionalTransportationCosts = additionalTransportCostsCalculator.getCosts(insertionContext, prevAct, nextAct, deliveryAct2Insert, prevActStartTime);
                     if (additionalICostsAtRouteLevel + additionalICostsAtActLevel + additionalTransportationCosts < bestCost) {
@@ -158,13 +155,13 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
                         bestTimeWindow = timeWindow;
                     }
                     not_fulfilled_break = false;
-                } else if (status.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                } else if (status == ConstraintsStatus.NOT_FULFILLED) {
                     not_fulfilled_break = false;
                 }
 			}
             if(not_fulfilled_break) break;
-            double nextActArrTime = prevActStartTime + transportCosts.getTransportTime(prevAct.getLocation(), nextAct.getLocation(), prevActStartTime, newDriver, newVehicle);
-            prevActStartTime = Math.max(nextActArrTime, nextAct.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(nextAct,nextActArrTime,newDriver,newVehicle);
+            double nextActArrTime = prevActStartTime + transportCosts.transportTime(prevAct.location(), nextAct.location(), prevActStartTime, newDriver, newVehicle);
+            prevActStartTime = Math.max(nextActArrTime, nextAct.startEarliest()) + activityCosts.getActivityDuration(nextAct,nextActArrTime,newDriver,newVehicle);
             prevAct = nextAct;
             actIndex++;
         }
@@ -174,8 +171,8 @@ final class ServiceInsertionCalculator extends AbstractInsertionCalculator {
             return emptyInsertionData;
         }
         InsertionData insertionData = new InsertionData(bestCost, InsertionData.NO_INDEX, insertionIndex, newVehicle, newDriver);
-        deliveryAct2Insert.setTheoreticalEarliestOperationStartTime(bestTimeWindow.getStart());
-        deliveryAct2Insert.setTheoreticalLatestOperationStartTime(bestTimeWindow.getEnd());
+        deliveryAct2Insert.startEarliest(bestTimeWindow.start);
+        deliveryAct2Insert.startLatest(bestTimeWindow.end);
         insertionData.getEvents().add(new InsertActivity(currentRoute, newVehicle, deliveryAct2Insert, insertionIndex));
         insertionData.getEvents().add(new SwitchVehicle(currentRoute,newVehicle,newVehicleDepartureTime));
         insertionData.setVehicleDepartureTime(newVehicleDepartureTime);

@@ -41,9 +41,9 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
 
     private int nOfTotalIterations = 1000;
 
-    private int currentIteration = 0;
+    private int currentIteration;
 
-    private double initialThreshold = 0.0;
+    private double initialThreshold;
 
     private final int nOfRandomWalks;
 
@@ -51,7 +51,6 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
 
 
     public ExperimentalSchrimpfAcceptance(int solutionMemory, double alpha, int nOfWarmupIterations) {
-        super();
         this.alpha = alpha;
         this.nOfRandomWalks = nOfWarmupIterations;
         this.solutionMemory = solutionMemory;
@@ -70,13 +69,13 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
             double threshold = getThreshold(currentIteration);
             for (VehicleRoutingProblemSolution solutionInMemory : solutions) {
                 if (worst == null) worst = solutionInMemory;
-                else if (solutionInMemory.getCost() > worst.getCost()) worst = solutionInMemory;
+                else if (solutionInMemory.cost() > worst.cost()) worst = solutionInMemory;
             }
-            if (newSolution.getRoutes().size() < worst.getRoutes().size()) {
+            if (newSolution.routes.size() < worst.routes.size()) {
                 solutions.remove(worst);
                 solutions.add(newSolution);
                 solutionAccepted = true;
-            } else if (newSolution.getRoutes().size() == worst.getRoutes().size() && newSolution.getCost() < worst.getCost() + threshold) {
+            } else if (newSolution.routes.size() == worst.routes.size() && newSolution.cost() < worst.cost() + threshold) {
                 solutions.remove(worst);
                 solutions.add(newSolution);
                 solutionAccepted = true;
@@ -87,7 +86,7 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
 
     @Override
     public String toString() {
-        return "[name=schrimpfAcceptanceFunction][alpha=" + alpha + "][warmup=" + nOfRandomWalks + "]";
+        return "[name=schrimpfAcceptanceFunction][alpha=" + alpha + "][warmup=" + nOfRandomWalks + ']';
     }
 
     private double getThreshold(int iteration) {
@@ -112,19 +111,14 @@ public class ExperimentalSchrimpfAcceptance implements SolutionAcceptor, Iterati
 		 */
         final double[] results = new double[nOfRandomWalks];
 
-        Jsprit.Builder builder = new GreedySchrimpfFactory().createGreedyAlgorithmBuilder(problem);
+        Jsprit.Builder builder = GreedySchrimpfFactory.createGreedyAlgorithmBuilder(problem);
         builder.setCustomAcceptor(new AcceptNewRemoveFirst(1));
         VehicleRoutingAlgorithm vra = builder.buildAlgorithm();
         vra.setMaxIterations(nOfRandomWalks);
-        vra.getAlgorithmListeners().addListener(new IterationEndsListener() {
-
-            @Override
-            public void informIterationEnds(int iteration, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-                double result = Solutions.bestOf(solutions).getCost();
+        vra.getAlgorithmListeners().addListener((IterationEndsListener) (iteration, problem1, solutions1) -> {
+            double result = Solutions.bestOf(solutions1).cost();
 //				logger.info("result={}", result);
-                results[iteration - 1] = result;
-            }
-
+            results[iteration - 1] = result;
         });
         vra.searchSolutions();
 

@@ -26,7 +26,7 @@ import java.util.Collections;
 
 class HardRouteLevelConstraintManager implements HardRouteConstraint {
 
-    private Collection<HardRouteConstraint> hardConstraints = new ArrayList<HardRouteConstraint>();
+    private final Collection<HardRouteConstraint> hardConstraints = new ArrayList<>();
 
     public void addConstraint(HardRouteConstraint constraint) {
         hardConstraints.add(constraint);

@@ -21,7 +21,7 @@ import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 import com.graphhopper.jsprit.core.util.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +44,7 @@ import java.util.*;
  */
 public final class RuinString extends AbstractRuinStrategy {
 
-    private static Logger logger = LoggerFactory.getLogger(RuinString.class);
-
-    private final VehicleRoutingProblem vrp;
+    private static final Logger logger = LoggerFactory.getLogger(RuinString.class);
 
     private final JobNeighborhoods jobNeighborhoods;
 
@@ -60,7 +58,6 @@ public final class RuinString extends AbstractRuinStrategy {
 
     public RuinString(VehicleRoutingProblem vrp, JobNeighborhoods jobNeighborhoods) {
         super(vrp);
-        this.vrp = vrp;
         this.jobNeighborhoods = jobNeighborhoods;
         logger.debug("initialise {}", this);
     }
@@ -86,16 +83,15 @@ public final class RuinString extends AbstractRuinStrategy {
      */
     @Override
     public Collection<Job> ruinRoutes(Collection<VehicleRoute> vehicleRoutes) {
-        if (vehicleRoutes.isEmpty() || vrp.getJobs().isEmpty()) {
+        if (vehicleRoutes.isEmpty() || vrp.jobs().isEmpty()) {
             return Collections.emptyList();
         }
         int noStrings;
-        if (kMin == kMax) noStrings = kMax;
-        else noStrings = kMin + random.nextInt((kMax - kMin));
+        noStrings = kMin == kMax ? kMax : kMin + random.nextInt((kMax - kMin));
         noStrings = Math.min(noStrings, vehicleRoutes.size());
         Set<Job> unassignedJobs = new HashSet<>();
-        Set<VehicleRoute> ruinedRoutes = new HashSet<>();
-        Job prevJob = RandomUtils.nextJob(vrp.getJobs().values(), random);
+        Collection<VehicleRoute> ruinedRoutes = new HashSet<>();
+        Job prevJob = RandomUtils.nextJob(vrp.jobs().values(), random);
         Iterator<Job> neighborhoodIterator = jobNeighborhoods.getNearestNeighborsIterator(kMax * lMax, prevJob);
         while (neighborhoodIterator.hasNext() && ruinedRoutes.size() <= noStrings) {
             if (!unassignedJobs.contains(prevJob)) {
@@ -114,29 +110,28 @@ public final class RuinString extends AbstractRuinStrategy {
         return unassignedJobs;
     }
 
-    private VehicleRoute getRouteOf(Job job, Collection<VehicleRoute> vehicleRoutes) {
+    private static VehicleRoute getRouteOf(Job job, Iterable<VehicleRoute> vehicleRoutes) {
         for (VehicleRoute route : vehicleRoutes) {
-            if (route.getTourActivities().servesJob(job)) return route;
+            if (route.tourActivities().servesJob(job)) return route;
         }
         return null;
     }
 
-    private void ruinRouteWithSplitStringRuin(VehicleRoute seedRoute, Job prevJob, Set<Job> unassignedJobs) {
-        int noActivities = seedRoute.getActivities().size();
+    private void ruinRouteWithSplitStringRuin(VehicleRoute seedRoute, Job prevJob, Collection<Job> unassignedJobs) {
+        int noActivities = seedRoute.activities().size();
         int stringLength;
-        if (lMin == lMax) stringLength = lMin;
-        else stringLength = lMin + random.nextInt(lMax - lMin);
-        stringLength = Math.min(stringLength, seedRoute.getActivities().size());
+        stringLength = lMin == lMax ? lMin : lMin + random.nextInt(lMax - lMin);
+        stringLength = Math.min(stringLength, seedRoute.activities().size());
 
         int preservedSubstringLength = StringUtil.determineSubstringLength(stringLength, noActivities, random);
 
-        List<AbstractActivity> acts = vrp.getActivities(prevJob);
+        List<AbstractActivity> acts = vrp.activities(prevJob);
         AbstractActivity randomSeedAct = RandomUtils.nextItem(acts, random);
         int seedIndex = 0;
 
         int index = 0;
-        for (TourActivity act : seedRoute.getActivities()) {
-            if (act.getIndex() == randomSeedAct.getIndex()) {
+        for (AbstractActivity act : seedRoute.activities()) {
+            if (act.index() == randomSeedAct.index()) {
                 seedIndex = index;
                 break;
             }
@@ -148,7 +143,7 @@ public final class RuinString extends AbstractRuinStrategy {
         if (stringBounds.isEmpty()) return;
         int lowerBound = RandomUtils.nextItem(stringBounds, random);
 
-        List<Job> jobs2Remove = new ArrayList<>();
+        Collection<Job> jobs2Remove = new ArrayList<>();
         int startIndexOfPreservedSubstring = random.nextInt(stringLength);
         int position = 0;
         int noStringsInPreservedSubstring = 0;
@@ -161,10 +156,10 @@ public final class RuinString extends AbstractRuinStrategy {
                 isPreservedSubstring = false;
             }
             if (!isPreservedSubstring) {
-                TourActivity act = seedRoute.getActivities().get(i);
-                if (act instanceof TourActivity.JobActivity) {
-                    Job job = ((TourActivity.JobActivity) act).getJob();
-                    if (vrp.getJobs().containsKey(job.getId())) {
+                AbstractActivity act = seedRoute.activities().get(i);
+                if (act instanceof JobActivity) {
+                    Job job = ((JobActivity) act).job();
+                    if (vrp.jobs().containsKey(job.id())) {
                         jobs2Remove.add(job);
                     }
                 }
@@ -179,16 +174,16 @@ public final class RuinString extends AbstractRuinStrategy {
     }
 
 
-    private void ruinRouteWithStringRuin(VehicleRoute seedRoute, Job prevJob, Set<Job> unassignedJobs) {
+    private void ruinRouteWithStringRuin(VehicleRoute seedRoute, Job prevJob, Collection<Job> unassignedJobs) {
         int stringLength = lMin + random.nextInt(lMax - lMin);
-        stringLength = Math.min(stringLength, seedRoute.getActivities().size());
-        List<AbstractActivity> acts = vrp.getActivities(prevJob);
+        stringLength = Math.min(stringLength, seedRoute.activities().size());
+        List<AbstractActivity> acts = vrp.activities(prevJob);
         AbstractActivity randomSeedAct = RandomUtils.nextItem(acts, random);
         int seedIndex = 0;
-        int noActivities = seedRoute.getActivities().size();
+        int noActivities = seedRoute.activities().size();
         int index = 0;
-        for (TourActivity act : seedRoute.getActivities()) {
-            if (act.getIndex() == randomSeedAct.getIndex()) {
+        for (AbstractActivity act : seedRoute.activities()) {
+            if (act.index() == randomSeedAct.index()) {
                 seedIndex = index;
                 break;
             }
@@ -197,12 +192,12 @@ public final class RuinString extends AbstractRuinStrategy {
         List<Integer> stringBounds = StringUtil.getLowerBoundsOfAllStrings(stringLength, seedIndex, noActivities);
         if (stringBounds.isEmpty()) return;
         int lowerBound = RandomUtils.nextItem(stringBounds, random);
-        List<Job> jobs2Remove = new ArrayList<>();
+        Collection<Job> jobs2Remove = new ArrayList<>();
         for (int i = lowerBound; i < (lowerBound + stringLength); i++) {
-            TourActivity act = seedRoute.getActivities().get(i);
-            if (act instanceof TourActivity.JobActivity) {
-                Job job = ((TourActivity.JobActivity) act).getJob();
-                if (vrp.getJobs().containsKey(job.getId())) {
+            AbstractActivity act = seedRoute.activities().get(i);
+            if (act instanceof JobActivity) {
+                Job job = ((JobActivity) act).job();
+                if (vrp.jobs().containsKey(job.id())) {
                     jobs2Remove.add(job);
                 }
             }

@@ -26,6 +26,7 @@ import com.graphhopper.jsprit.core.algorithm.box.SchrimpfFactory;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.algorithm.state.UpdateEndLocationIfRouteIsOpen;
 import com.graphhopper.jsprit.core.algorithm.state.UpdateVariableCosts;
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
@@ -36,12 +37,12 @@ import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.JobActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.PickupShipment;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Solutions;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,10 +59,10 @@ public class InitialRoutesTest {
 
     @Before
     public void before(){
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
-        VehicleImpl v = VehicleImpl.Builder.newInstance("veh1").setStartLocation(Location.newInstance(0,0)).setLatestArrival(48600).build();
-        Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(1000,0)).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(1000,1000)).build();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("veh1").setStartLocation(Location.the(0,0)).setLatestArrival(48600).build();
+        Service s1 = Service.Builder.newInstance("s1").location(Location.the(1000,0)).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(1000,1000)).build();
         builder.addVehicle(v).addJob(s1).addJob(s2);
         initialRoute = VehicleRoute.Builder.newInstance(v).addService(s1).build();
         builder.addInitialVehicleRoute(initialRoute);
@@ -74,20 +75,20 @@ public class InitialRoutesTest {
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
-        assertEquals(2, solution.getRoutes().iterator().next().getTourActivities().getJobs().size());
+        assertEquals(2, solution.routes.iterator().next().tourActivities().jobs().size());
     }
 
     @Test
     public void whenSolving_nuActsShouldBe2() {
-        VehicleRoutingAlgorithm vra = new SchrimpfFactory().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = SchrimpfFactory.createAlgorithm(vrp);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
-        assertEquals(2, solution.getRoutes().iterator().next().getActivities().size());
+        assertEquals(2, solution.routes.iterator().next().activities().size());
     }
 
     @Test
     public void whenSolving_deliverService1_shouldBeInRoute() {
-        VehicleRoutingAlgorithm vra = new SchrimpfFactory().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = SchrimpfFactory.createAlgorithm(vrp);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
         Job job = getInitialJob("s1", vrp);
@@ -95,9 +96,9 @@ public class InitialRoutesTest {
     }
 
     private Job getInitialJob(String jobId, VehicleRoutingProblem vrp) {
-        for (VehicleRoute r : vrp.getInitialVehicleRoutes()) {
-            for (Job j : r.getTourActivities().getJobs()) {
-                if (j.getId().equals(jobId)) return j;
+        for (VehicleRoute r : vrp.initialVehicleRoutes()) {
+            for (Job j : r.tourActivities().jobs()) {
+                if (j.id().equals(jobId)) return j;
             }
         }
         return null;
@@ -106,9 +107,9 @@ public class InitialRoutesTest {
     private boolean hasActivityIn(Collection<VehicleRoute> routes, String jobId) {
         boolean isInRoute = false;
         for (VehicleRoute route : routes) {
-            for (TourActivity act : route.getActivities()) {
-                if (act instanceof TourActivity.JobActivity) {
-                    if (((TourActivity.JobActivity) act).getJob().getId().equals(jobId)) isInRoute = true;
+            for (AbstractActivity act : route.activities()) {
+                if (act instanceof JobActivity) {
+                    if (((JobActivity) act).job().id().equals(jobId)) isInRoute = true;
                 }
             }
         }
@@ -116,10 +117,10 @@ public class InitialRoutesTest {
     }
 
     private boolean hasActivityIn(VehicleRoutingProblemSolution solution, String vehicleId, Job job) {
-        for (VehicleRoute route : solution.getRoutes()) {
-            String vehicleId_ = route.getVehicle().getId();
+        for (VehicleRoute route : solution.routes) {
+            String vehicleId_ = route.vehicle().id();
             if (vehicleId_.equals(vehicleId)) {
-                if (route.getTourActivities().servesJob(job)) {
+                if (route.tourActivities().servesJob(job)) {
                     return true;
                 }
             }
@@ -130,9 +131,9 @@ public class InitialRoutesTest {
 
     private boolean hasActivityIn(VehicleRoute route, String jobId) {
         boolean isInRoute = false;
-        for (TourActivity act : route.getActivities()) {
-            if (act instanceof TourActivity.JobActivity) {
-                if (((TourActivity.JobActivity) act).getJob().getId().equals(jobId)) isInRoute = true;
+        for (AbstractActivity act : route.activities()) {
+            if (act instanceof JobActivity) {
+                if (((JobActivity) act).job().id().equals(jobId)) isInRoute = true;
             }
         }
         return isInRoute;
@@ -140,36 +141,36 @@ public class InitialRoutesTest {
 
     @Test
     public void whenSolving_deliverService2_shouldBeInRoute() {
-        VehicleRoutingAlgorithm vra = new SchrimpfFactory().createAlgorithm(vrp);
+        VehicleRoutingAlgorithm vra = SchrimpfFactory.createAlgorithm(vrp);
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
 
-        assertTrue(hasActivityIn(solution.getRoutes().iterator().next(), "s2"));
+        assertTrue(hasActivityIn(solution.routes.iterator().next(), "s2"));
     }
 
     @Test
     public void maxCapacityShouldNotBeExceeded() {
-        VehicleType type = VehicleTypeImpl.Builder.newInstance("type").addCapacityDimension(0, 100).build();
+        VehicleType type = VehicleTypeImpl.Builder.the("type").addCapacityDimension(0, 100).build();
         VehicleImpl vehicle = VehicleImpl.Builder.newInstance("veh")
-            .setStartLocation(Location.Builder.newInstance().setId("start").setCoordinate(Coordinate.newInstance(0, 0)).build())
+            .setStartLocation(Location.Builder.the().setId("start").setCoord(v2.the(0, 0)).build())
             .setType(type)
             .build();
 
         Shipment shipment = Shipment.Builder.newInstance("s")
-            .setPickupLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 0)).setId("pick").build())
-            .setDeliveryLocation(Location.Builder.newInstance().setId("del").setCoordinate(Coordinate.newInstance(0, 10)).build())
+            .setPickupLocation(Location.Builder.the().setCoord(v2.the(10, 0)).setId("pick").build())
+            .setDeliveryLocation(Location.Builder.the().setId("del").setCoord(v2.the(0, 10)).build())
             .addSizeDimension(0, 100)
             .build();
 
         Shipment another_shipment = Shipment.Builder.newInstance("another_s")
-            .setPickupLocation(Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 0)).setId("pick").build())
-            .setDeliveryLocation(Location.Builder.newInstance().setId("del").setCoordinate(Coordinate.newInstance(0, 10)).build())
+            .setPickupLocation(Location.Builder.the().setCoord(v2.the(10, 0)).setId("pick").build())
+            .setDeliveryLocation(Location.Builder.the().setId("del").setCoord(v2.the(0, 10)).build())
             .addSizeDimension(0, 50)
             .build();
 
         VehicleRoute iniRoute = VehicleRoute.Builder.newInstance(vehicle).addPickup(shipment).addDelivery(shipment).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(shipment).addVehicle(vehicle).addJob(another_shipment)
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(shipment).addVehicle(vehicle).addJob(another_shipment)
             .setFleetSize(VehicleRoutingProblem.FleetSize.FINITE).addInitialVehicleRoute(iniRoute).build();
 
         VehicleRoutingAlgorithm vra = new GreedySchrimpfFactory().createAlgorithm(vrp);
@@ -183,16 +184,16 @@ public class InitialRoutesTest {
 
     private boolean secondActIsPickup(Collection<VehicleRoutingProblemSolution> solutions) {
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
-        TourActivity secondAct = solution.getRoutes().iterator().next().getActivities().get(1);
+        AbstractActivity secondAct = solution.routes.iterator().next().activities().get(1);
         return secondAct instanceof PickupShipment;
     }
 
     @Test
     public void whenAllJobsInInitialRoute_itShouldWork() {
-        Service s = Service.Builder.newInstance("s").setLocation(Location.newInstance(0, 10)).build();
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0, 0)).build();
+        Service s = Service.Builder.newInstance("s").location(Location.the(0, 10)).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0, 0)).build();
         VehicleRoute iniRoute = VehicleRoute.Builder.newInstance(v).addService(s).build();
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addInitialVehicleRoute(iniRoute).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addInitialVehicleRoute(iniRoute).build();
         VehicleRoutingAlgorithm vra = Jsprit.createAlgorithm(vrp);
         vra.setMaxIterations(100);
         vra.searchSolutions();
@@ -201,13 +202,13 @@ public class InitialRoutesTest {
 
     @Test
     public void buildWithoutTimeConstraints() {
-        Service s1 = Service.Builder.newInstance("s1").setLocation(Location.newInstance(0, 10)).addSizeDimension(0, 10).build();
-        Service s2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance(10, 20)).addSizeDimension(0, 12).build();
+        Service s1 = Service.Builder.newInstance("s1").location(Location.the(0, 10)).sizeDimension(0, 10).build();
+        Service s2 = Service.Builder.newInstance("s2").location(Location.the(10, 20)).sizeDimension(0, 12).build();
 
-        VehicleTypeImpl vt = VehicleTypeImpl.Builder.newInstance("vt").addCapacityDimension(0, 15).build();
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setType(vt).setStartLocation(Location.newInstance(0, 0)).build();
+        VehicleTypeImpl vt = VehicleTypeImpl.Builder.the("vt").addCapacityDimension(0, 15).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setType(vt).setStartLocation(Location.the(0, 0)).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addJob(s1).addJob(s2).addVehicle(v).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addJob(s1).addJob(s2).addVehicle(v).build();
         Builder algBuilder = Jsprit.Builder.newInstance(vrp).addCoreStateAndConstraintStuff(false);
 
         // only required constraints
@@ -217,7 +218,7 @@ public class InitialRoutesTest {
         constraintManager.addConstraint(new ServiceLoadActivityLevelConstraint(stateManager), ConstraintManager.Priority.LOW);
         stateManager.updateLoadStates();
         stateManager.addStateUpdater(new UpdateEndLocationIfRouteIsOpen());
-        stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager));
+        stateManager.addStateUpdater(new UpdateVariableCosts(vrp.activityCosts(), vrp.transportCosts(), stateManager));
 
         algBuilder.setStateAndConstraintManager(stateManager, constraintManager);
         VehicleRoutingAlgorithm vra = algBuilder.buildAlgorithm();
@@ -226,9 +227,9 @@ public class InitialRoutesTest {
         VehicleRoutingProblemSolution bestOf = Solutions.bestOf(searchSolutions);
 
         //ensure 2 routes
-        assertEquals(2, bestOf.getRoutes().size());
+        assertEquals(2, bestOf.routes.size());
 
         //ensure no time information in first service of first route
-        assertEquals(0, bestOf.getRoutes().iterator().next().getActivities().iterator().next().getArrTime(), 0.001);
+        assertEquals(0, bestOf.routes.iterator().next().activities().iterator().next().arrTime(), 0.001);
     }
 }

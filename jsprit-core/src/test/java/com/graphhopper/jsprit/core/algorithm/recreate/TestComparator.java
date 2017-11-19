@@ -35,13 +35,13 @@ public class TestComparator {
 
     @Test
     public void test(){
-        Service s = Service.Builder.newInstance("1").setLocation(Location.newInstance("loc"))
+        Service s = Service.Builder.newInstance("1").location(Location.the("loc"))
             .setPriority(1).build();
-        Service s2 = Service.Builder.newInstance("2").setLocation(Location.newInstance("loc"))
+        Service s2 = Service.Builder.newInstance("2").location(Location.the("loc"))
             .setPriority(2).build();
-        Service s3 = Service.Builder.newInstance("3").setLocation(Location.newInstance("loc"))
+        Service s3 = Service.Builder.newInstance("3").location(Location.the("loc"))
             .setPriority(3).build();
-        Service s4 = Service.Builder.newInstance("4").setLocation(Location.newInstance("loc"))
+        Service s4 = Service.Builder.newInstance("4").location(Location.the("loc"))
             .setPriority(1).build();
         List<Job> jobs = new ArrayList<Job>();
         jobs.add(s2);
@@ -51,7 +51,7 @@ public class TestComparator {
         Collections.sort(jobs, new Comparator<Job>() {
             @Override
             public int compare(Job o1, Job o2) {
-                return o1.getPriority() - o2.getPriority();
+                return o1.pri() - o2.pri();
             }
         });
 

@@ -45,7 +45,7 @@ public class MultipleDepotWithInitialRoutesExample {
 		 */
         Examples.createOutputFolder();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         /*
          * Read cordeau-instance p01
 		 */
@@ -66,8 +66,8 @@ public class MultipleDepotWithInitialRoutesExample {
          * since job (service) 26 and 44 are already planned in initial route and thus static AND sequence is fixed they
 		 * should not be in jobMap anymore (only variable jobs are in jobMap)
 		 */
-        assert !vrp.getJobs().containsKey("26") : "strange. service 26 should not be part of the problem";
-        assert !vrp.getJobs().containsKey("44") : "strange. service 44 should not be part of the problem";
+        assert !vrp.jobs().containsKey("26") : "strange. service 26 should not be part of the problem";
+        assert !vrp.jobs().containsKey("44") : "strange. service 44 should not be part of the problem";
 
 		/*
          * plot to see how the problem looks like
@@ -92,7 +92,7 @@ public class MultipleDepotWithInitialRoutesExample {
 
     private static Service getService(String serviceId, Builder vrpBuilder) {
         for (Job j : vrpBuilder.getAddedJobs()) {
-            if (j.getId().equals(serviceId)) {
+            if (j.id().equals(serviceId)) {
                 return (Service) j;
             }
         }
@@ -101,7 +101,7 @@ public class MultipleDepotWithInitialRoutesExample {
 
     private static Vehicle getVehicle(String vehicleId, Builder vrpBuilder) {
         for (Vehicle v : vrpBuilder.getAddedVehicles()) {
-            if (v.getId().equals(vehicleId)) return v;
+            if (v.id().equals(vehicleId)) return v;
         }
         return null;
     }

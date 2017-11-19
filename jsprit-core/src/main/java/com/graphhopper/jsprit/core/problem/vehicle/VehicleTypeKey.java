@@ -36,9 +36,9 @@ public class VehicleTypeKey extends AbstractVehicle.AbstractTypeKey {
     public final double latestEnd;
     public final Skills skills;
     public final boolean returnToDepot;
+    private final int hash;
 
     public VehicleTypeKey(String typeId, String startLocationId, String endLocationId, double earliestStart, double latestEnd, Skills skills, boolean returnToDepot) {
-        super();
         this.type = typeId;
         this.startLocationId = startLocationId;
         this.endLocationId = endLocationId;
@@ -46,47 +46,43 @@ public class VehicleTypeKey extends AbstractVehicle.AbstractTypeKey {
         this.latestEnd = latestEnd;
         this.skills = skills;
         this.returnToDepot = returnToDepot;
+        int hash;
+        if (type == null) hash = 0;
+        else {
+            long temp;
+            hash = type.hashCode();
+            hash = 31 * hash + startLocationId.hashCode();
+            hash = 31 * hash + endLocationId.hashCode();
+            temp = Double.doubleToLongBits(earliestStart);
+            hash = 31 * hash + (int) (temp ^ (temp >>> 32));
+            temp = Double.doubleToLongBits(latestEnd);
+            hash = 31 * hash + (int) (temp ^ (temp >>> 32));
+            hash = 31 * hash + skills.hashCode();
+            hash = 31 * hash + (returnToDepot ? 1 : 0);
+        }
+        this.hash = hash;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || hash!=o.hashCode() || getClass() != o.getClass()) return false;
 
         VehicleTypeKey that = (VehicleTypeKey) o;
 
-        if (Double.compare(that.earliestStart, earliestStart) != 0) return false;
-        if (Double.compare(that.latestEnd, latestEnd) != 0) return false;
-        if (returnToDepot != that.returnToDepot) return false;
-        if (!endLocationId.equals(that.endLocationId)) return false;
-        if (!skills.equals(that.skills)) return false;
-        if (!startLocationId.equals(that.startLocationId)) return false;
-        if (!type.equals(that.type)) return false;
-
-        return true;
+        return Double.compare(that.earliestStart, earliestStart) == 0 && Double.compare(that.latestEnd, latestEnd) == 0 && (returnToDepot == that.returnToDepot && endLocationId.equals(that.endLocationId) && skills.equals(that.skills) && startLocationId.equals(that.startLocationId) && type.equals(that.type));
     }
 
     @Override
-    public int hashCode() {
-        int result;
-        long temp;
-        result = type.hashCode();
-        result = 31 * result + startLocationId.hashCode();
-        result = 31 * result + endLocationId.hashCode();
-        temp = Double.doubleToLongBits(earliestStart);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(latestEnd);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + skills.hashCode();
-        result = 31 * result + (returnToDepot ? 1 : 0);
-        return result;
+    public final int hashCode() {
+        return hash;
     }
 
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(type).append("_").append(startLocationId).append("_").append(endLocationId)
-            .append("_").append(Double.toString(earliestStart)).append("_").append(Double.toString(latestEnd));
+        stringBuilder.append(type).append('_').append(startLocationId).append('_').append(endLocationId)
+            .append('_').append(Double.toString(earliestStart)).append('_').append(Double.toString(latestEnd));
         return stringBuilder.toString();
     }
 

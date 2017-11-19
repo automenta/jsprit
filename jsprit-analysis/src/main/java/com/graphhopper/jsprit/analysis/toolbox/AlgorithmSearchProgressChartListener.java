@@ -39,7 +39,7 @@ import java.util.Collection;
 
 public class AlgorithmSearchProgressChartListener implements IterationEndsListener, AlgorithmEndsListener, AlgorithmStartsListener {
 
-    private static Logger log = LoggerFactory.getLogger(AlgorithmSearchProgressChartListener.class);
+    private static final Logger log = LoggerFactory.getLogger(AlgorithmSearchProgressChartListener.class);
 
     private String filename;
 
@@ -51,7 +51,6 @@ public class AlgorithmSearchProgressChartListener implements IterationEndsListen
      * @param pngFileName
      */
     public AlgorithmSearchProgressChartListener(String pngFileName) {
-        super();
         this.filename = pngFileName;
         if (!this.filename.endsWith("png")) {
             this.filename += ".png";
@@ -70,9 +69,9 @@ public class AlgorithmSearchProgressChartListener implements IterationEndsListen
         double best = Double.MAX_VALUE;
         double sum = 0.0;
         for (VehicleRoutingProblemSolution sol : solutions) {
-            if (sol.getCost() > worst) worst = Math.min(sol.getCost(), Double.MAX_VALUE);
-            if (sol.getCost() < best) best = sol.getCost();
-            sum += Math.min(sol.getCost(), Double.MAX_VALUE);
+            if (sol.cost() > worst) worst = Math.min(sol.cost(), Double.MAX_VALUE);
+            if (sol.cost() < best) best = sol.cost();
+            sum += Math.min(sol.cost(), Double.MAX_VALUE);
         }
         chartBuilder.addData("best", i, best);
         chartBuilder.addData("worst", i, worst);

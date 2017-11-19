@@ -21,9 +21,9 @@ import java.util.Random;
 
 public class RandomNumberGeneration {
 
-    private static long DEFAULT_SEED = 4711L;
+    private static final long DEFAULT_SEED = 4711L;
 
-    private static Random random = new Random(DEFAULT_SEED);
+    private static final Random random = new Random(DEFAULT_SEED);
 
     public static Random newInstance() {
         return new Random(DEFAULT_SEED);

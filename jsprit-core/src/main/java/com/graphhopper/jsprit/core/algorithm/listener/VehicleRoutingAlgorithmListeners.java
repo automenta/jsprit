@@ -29,11 +29,10 @@ public class VehicleRoutingAlgorithmListeners {
 
     public static class PrioritizedVRAListener {
 
-        Priority priority;
-        VehicleRoutingAlgorithmListener l;
+        final Priority priority;
+        final VehicleRoutingAlgorithmListener l;
 
         public PrioritizedVRAListener(Priority priority, VehicleRoutingAlgorithmListener l) {
-            super();
             this.priority = priority;
             this.l = l;
         }
@@ -53,27 +52,23 @@ public class VehicleRoutingAlgorithmListeners {
     }
 
 
-    private TreeSet<PrioritizedVRAListener> algorithmListeners = new TreeSet<PrioritizedVRAListener>(new Comparator<PrioritizedVRAListener>() {
-
-        @Override
-        public int compare(PrioritizedVRAListener o1, PrioritizedVRAListener o2) {
-            if (o1 == o2) return 0;
-            if (o1.getPriority() == Priority.HIGH && o2.getPriority() != Priority.HIGH) {
-                return -1;
-            } else if (o2.getPriority() == Priority.HIGH && o1.getPriority() != Priority.HIGH) {
-                return 1;
-            } else if (o1.getPriority() == Priority.MEDIUM && o2.getPriority() != Priority.MEDIUM) {
-                return -1;
-            } else if (o2.getPriority() == Priority.MEDIUM && o1.getPriority() != Priority.MEDIUM) {
-                return 1;
-            }
+    private final Set<PrioritizedVRAListener> algorithmListeners = new TreeSet<>((o1, o2) -> {
+        if (o1 == o2) return 0;
+        if (o1.getPriority() == Priority.HIGH && o2.getPriority() != Priority.HIGH) {
+            return -1;
+        } else if (o2.getPriority() == Priority.HIGH && o1.getPriority() != Priority.HIGH) {
+            return 1;
+        } else if (o1.getPriority() == Priority.MEDIUM && o2.getPriority() != Priority.MEDIUM) {
+            return -1;
+        } else if (o2.getPriority() == Priority.MEDIUM && o1.getPriority() != Priority.MEDIUM) {
             return 1;
         }
+        return 1;
     });
 
 
     public Collection<VehicleRoutingAlgorithmListener> getAlgorithmListeners() {
-        List<VehicleRoutingAlgorithmListener> list = new ArrayList<VehicleRoutingAlgorithmListener>();
+        Collection<VehicleRoutingAlgorithmListener> list = new ArrayList<>();
         for (PrioritizedVRAListener l : algorithmListeners) {
             list.add(l.getListener());
         }
@@ -135,15 +130,14 @@ public class VehicleRoutingAlgorithmListeners {
     }
 
     public void addAll(Collection<PrioritizedVRAListener> algorithmListeners) {
-        for (PrioritizedVRAListener l : algorithmListeners) {
-            this.algorithmListeners.add(l);
-        }
+        this.algorithmListeners.addAll(algorithmListeners);
     }
 
     public void selectedStrategy(SearchStrategy.DiscoveredSolution discoveredSolution, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
         for (PrioritizedVRAListener l : algorithmListeners) {
-            if (l.getListener() instanceof StrategySelectedListener) {
-                ((StrategySelectedListener) l.getListener()).informSelectedStrategy(discoveredSolution, problem, solutions);
+            VehicleRoutingAlgorithmListener ll = l.getListener();
+            if (ll instanceof StrategySelectedListener) {
+                ((StrategySelectedListener) ll).informSelectedStrategy(discoveredSolution, problem, solutions);
             }
         }
     }

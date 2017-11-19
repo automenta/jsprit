@@ -40,11 +40,11 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
      */
     public static class Builder {
 
-        private boolean isSymmetric;
+        private final boolean symm;
 
-        private double[][][] matrix;
+        private final double[][][] matrix;
 
-        private final int noLocations;
+        private final int locationCount;
 
         /**
          * Creates a new builder returning the matrix-builder.
@@ -53,14 +53,14 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
          * @param isSymmetric true if matrix is symmetric, false otherwise
          * @return builder
          */
-        public static Builder newInstance(int noLocations, boolean isSymmetric) {
+        public static Builder get(int noLocations, boolean isSymmetric) {
             return new Builder(noLocations, isSymmetric);
         }
 
-        private Builder(int noLocations, boolean isSymmetric) {
-            this.isSymmetric = isSymmetric;
+        private Builder(int noLocations, boolean symm) {
+            this.symm = symm;
             matrix = new double[noLocations][noLocations][2];
-            this.noLocations = noLocations;
+            this.locationCount = noLocations;
         }
 
         /**
@@ -77,7 +77,7 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
         }
 
         private void add(int fromIndex, int toIndex, int indicatorIndex, double value) {
-            if (isSymmetric) {
+            if (symm) {
                 if (fromIndex < toIndex) matrix[fromIndex][toIndex][indicatorIndex] = value;
                 else matrix[toIndex][fromIndex][indicatorIndex] = value;
             } else matrix[fromIndex][toIndex][indicatorIndex] = value;
@@ -113,16 +113,16 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
 
     }
 
-    private final boolean isSymmetric;
+    public final boolean symm;
 
-    private final double[][][] matrix;
+    public final double[][][] matrix;
 
-    private int noLocations;
+    public final int locationCount;
 
     private FastVehicleRoutingTransportCostsMatrix(Builder builder) {
-        this.isSymmetric = builder.isSymmetric;
+        this.symm = builder.symm;
         matrix = builder.matrix;
-        noLocations = builder.noLocations;
+        locationCount = builder.locationCount;
     }
 
     /**
@@ -130,23 +130,22 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
      *
      * @return
      */
-    public double[][][] getMatrix() {
+    public double[][][] matrix() {
         return matrix;
     }
 
     @Override
-    public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        if (from.getIndex() < 0 || to.getIndex() < 0)
+    public double transportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        if (from.index < 0 || to.index < 0)
             throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
         int timeIndex = 1;
-        return get(from.getIndex(), to.getIndex(), timeIndex);
+        return get(from.index, to.index, timeIndex);
     }
 
     private double get(int from, int to, int indicatorIndex) {
         double value;
-        if (isSymmetric) {
-            if (from < to) value = matrix[from][to][indicatorIndex];
-            else value = matrix[to][from][indicatorIndex];
+        if (symm) {
+            value = from < to ? matrix[from][to][indicatorIndex] : matrix[to][from][indicatorIndex];
         } else {
             value = matrix[from][to][indicatorIndex];
         }
@@ -166,21 +165,21 @@ public class FastVehicleRoutingTransportCostsMatrix extends AbstractForwardVehic
     }
 
     @Override
-    public double getDistance(Location from, Location to, double departureTime, Vehicle vehicle) {
-        return getDistance(from.getIndex(), to.getIndex());
+    public double distance(Location from, Location to, double departureTime, Vehicle vehicle) {
+        return getDistance(from.index, to.index);
     }
 
     @Override
-    public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-        if (from.getIndex() < 0 || to.getIndex() < 0)
+    public double transportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+        if (from.index < 0 || to.index < 0)
             throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
-        if (vehicle == null) return getDistance(from.getIndex(), to.getIndex());
-        VehicleTypeImpl.VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
-        return costParams.perDistanceUnit * getDistance(from.getIndex(), to.getIndex()) + costParams.perTransportTimeUnit * getTransportTime(from, to, departureTime, driver, vehicle);
+        if (vehicle == null) return getDistance(from.index, to.index);
+        VehicleTypeImpl.VehicleCostParams costParams = vehicle.type().getVehicleCostParams();
+        return costParams.perDistanceUnit * getDistance(from.index, to.index) + costParams.perTransportTimeUnit * transportTime(from, to, departureTime, driver, vehicle);
     }
 
-    public int getNoLocations() {
-        return noLocations;
+    public int getLocationCount() {
+        return locationCount;
     }
 
 

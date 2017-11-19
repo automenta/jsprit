@@ -26,11 +26,11 @@ import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
  */
 public class JobNeighborhoodsFactory {
 
-    public JobNeighborhoods createNeighborhoods(VehicleRoutingProblem vrp, JobDistance jobDistance) {
+    public static JobNeighborhoods createNeighborhoods(VehicleRoutingProblem vrp, JobDistance jobDistance) {
         return new JobNeighborhoodsImpl(vrp, jobDistance);
     }
 
-    public JobNeighborhoods createNeighborhoods(VehicleRoutingProblem vrp, JobDistance jobDistance, int capacity) {
+    public static JobNeighborhoods createNeighborhoods(VehicleRoutingProblem vrp, JobDistance jobDistance, int capacity) {
 //        return new JobNeighborhoodsImplWithCapRestriction(vrp, jobDistance, capacity);
         return new JobNeighborhoodsOptimized(vrp, jobDistance, capacity);
     }

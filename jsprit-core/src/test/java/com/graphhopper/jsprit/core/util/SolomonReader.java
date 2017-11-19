@@ -51,7 +51,7 @@ public class SolomonReader {
         this.variableCostProjectionFactor = costProjectionFactor;
     }
 
-    private static Logger logger = LoggerFactory.getLogger(SolomonReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(SolomonReader.class);
 
     private final VehicleRoutingProblem.Builder vrpBuilder;
 
@@ -61,15 +61,13 @@ public class SolomonReader {
 
     private double variableCostProjectionFactor = 1;
 
-    private double fixedCostPerVehicle = 0.0;
+    private double fixedCostPerVehicle;
 
     public SolomonReader(VehicleRoutingProblem.Builder vrpBuilder) {
-        super();
         this.vrpBuilder = vrpBuilder;
     }
 
     public SolomonReader(VehicleRoutingProblem.Builder vrpBuilder, double fixedCostPerVehicle) {
-        super();
         this.vrpBuilder = vrpBuilder;
         this.fixedCostPerVehicle = fixedCostPerVehicle;
     }
@@ -92,26 +90,26 @@ public class SolomonReader {
             }
             if (counter > 9) {
                 if (tokens.length < 7) continue;
-                Coordinate coord = makeCoord(tokens[1], tokens[2]);
+                v2 coord = makeCoord(tokens[1], tokens[2]);
                 String customerId = tokens[0];
                 int demand = Integer.parseInt(tokens[3]);
                 double start = Double.parseDouble(tokens[4]) * timeProjectionFactor;
                 double end = Double.parseDouble(tokens[5]) * timeProjectionFactor;
                 double serviceTime = Double.parseDouble(tokens[6]) * timeProjectionFactor;
                 if (counter == 10) {
-                    VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.newInstance("solomonType").addCapacityDimension(0, vehicleCapacity);
+                    VehicleTypeImpl.Builder typeBuilder = VehicleTypeImpl.Builder.the("solomonType").addCapacityDimension(0, vehicleCapacity);
                     typeBuilder.setCostPerDistance(1.0 * variableCostProjectionFactor).setFixedCost(fixedCostPerVehicle);
                     VehicleTypeImpl vehicleType = typeBuilder.build();
 
                     VehicleImpl vehicle = VehicleImpl.Builder.newInstance("solomonVehicle").setEarliestStart(start).setLatestArrival(end)
-                        .setStartLocation(Location.Builder.newInstance().setId(customerId)
-                            .setCoordinate(coord).build()).setType(vehicleType).build();
+                        .setStartLocation(Location.Builder.the().setId(customerId)
+                            .setCoord(coord).build()).setType(vehicleType).build();
                     vrpBuilder.addVehicle(vehicle);
 
                 } else {
-                    Service service = Service.Builder.newInstance(customerId).addSizeDimension(0, demand)
-                        .setLocation(Location.Builder.newInstance().setCoordinate(coord).setId(customerId).build()).setServiceTime(serviceTime)
-                        .setTimeWindow(TimeWindow.newInstance(start, end)).build();
+                    Service service = Service.Builder.newInstance(customerId).sizeDimension(0, demand)
+                        .location(Location.Builder.the().setCoord(coord).setId(customerId).build()).serviceTime(serviceTime)
+                        .timeWindowSet(TimeWindow.the(start, end)).build();
                     vrpBuilder.addJob(service);
                 }
             }
@@ -139,10 +137,10 @@ public class SolomonReader {
         }
     }
 
-    private Coordinate makeCoord(String xString, String yString) {
+    private v2 makeCoord(String xString, String yString) {
         double x = Double.parseDouble(xString);
         double y = Double.parseDouble(yString);
-        return new Coordinate(x * coordProjectionFactor, y * coordProjectionFactor);
+        return new v2(x * coordProjectionFactor, y * coordProjectionFactor);
     }
 
     private BufferedReader getReader(InputStream inputStream) {

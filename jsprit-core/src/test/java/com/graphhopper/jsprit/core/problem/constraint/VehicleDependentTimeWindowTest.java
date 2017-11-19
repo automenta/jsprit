@@ -26,7 +26,6 @@ import com.graphhopper.jsprit.core.problem.*;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingActivityCosts;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.cost.WaitingTimeCosts;
-import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
@@ -64,49 +63,42 @@ public class VehicleDependentTimeWindowTest {
 
     @Before
     public void doBefore() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         routingCosts = CostFactory.createEuclideanCosts();
 
         activityCosts = new WaitingTimeCosts();
 
         vrpBuilder.setRoutingCost(routingCosts);
 
-        VehicleType type = VehicleTypeImpl.Builder.newInstance("type").build();
-        vehicle = VehicleImpl.Builder.newInstance("v").setType(type).setStartLocation(Location.newInstance("0,0"))
+        VehicleType type = VehicleTypeImpl.Builder.the("type").build();
+        vehicle = VehicleImpl.Builder.newInstance("v").setType(type).setStartLocation(Location.the("0,0"))
             .setEarliestStart(0.).setLatestArrival(100.).build();
 
-        v2 = VehicleImpl.Builder.newInstance("v2").setType(type).setStartLocation(Location.newInstance("0,0"))
+        v2 = VehicleImpl.Builder.newInstance("v2").setType(type).setStartLocation(Location.the("0,0"))
             .setEarliestStart(0.).setLatestArrival(60.).build();
 
-        v3 = VehicleImpl.Builder.newInstance("v3").setType(type).setStartLocation(Location.newInstance("0,0"))
+        v3 = VehicleImpl.Builder.newInstance("v3").setType(type).setStartLocation(Location.the("0,0"))
             .setEarliestStart(0.).setLatestArrival(50.).build();
 
-        v4 = VehicleImpl.Builder.newInstance("v4").setType(type).setStartLocation(Location.newInstance("0,0"))
+        v4 = VehicleImpl.Builder.newInstance("v4").setType(type).setStartLocation(Location.the("0,0"))
             .setEarliestStart(0.).setLatestArrival(10.).build();
 
-        v5 = VehicleImpl.Builder.newInstance("v5").setType(type).setStartLocation(Location.newInstance("0,0"))
+        v5 = VehicleImpl.Builder.newInstance("v5").setType(type).setStartLocation(Location.the("0,0"))
             .setEarliestStart(60.).setLatestArrival(100.).build();
 
-        v6 = VehicleImpl.Builder.newInstance("v6").setType(type).setStartLocation(Location.newInstance("0,0"))
-            .setEndLocation(Location.newInstance("40,0")).setEarliestStart(0.).setLatestArrival(40.).build();
+        v6 = VehicleImpl.Builder.newInstance("v6").setType(type).setStartLocation(Location.the("0,0"))
+            .setEndLocation(Location.the("40,0")).setEarliestStart(0.).setLatestArrival(40.).build();
 
         vrpBuilder.addVehicle(vehicle).addVehicle(v2).addVehicle(v3).addVehicle(v4).addVehicle(v5).addVehicle(v6);
 
-        Service service = Service.Builder.newInstance("s1").setLocation(Location.newInstance("10,0")).build();
-        Service service2 = Service.Builder.newInstance("s2").setLocation(Location.newInstance("20,0")).build();
-        Service service3 = Service.Builder.newInstance("s3").setLocation(Location.newInstance("30,0")).build();
+        Service service = Service.Builder.newInstance("s1").location(Location.the("10,0")).build();
+        Service service2 = Service.Builder.newInstance("s2").location(Location.the("20,0")).build();
+        Service service3 = Service.Builder.newInstance("s3").location(Location.the("30,0")).build();
 
         vrpBuilder.addJob(service).addJob(service2).addJob(service3);
         final VehicleRoutingProblem vrp = vrpBuilder.build();
 
-        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(new JobActivityFactory() {
-
-            @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                return vrp.copyAndGetActivities(job);
-            }
-
-        }).addService(service).addService(service2).addService(service3).build();
+        route = VehicleRoute.Builder.newInstance(vehicle).setJobActivityFactory(job -> vrp.copyAndGetActivities(job)).addService(service).addService(service2).addService(service3).build();
 
         stateManager = new StateManager(vrp);
 
@@ -121,51 +113,46 @@ public class VehicleDependentTimeWindowTest {
         final VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(vehicles).createFleetManager();
 
         UpdateVehicleDependentPracticalTimeWindows timeWindow_updater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, routingCosts, activityCosts);
-        timeWindow_updater.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
-
-            @Override
-            public Collection<Vehicle> get(VehicleRoute route) {
-                List<Vehicle> vehicles = new ArrayList<Vehicle>();
-                vehicles.add(route.getVehicle());
-                vehicles.addAll(fleetManager.getAvailableVehicles(route.getVehicle()));
-                return vehicles;
-            }
-
+        timeWindow_updater.setVehiclesToUpdate(route -> {
+            List<Vehicle> vehicles1 = new ArrayList<Vehicle>();
+            vehicles1.add(route.vehicle());
+            vehicles1.addAll(fleetManager.vehiclesAvailable(route.vehicle()));
+            return vehicles1;
         });
         stateManager.addStateUpdater(timeWindow_updater);
         stateManager.addStateUpdater(new UpdateActivityTimes(routingCosts, activityCosts));
-        stateManager.informInsertionStarts(Arrays.asList(route), Collections.<Job>emptyList());
+        stateManager.informInsertionStarts(Arrays.asList(route), Collections.emptyList());
     }
 
     @Test
     public void stateManagerShouldHaveMemorizedCorrectLatestEndOfAct3() {
-        assertEquals(70., stateManager.getActivityState(route.getActivities().get(2),
+        assertEquals(70., stateManager.state(route.activities().get(2),
             vehicle, InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
     }
 
     @Test
     public void stateManagerShouldHaveMemorizedCorrectLatestEndOfAct2() {
-        assertEquals(60., stateManager.getActivityState(route.getActivities().get(1),
+        assertEquals(60., stateManager.state(route.activities().get(1),
             vehicle, InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
     }
 
     @Test
     public void stateManagerShouldHaveMemorizedCorrectLatestEndOfAct1() {
-        assertEquals(50., stateManager.getActivityState(route.getActivities().get(0),
+        assertEquals(50., stateManager.state(route.activities().get(0),
             vehicle, InternalStates.LATEST_OPERATION_START_TIME, Double.class), 0.01);
     }
 
     @Test
     public void whenNewJobIsInsertedWithOldVeh_itJustShouldReturnTrue() {
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("50,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("50,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(2), serviceAct, route.getEnd(), 30.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(2), serviceAct, route.end, 30.);
         assertTrue(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -173,14 +160,14 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenNewJobIsInsertedWithOldVeh_itJustShouldReturnFalse() {
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("1000,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("1000,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(2), serviceAct, route.getEnd(), 30.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(2), serviceAct, route.end, 30.);
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -188,17 +175,17 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenNewJobIsInsertedInBetweenAct1And2WithOldVeh_itJustShouldReturnTrue() {
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("50,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("50,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
         /*
         driverTime = 10 + 10 + 30 + 20 + 30 = 100
          */
 //        System.out.println("latest act1 " + stateManager.getActivityState());
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(1), serviceAct, route.getActivities().get(2), 20.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(1), serviceAct, route.activities().get(2), 20.);
         assertTrue(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -206,10 +193,10 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenNewJobIsInsertedInBetweenAct1And2WithOldVeh_itJustShouldReturnFalse() {
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("51,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("51,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, vehicle, route.driver, 0.);
 
         /*
         driverTime = 10 + 10 + 31 + 21 + 30 = 102
@@ -217,7 +204,7 @@ public class VehicleDependentTimeWindowTest {
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(1), serviceAct, route.getActivities().get(2), 20.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(1), serviceAct, route.activities().get(2), 20.);
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -225,16 +212,16 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenJobIsInsertedAlongWithNewVehicleThatNeedsToBeHomeAt60_itShouldReturnFalse() {
 
-        assertEquals(60., route.getEnd().getArrTime(), 0.01);
+        assertEquals(60., route.end.arrTime(), 0.01);
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("40,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("40,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v2, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v2, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(2), serviceAct, route.getEnd(), 30.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(2), serviceAct, route.end, 30.);
 
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
@@ -243,16 +230,16 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenJobIsInsertedAlongWithNewVehicleThatNeedsToBeHomeAt50_itShouldReturnFalse() {
 
-        assertEquals(60., route.getEnd().getArrTime(), 0.01);
+        assertEquals(60., route.end.arrTime(), 0.01);
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("40,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("40,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v3, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v3, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(2), serviceAct, route.getEnd(), 30.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(2), serviceAct, route.end, 30.);
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -260,16 +247,16 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenJobIsInsertedAlongWithNewVehicleThatNeedsToBeHomeAt10_itShouldReturnFalse() {
 
-        assertEquals(60., route.getEnd().getArrTime(), 0.01);
+        assertEquals(60., route.end.arrTime(), 0.01);
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("40,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("40,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v4, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v4, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(2), serviceAct, route.getEnd(), 30.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(2), serviceAct, route.end, 30.);
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -277,16 +264,16 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenJobIsInsertedAlongWithV6BetweenS2AndS3_itShouldReturnFalse() {
 
-        assertEquals(60., route.getEnd().getArrTime(), 0.01);
+        assertEquals(60., route.end.arrTime(), 0.01);
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("40,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("40,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v6, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v6, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(1), serviceAct, route.getActivities().get(2), 30.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(1), serviceAct, route.activities().get(2), 30.);
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -294,16 +281,16 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenJobIsInsertedAlongWithV6BetweenS1AndS2_itShouldReturnFalse() {
 
-        assertEquals(60., route.getEnd().getArrTime(), 0.01);
+        assertEquals(60., route.end.arrTime(), 0.01);
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("40,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("40,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v6, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v6, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(0), serviceAct, route.getActivities().get(1), 10.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(0), serviceAct, route.activities().get(1), 10.);
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }
@@ -311,31 +298,31 @@ public class VehicleDependentTimeWindowTest {
     @Test
     public void whenJobIsInsertedAlongWithV6AtTheEndOfRoute_itShouldReturnTrue() {
 
-        assertEquals(60., route.getEnd().getArrTime(), 0.01);
+        assertEquals(60., route.end.arrTime(), 0.01);
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("40,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("40,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v6, route.getDriver(), 0.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v6, route.driver, 0.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(2), serviceAct, route.getEnd(), 30.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(2), serviceAct, route.end, 30.);
         assertTrue(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
     }
 
     @Test
     public void whenJobIsInsertedAlongWithNewVehicleThatCanOnlyStartAt60_itShouldReturnFalse() {
-        assertEquals(60., route.getEnd().getArrTime(), 0.01);
+        assertEquals(60., route.end.arrTime(), 0.01);
 
-        Service s4 = Service.Builder.newInstance("s4").setLocation(Location.newInstance("40,0")).build();
+        Service s4 = Service.Builder.newInstance("s4").location(Location.the("40,0")).build();
         PickupService serviceAct = new PickupService(s4);
 
-        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v5, route.getDriver(), 60.);
+        JobInsertionContext insertionContext = new JobInsertionContext(route, s4, v5, route.driver, 60.);
 
         HardActivityConstraint twConstraint = new VehicleDependentTimeWindowConstraints(stateManager, routingCosts, activityCosts);
 
-        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.getActivities().get(2), serviceAct, route.getEnd(), 90.);
+        HardActivityConstraint.ConstraintsStatus status = twConstraint.fulfilled(insertionContext, route.activities().get(2), serviceAct, route.end, 90.);
         assertFalse(status.equals(HardActivityConstraint.ConstraintsStatus.FULFILLED));
 
     }

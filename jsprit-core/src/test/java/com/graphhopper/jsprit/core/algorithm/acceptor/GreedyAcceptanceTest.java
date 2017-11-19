@@ -37,8 +37,8 @@ public class GreedyAcceptanceTest {
 
         VehicleRoutingProblemSolution sol1 = mock(VehicleRoutingProblemSolution.class);
         VehicleRoutingProblemSolution sol2 = mock(VehicleRoutingProblemSolution.class);
-        when(sol1.getCost()).thenReturn(1.0);
-        when(sol2.getCost()).thenReturn(2.0);
+        when(sol1.cost()).thenReturn(1.0);
+        when(sol2.cost()).thenReturn(2.0);
 
         List<VehicleRoutingProblemSolution> solList = new ArrayList<VehicleRoutingProblemSolution>();
         solList.add(sol1);

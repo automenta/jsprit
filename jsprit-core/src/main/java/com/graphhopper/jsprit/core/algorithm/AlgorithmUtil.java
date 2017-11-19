@@ -22,12 +22,7 @@ import com.graphhopper.jsprit.core.algorithm.state.*;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.constraint.SwitchNotFeasible;
-import com.graphhopper.jsprit.core.problem.job.Job;
-import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
-import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.BreakActivity;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeKey;
 import com.graphhopper.jsprit.core.util.ActivityTimeTracker;
@@ -49,22 +44,21 @@ public class AlgorithmUtil {
         constraintManager.addConstraint(new SwitchNotFeasible(stateManager));
         stateManager.updateLoadStates();
         stateManager.updateTimeWindowStates();
-        UpdateVehicleDependentPracticalTimeWindows twUpdater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, vrp.getTransportCosts(), vrp.getActivityCosts());
+        UpdateVehicleDependentPracticalTimeWindows twUpdater = new UpdateVehicleDependentPracticalTimeWindows(stateManager, vrp.transportCosts(), vrp.activityCosts());
         twUpdater.setVehiclesToUpdate(new UpdateVehicleDependentPracticalTimeWindows.VehiclesToUpdate() {
 
-            Map<VehicleTypeKey, Vehicle> uniqueTypes = new HashMap<VehicleTypeKey, Vehicle>();
+            final Map<VehicleTypeKey, Vehicle> uniqueTypes = new HashMap<>();
 
             @Override
             public Collection<Vehicle> get(VehicleRoute vehicleRoute) {
                 if (uniqueTypes.isEmpty()) {
-                    for (Vehicle v : vrp.getVehicles()) {
-                        if (!uniqueTypes.containsKey(v.getVehicleTypeIdentifier())) {
-                            uniqueTypes.put(v.getVehicleTypeIdentifier(), v);
+                    for (Vehicle v : vrp.vehicles()) {
+                        if (!uniqueTypes.containsKey(v.vehicleType())) {
+                            uniqueTypes.put(v.vehicleType(), v);
                         }
                     }
                 }
-                Collection<Vehicle> vehicles = new ArrayList<Vehicle>();
-                vehicles.addAll(uniqueTypes.values());
+                Collection<Vehicle> vehicles = new ArrayList<>(uniqueTypes.values());
                 return vehicles;
             }
 
@@ -73,9 +67,9 @@ public class AlgorithmUtil {
         stateManager.addStateUpdater(twUpdater);
         stateManager.updateSkillStates();
 
-        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.getTransportCosts(), ActivityTimeTracker.ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS, vrp.getActivityCosts()));
-        stateManager.addStateUpdater(new UpdateVariableCosts(vrp.getActivityCosts(), vrp.getTransportCosts(), stateManager));
-        stateManager.addStateUpdater(new UpdateFutureWaitingTimes(stateManager, vrp.getTransportCosts()));
+        stateManager.addStateUpdater(new UpdateActivityTimes(vrp.transportCosts(), ActivityTimeTracker.ActivityPolicy.AS_SOON_AS_TIME_WINDOW_OPENS, vrp.activityCosts()));
+        stateManager.addStateUpdater(new UpdateVariableCosts(vrp.activityCosts(), vrp.transportCosts(), stateManager));
+        stateManager.addStateUpdater(new UpdateFutureWaitingTimes(stateManager, vrp.transportCosts()));
     }
 
 

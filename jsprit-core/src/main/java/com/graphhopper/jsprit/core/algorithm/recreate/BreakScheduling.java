@@ -45,29 +45,29 @@ public class BreakScheduling implements InsertionStartsListener,JobInsertedListe
 
     private final EventListeners eventListeners;
 
-    private Set<VehicleRoute> modifiedRoutes = new HashSet<VehicleRoute>();
+    private final Collection<VehicleRoute> modifiedRoutes = new HashSet<>();
 
     public BreakScheduling(VehicleRoutingProblem vrp, StateManager stateManager, ConstraintManager constraintManager) {
         this.stateManager = stateManager;
-        this.breakInsertionCalculator = new BreakInsertionCalculator(vrp.getTransportCosts(),vrp.getActivityCosts(),new LocalActivityInsertionCostsCalculator(vrp.getTransportCosts(),vrp.getActivityCosts(),stateManager),constraintManager);
-        this.breakInsertionCalculator.setJobActivityFactory(vrp.getJobActivityFactory());
+        this.breakInsertionCalculator = new BreakInsertionCalculator(vrp.transportCosts(),vrp.activityCosts(),new LocalActivityInsertionCostsCalculator(vrp.transportCosts(),vrp.activityCosts(),stateManager),constraintManager);
+        this.breakInsertionCalculator.setJobActivityFactory(vrp.jobActivityFactory());
         eventListeners = new EventListeners();
     }
 
     @Override
     public void informJobInserted(Job job2insert, VehicleRoute inRoute, double additionalCosts, double additionalTime) {
-        Break aBreak = inRoute.getVehicle().getBreak();
+        Break aBreak = inRoute.vehicle().aBreak();
         if(aBreak != null){
-            boolean removed = inRoute.getTourActivities().removeJob(aBreak);
+            boolean removed = inRoute.tourActivities().removeJob(aBreak);
             if(removed){
-                logger.trace("ruin: {}", aBreak.getId());
+                logger.trace("ruin: {}", aBreak.id);
                 stateManager.removed(aBreak,inRoute);
                 stateManager.reCalculateStates(inRoute);
             }
-            if(inRoute.getEnd().getArrTime() > aBreak.getTimeWindow().getEnd()){
-                InsertionData iData = breakInsertionCalculator.getInsertionData(inRoute, aBreak, inRoute.getVehicle(), inRoute.getDepartureTime(), inRoute.getDriver(), Double.MAX_VALUE);
+            if(inRoute.end.arrTime() > aBreak.timeWindow().end){
+                InsertionData iData = breakInsertionCalculator.getInsertionData(inRoute, aBreak, inRoute.vehicle(), inRoute.getDepartureTime(), inRoute.driver, Double.MAX_VALUE);
                 if(!(iData instanceof InsertionData.NoInsertionFound)){
-                    logger.trace("insert: [jobId={}]{}", aBreak.getId(), iData);
+                    logger.trace("insert: [jobId={}]{}", aBreak.id, iData);
                     for(Event e : iData.getEvents()){
                         eventListeners.inform(e);
                     }
@@ -85,11 +85,11 @@ public class BreakScheduling implements InsertionStartsListener,JobInsertedListe
     @Override
     public void ruinEnds(Collection<VehicleRoute> routes, Collection<Job> unassignedJobs) {
         for(VehicleRoute route : routes){
-            Break aBreak = route.getVehicle().getBreak();
-            boolean removed = route.getTourActivities().removeJob(aBreak);
-            if(removed) logger.trace("ruin: {}", aBreak.getId());
+            Break aBreak = route.vehicle().aBreak();
+            boolean removed = route.tourActivities().removeJob(aBreak);
+            if(removed) logger.trace("ruin: {}", aBreak.id);
         }
-        List<Break> breaks = new ArrayList<Break>();
+        Collection<Break> breaks = new ArrayList<>();
         for (Job j : unassignedJobs) {
             if (j instanceof Break) {
                 breaks.add((Break) j);
@@ -100,18 +100,18 @@ public class BreakScheduling implements InsertionStartsListener,JobInsertedListe
 
     @Override
     public void removed(Job job, VehicleRoute fromRoute) {
-        if(fromRoute.getVehicle().getBreak() != null) modifiedRoutes.add(fromRoute);
+        if(fromRoute.vehicle().aBreak() != null) modifiedRoutes.add(fromRoute);
     }
 
     @Override
     public void informInsertionStarts(Collection<VehicleRoute> vehicleRoutes, Collection<Job> unassignedJobs) {
         for(VehicleRoute route : vehicleRoutes){
-            Break aBreak = route.getVehicle().getBreak();
-            if(aBreak != null && !route.getTourActivities().servesJob(aBreak)){
-                if(route.getEnd().getArrTime() > aBreak.getTimeWindow().getEnd()){
-                    InsertionData iData = breakInsertionCalculator.getInsertionData(route, aBreak, route.getVehicle(), route.getDepartureTime(), route.getDriver(), Double.MAX_VALUE);
+            Break aBreak = route.vehicle().aBreak();
+            if(aBreak != null && !route.tourActivities().servesJob(aBreak)){
+                if(route.end.arrTime() > aBreak.timeWindow().end){
+                    InsertionData iData = breakInsertionCalculator.getInsertionData(route, aBreak, route.vehicle(), route.getDepartureTime(), route.driver, Double.MAX_VALUE);
                     if(!(iData instanceof InsertionData.NoInsertionFound)){
-                        logger.trace("insert: [jobId={}]{}", aBreak.getId(), iData);
+                        logger.trace("insert: [jobId={}]{}", aBreak.id, iData);
                         for(Event e : iData.getEvents()){
                             eventListeners.inform(e);
                         }

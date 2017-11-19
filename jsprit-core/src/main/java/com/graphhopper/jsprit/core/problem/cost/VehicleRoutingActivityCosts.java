@@ -17,8 +17,8 @@
  */
 package com.graphhopper.jsprit.core.problem.cost;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 
 /**
@@ -30,7 +30,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
  */
 public interface VehicleRoutingActivityCosts {
 
-    public static class Time {
+    class Time {
 
         public static double TOUREND = -2.0;
 
@@ -39,9 +39,9 @@ public interface VehicleRoutingActivityCosts {
         public static double UNDEFINED = -3.0;
     }
 
-    public static interface Parameter {
+    interface Parameter {
 
-        public double getPenaltyForMissedTimeWindow();
+        double getPenaltyForMissedTimeWindow();
 
     }
 
@@ -57,8 +57,8 @@ public interface VehicleRoutingActivityCosts {
      * @param vehicle     if earliestStartTime > latestStartTime activity operations cannot be conducted within the given time-window.
      * @return
      */
-    public double getActivityCost(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle);
+    double getActivityCost(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle);
 
-    public double getActivityDuration(TourActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle);
+    double getActivityDuration(AbstractActivity tourAct, double arrivalTime, Driver driver, Vehicle vehicle);
 
 }

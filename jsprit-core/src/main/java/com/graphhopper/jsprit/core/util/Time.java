@@ -17,7 +17,11 @@
  */
 package com.graphhopper.jsprit.core.util;
 
+import java.util.regex.Pattern;
+
 public class Time {
+
+    private static final Pattern PARSE_SECONDS = Pattern.compile("\\D");
 
     /**
      * Parses seconds to this time format: hh:mm:ss {AM|PM}
@@ -35,12 +39,12 @@ public class Time {
             hours -= 12;
         }
         String hourString = "0" + hours;
-        if (hours > 9) hourString = "" + hours;
-        String minString = "" + min;
+        if (hours > 9) hourString = String.valueOf(hours);
+        String minString = String.valueOf(min);
         if (min < 10) minString = "0" + min;
-        String secString = "" + secs;
+        String secString = String.valueOf(secs);
         if (secs < 10) secString = "0" + secs;
-        return hourString + ":" + minString + ":" + secString + " " + dayTime;
+        return hourString + ':' + minString + ':' + secString + ' ' + dayTime;
     }
 
     /**
@@ -58,7 +62,7 @@ public class Time {
      * @return seconds
      */
     public static double parseTimeToSeconds(String timeString) {
-        if (timeString.substring(0, 1).matches("\\D"))
+        if (PARSE_SECONDS.matcher(timeString.substring(0, 1)).matches())
             throw new IllegalArgumentException("timeString must start with digit [0-9]");
         double dayTime = 0.;
         if (timeString.toLowerCase().contains("pm")) {
@@ -66,14 +70,15 @@ public class Time {
         }
         String[] tokens = timeString.split(":");
 
-        if (tokens.length == 1) { //1 AM or 01 AM
-            return getHourInSeconds(tokens[0]) + dayTime;
-        } else if (tokens.length == 2) {
-            return getHourInSeconds(tokens[0]) + getMinInSeconds(tokens[1]) + dayTime;
-        } else if (tokens.length == 3) {
-            return getHourInSeconds(tokens[0]) + getMinInSeconds(tokens[1]) + getSecondsInSeconds(tokens[2]) + dayTime;
-        } else {
-            throw new IllegalArgumentException("wrong timeString");
+        switch (tokens.length) {
+            case 1:  //1 AM or 01 AM
+                return getHourInSeconds(tokens[0]) + dayTime;
+            case 2:
+                return getHourInSeconds(tokens[0]) + getMinInSeconds(tokens[1]) + dayTime;
+            case 3:
+                return getHourInSeconds(tokens[0]) + getMinInSeconds(tokens[1]) + getSecondsInSeconds(tokens[2]) + dayTime;
+            default:
+                throw new IllegalArgumentException("wrong timeString");
         }
 
     }
@@ -94,14 +99,10 @@ public class Time {
         if (digitString.length() == 1) {
             return Double.parseDouble(digitString);
         }
-        if (digitString.substring(1, 2).matches("\\D")) {
+        if (PARSE_SECONDS.matcher(digitString.substring(1, 2)).matches()) {
             return Double.parseDouble(digitString.substring(0, 1));
         } else {
-            if (digitString.startsWith("0")) {
-                return Double.parseDouble(digitString.substring(1, 2));
-            } else {
-                return Double.parseDouble(digitString.substring(0, 2));
-            }
+            return digitString.startsWith("0") ? Double.parseDouble(digitString.substring(1, 2)) : Double.parseDouble(digitString.substring(0, 2));
         }
     }
 }

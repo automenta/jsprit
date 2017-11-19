@@ -32,15 +32,15 @@ import java.util.Map;
 
 class InfiniteVehicles implements VehicleFleetManager {
 
-    private static Logger logger = LoggerFactory.getLogger(InfiniteVehicles.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfiniteVehicles.class);
 
-    private Map<VehicleTypeKey, Vehicle> types = new HashMap<VehicleTypeKey, Vehicle>();
+    private final Map<VehicleTypeKey, Vehicle> types = new HashMap<>();
 
 //	private List<VehicleTypeKey> sortedTypes = new ArrayList<VehicleTypeKey>();
 
     public InfiniteVehicles(Collection<Vehicle> vehicles) {
         extractTypes(vehicles);
-        logger.debug("initialise " + this);
+        logger.debug("initialise {}", this);
     }
 
     @Override
@@ -48,10 +48,10 @@ class InfiniteVehicles implements VehicleFleetManager {
         return "[name=infiniteVehicle]";
     }
 
-    private void extractTypes(Collection<Vehicle> vehicles) {
+    private void extractTypes(Iterable<Vehicle> vehicles) {
         for (Vehicle v : vehicles) {
 //            VehicleTypeKey typeKey = new VehicleTypeKey(v.getType().getTypeId(), v.getStartLocation().getId(), v.getEndLocation().getId(), v.getEarliestDeparture(), v.getLatestArrival(), v.getSkills(), v.isReturnToDepot());
-            types.put(v.getVehicleTypeIdentifier(), v);
+            types.put(v.vehicleType(), v);
 //			sortedTypes.add(typeKey);
         }
     }
@@ -79,24 +79,24 @@ class InfiniteVehicles implements VehicleFleetManager {
     }
 
     @Override
-    public Collection<Vehicle> getAvailableVehicles() {
+    public Collection<Vehicle> vehiclesAvailable() {
         return types.values();
     }
 
     @Override
-    public Collection<Vehicle> getAvailableVehicles(Vehicle withoutThisType) {
-        Collection<Vehicle> vehicles = new ArrayList<Vehicle>();
-        VehicleTypeKey thisKey = new VehicleTypeKey(withoutThisType.getType().getTypeId(), withoutThisType.getStartLocation().getId(), withoutThisType.getEndLocation().getId(), withoutThisType.getEarliestDeparture(), withoutThisType.getLatestArrival(), withoutThisType.getSkills(), withoutThisType.isReturnToDepot());
-        for (VehicleTypeKey key : types.keySet()) {
-            if (!key.equals(thisKey)) {
-                vehicles.add(types.get(key));
+    public Collection<Vehicle> vehiclesAvailable(Vehicle withoutThisType) {
+        Collection<Vehicle> vehicles = new ArrayList<>();
+        VehicleTypeKey thisKey = new VehicleTypeKey(withoutThisType.type().type(), withoutThisType.start().id, withoutThisType.end().id, withoutThisType.earliestDeparture(), withoutThisType.latestArrival(), withoutThisType.skills(), withoutThisType.isReturnToDepot());
+        for (Map.Entry<VehicleTypeKey, Vehicle> vehicleTypeKeyVehicleEntry : types.entrySet()) {
+            if (!(vehicleTypeKeyVehicleEntry.getKey()).equals(thisKey)) {
+                vehicles.add(vehicleTypeKeyVehicleEntry.getValue());
             }
         }
         return vehicles;
     }
 
     @Override
-    public Vehicle getAvailableVehicle(VehicleTypeKey vehicleTypeIdentifier) {
+    public Vehicle vehicleAvailable(VehicleTypeKey vehicleTypeIdentifier) {
         return types.get(vehicleTypeIdentifier);
     }
 

@@ -33,11 +33,11 @@ import org.slf4j.LoggerFactory;
  */
 public class IterationWithoutImprovementTermination implements PrematureAlgorithmTermination {
 
-    private static Logger log = LoggerFactory.getLogger(IterationWithoutImprovementTermination.class);
+    private static final Logger log = LoggerFactory.getLogger(IterationWithoutImprovementTermination.class);
 
-    private int noIterationWithoutImprovement;
+    private final int noIterationWithoutImprovement;
 
-    private int iterationsWithoutImprovement = 0;
+    private int iterationsWithoutImprovement;
 
     /**
      * Constructs termination.
@@ -46,12 +46,12 @@ public class IterationWithoutImprovementTermination implements PrematureAlgorith
      */
     public IterationWithoutImprovementTermination(int noIterationsWithoutImprovement) {
         this.noIterationWithoutImprovement = noIterationsWithoutImprovement;
-        log.debug("initialise " + this);
+        log.debug("initialise {}", this);
     }
 
     @Override
     public String toString() {
-        return "[name=IterationWithoutImprovementBreaker][iterationsWithoutImprovement=" + noIterationWithoutImprovement + "]";
+        return "[name=IterationWithoutImprovementBreaker][iterationsWithoutImprovement=" + noIterationWithoutImprovement + ']';
     }
 
     @Override

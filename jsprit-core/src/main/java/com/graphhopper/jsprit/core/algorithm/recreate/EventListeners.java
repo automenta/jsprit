@@ -19,6 +19,7 @@
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ import java.util.List;
  */
 class EventListeners {
 
-    private List<EventListener> listeners = new ArrayList<EventListener>();
+    private final Collection<EventListener> listeners = new ArrayList<>();
 
     public EventListeners() {
         listeners.add(new InsertActivityListener());

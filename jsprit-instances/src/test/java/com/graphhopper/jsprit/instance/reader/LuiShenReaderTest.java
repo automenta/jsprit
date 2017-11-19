@@ -32,7 +32,7 @@ public class LuiShenReaderTest {
 
     @Before
     public void doBefore() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new LuiShenReader(builder).read(this.getClass().getClassLoader().getResource("C101_solomon.txt").getPath(),
             this.getClass().getClassLoader().getResource("C1_LuiShenVehicles.txt").getPath(), "a");
         vrp = builder.build();
@@ -46,16 +46,16 @@ public class LuiShenReaderTest {
 
     @Test
     public void testNuOfTypes() {
-        assertEquals(3, vrp.getTypes().size());
+        assertEquals(3, vrp.types().size());
     }
 
     @Test
     public void testNuOfRepresentativeVehicles() {
-        assertEquals(3, vrp.getVehicles().size());
+        assertEquals(3, vrp.vehicles().size());
     }
 
     @Test
     public void testNuOfJobs() {
-        assertEquals(100, vrp.getJobs().values().size());
+        assertEquals(100, vrp.jobs().values().size());
     }
 }

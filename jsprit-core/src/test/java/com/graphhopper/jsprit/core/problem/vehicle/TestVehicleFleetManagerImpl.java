@@ -41,10 +41,10 @@ public class TestVehicleFleetManagerImpl {
     public void setUp() {
         List<Vehicle> vehicles = new ArrayList<Vehicle>();
 
-        v1 = VehicleImpl.Builder.newInstance("standard").setStartLocation(Location.newInstance("loc")).setType(VehicleTypeImpl.Builder.newInstance("standard").build()).build();
-        v2 = VehicleImpl.Builder.newInstance("foo").setStartLocation(Location.newInstance("fooLoc")).setType(VehicleTypeImpl.Builder.newInstance("foo").build()).build();
+        v1 = VehicleImpl.Builder.newInstance("standard").setStartLocation(Location.the("loc")).setType(VehicleTypeImpl.Builder.the("standard").build()).build();
+        v2 = VehicleImpl.Builder.newInstance("foo").setStartLocation(Location.the("fooLoc")).setType(VehicleTypeImpl.Builder.the("foo").build()).build();
 
-        VehicleRoutingProblem.Builder.newInstance().addVehicle(v1).addVehicle(v2).build();
+        VehicleRoutingProblem.Builder.get().addVehicle(v1).addVehicle(v2).build();
 //		v1.
         vehicles.add(v1);
         vehicles.add(v2);
@@ -53,14 +53,14 @@ public class TestVehicleFleetManagerImpl {
 
     @Test
     public void testGetVehicles() {
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(2, vehicles.size());
     }
 
     @Test
     public void testLock() {
         fleetManager.lock(v1);
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(1, vehicles.size());
     }
 
@@ -81,12 +81,12 @@ public class TestVehicleFleetManagerImpl {
     @Test
     public void testLockTwice() {
         fleetManager.lock(v1);
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(1, vehicles.size());
         try {
             fleetManager.lock(v1);
             @SuppressWarnings("unused")
-            Collection<Vehicle> vehicles_ = fleetManager.getAvailableVehicles();
+            Collection<Vehicle> vehicles_ = fleetManager.vehiclesAvailable();
             assertFalse(true);
         } catch (IllegalStateException e) {
             assertTrue(true);
@@ -95,7 +95,7 @@ public class TestVehicleFleetManagerImpl {
 
     @Test
     public void testGetVehiclesWithout() {
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles(v1);
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable(v1);
 
         assertEquals(v2, vehicles.iterator().next());
         assertEquals(1, vehicles.size());
@@ -104,46 +104,46 @@ public class TestVehicleFleetManagerImpl {
     @Test
     public void testUnlock() {
         fleetManager.lock(v1);
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(1, vehicles.size());
         fleetManager.unlock(v1);
-        Collection<Vehicle> vehicles_ = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles_ = fleetManager.vehiclesAvailable();
         assertEquals(2, vehicles_.size());
     }
 
     @Test
     public void whenAddingTwoVehiclesWithSameTypeIdAndLocation_getAvailableVehicleShouldReturnOnlyOneOfThem() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("standard").build();
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("loc")).setType(type).build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("loc")).setType(type).build();
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("standard").build();
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("loc")).setType(type).build();
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("loc")).setType(type).build();
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(Arrays.asList(v1, v2)).createFleetManager();
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(1, vehicles.size());
     }
 
     @Test
     public void whenAddingTwoVehiclesWithSameTypeIdStartAndEndLocationAndWorkingShift_getAvailableVehicleShouldReturnOnlyOneOfThem() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("standard").build();
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("standard").build();
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(Arrays.asList(v1, v2)).createFleetManager();
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(1, vehicles.size());
     }
 
     @Test
     public void whenAddingTwoVehiclesWithDifferentType_getAvailableVehicleShouldReturnBoth() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("standard").build();
-        VehicleTypeImpl type2 = VehicleTypeImpl.Builder.newInstance("type2").build();
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("standard").build();
+        VehicleTypeImpl type2 = VehicleTypeImpl.Builder.the("type2").build();
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type2).setEarliestStart(0.).setLatestArrival(10.).build();
-        VehicleRoutingProblem.Builder.newInstance().addVehicle(v1).addVehicle(v2).build();
+        VehicleRoutingProblem.Builder.get().addVehicle(v1).addVehicle(v2).build();
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(Arrays.asList(v1, v2)).createFleetManager();
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(2, vehicles.size());
         assertTrue(vehicleInCollection(v1, vehicles));
         assertTrue(vehicleInCollection(v2, vehicles));
@@ -151,14 +151,14 @@ public class TestVehicleFleetManagerImpl {
 
     @Test
     public void whenAddingTwoVehiclesWithDifferentStartLocation_getAvailableVehicleShouldReturnBoth() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("standard").build();
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("startLoc")).setEndLocation(Location.newInstance("endLoc"))
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("standard").build();
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("startLoc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        VehicleRoutingProblem.Builder.newInstance().addVehicle(v1).addVehicle(v2).build();
+        VehicleRoutingProblem.Builder.get().addVehicle(v1).addVehicle(v2).build();
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(Arrays.asList(v1, v2)).createFleetManager();
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(2, vehicles.size());
         assertTrue(vehicleInCollection(v1, vehicles));
         assertTrue(vehicleInCollection(v2, vehicles));
@@ -166,14 +166,14 @@ public class TestVehicleFleetManagerImpl {
 
     @Test
     public void whenAddingTwoVehiclesWithDifferentEndLocation_getAvailableVehicleShouldReturnBoth() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("standard").build();
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLocation"))
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("standard").build();
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLocation"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        VehicleRoutingProblem.Builder.newInstance().addVehicle(v1).addVehicle(v2).build();
+        VehicleRoutingProblem.Builder.get().addVehicle(v1).addVehicle(v2).build();
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(Arrays.asList(v1, v2)).createFleetManager();
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(2, vehicles.size());
         assertTrue(vehicleInCollection(v1, vehicles));
         assertTrue(vehicleInCollection(v2, vehicles));
@@ -181,14 +181,14 @@ public class TestVehicleFleetManagerImpl {
 
     @Test
     public void whenAddingTwoVehiclesWithDifferentEarliestStart_getAvailableVehicleShouldReturnBoth() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("standard").build();
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("standard").build();
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(5.).setLatestArrival(10.).build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        VehicleRoutingProblem.Builder.newInstance().addVehicle(v1).addVehicle(v2).build();
+        VehicleRoutingProblem.Builder.get().addVehicle(v1).addVehicle(v2).build();
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(Arrays.asList(v1, v2)).createFleetManager();
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(2, vehicles.size());
         assertTrue(vehicleInCollection(v1, vehicles));
         assertTrue(vehicleInCollection(v2, vehicles));
@@ -196,14 +196,14 @@ public class TestVehicleFleetManagerImpl {
 
     @Test
     public void whenAddingTwoVehiclesWithDifferentLatestArr_getAvailableVehicleShouldReturnBoth() {
-        VehicleTypeImpl type = VehicleTypeImpl.Builder.newInstance("standard").build();
-        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        VehicleTypeImpl type = VehicleTypeImpl.Builder.the("standard").build();
+        Vehicle v1 = VehicleImpl.Builder.newInstance("v1").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(20.).build();
-        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.newInstance("loc")).setEndLocation(Location.newInstance("endLoc"))
+        Vehicle v2 = VehicleImpl.Builder.newInstance("v2").setStartLocation(Location.the("loc")).setEndLocation(Location.the("endLoc"))
             .setType(type).setEarliestStart(0.).setLatestArrival(10.).build();
-        VehicleRoutingProblem.Builder.newInstance().addVehicle(v1).addVehicle(v2).build();
+        VehicleRoutingProblem.Builder.get().addVehicle(v1).addVehicle(v2).build();
         VehicleFleetManager fleetManager = new FiniteFleetManagerFactory(Arrays.asList(v1, v2)).createFleetManager();
-        Collection<Vehicle> vehicles = fleetManager.getAvailableVehicles();
+        Collection<Vehicle> vehicles = fleetManager.vehiclesAvailable();
         assertEquals(2, vehicles.size());
         assertTrue(vehicleInCollection(v1, vehicles));
         assertTrue(vehicleInCollection(v2, vehicles));

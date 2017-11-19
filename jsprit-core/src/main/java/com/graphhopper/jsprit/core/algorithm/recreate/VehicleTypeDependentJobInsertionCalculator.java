@@ -17,6 +17,7 @@
  */
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.HasId;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.job.Job;
@@ -35,7 +36,7 @@ import java.util.Set;
 
 final class VehicleTypeDependentJobInsertionCalculator implements JobInsertionCostsCalculator {
 
-    private Logger logger = LoggerFactory.getLogger(VehicleTypeDependentJobInsertionCalculator.class);
+    private final Logger logger = LoggerFactory.getLogger(VehicleTypeDependentJobInsertionCalculator.class);
 
     private final VehicleFleetManager fleetManager;
 
@@ -43,7 +44,7 @@ final class VehicleTypeDependentJobInsertionCalculator implements JobInsertionCo
 
     private final VehicleRoutingProblem vrp;
 
-    private Set<String> initialVehicleIds = new HashSet<String>();
+    private final Collection<String> initialVehicleIds = new HashSet<>();
 
     /**
      * true if a vehicle(-type) is allowed to take over the whole route that was previously served by another vehicle
@@ -52,20 +53,20 @@ final class VehicleTypeDependentJobInsertionCalculator implements JobInsertionCo
      * can start with a small vehicle, but as the number of customers grows bigger vehicles can be operated, i.e.
      * bigger vehicles can take over the route that was previously served by a small vehicle.
      */
-    private boolean vehicleSwitchAllowed = false;
+    private boolean vehicleSwitchAllowed;
 
     public VehicleTypeDependentJobInsertionCalculator(final VehicleRoutingProblem vrp, final VehicleFleetManager fleetManager, final JobInsertionCostsCalculator jobInsertionCalc) {
         this.fleetManager = fleetManager;
         this.insertionCalculator = jobInsertionCalc;
         this.vrp = vrp;
         getInitialVehicleIds();
-        logger.debug("initialise " + this);
+        logger.debug("initialise {}", this);
     }
 
     private void getInitialVehicleIds() {
-        Collection<VehicleRoute> initialVehicleRoutes = vrp.getInitialVehicleRoutes();
+        Collection<VehicleRoute> initialVehicleRoutes = vrp.initialVehicleRoutes();
         for (VehicleRoute initialRoute : initialVehicleRoutes) {
-            initialVehicleIds.add(initialRoute.getVehicle().getId());
+            initialVehicleIds.add(initialRoute.vehicle().id());
         }
     }
 
@@ -88,31 +89,31 @@ final class VehicleTypeDependentJobInsertionCalculator implements JobInsertionCo
      * @param vehicleSwitchAllowed the vehicleSwitchAllowed to set
      */
     public void setVehicleSwitchAllowed(boolean vehicleSwitchAllowed) {
-        logger.debug("set vehicleSwitchAllowed to " + vehicleSwitchAllowed);
+        logger.debug("set vehicleSwitchAllowed to {}", vehicleSwitchAllowed);
         this.vehicleSwitchAllowed = vehicleSwitchAllowed;
     }
 
+    @Override
     public InsertionData getInsertionData(final VehicleRoute currentRoute, final Job jobToInsert, final Vehicle vehicle, double newVehicleDepartureTime, final Driver driver, final double bestKnownCost) {
         if(vehicle != null){
             return insertionCalculator.getInsertionData(currentRoute, jobToInsert, vehicle, newVehicleDepartureTime, driver, bestKnownCost);
         }
-        Vehicle selectedVehicle = currentRoute.getVehicle();
-        Driver selectedDriver = currentRoute.getDriver();
+        Vehicle selectedVehicle = currentRoute.vehicle();
+        Driver selectedDriver = currentRoute.driver;
         InsertionData bestIData = new InsertionData.NoInsertionFound();
         double bestKnownCost_ = bestKnownCost;
-        Collection<Vehicle> relevantVehicles = new ArrayList<Vehicle>();
+        Collection<Vehicle> relevantVehicles = new ArrayList<>();
         if (!(selectedVehicle instanceof VehicleImpl.NoVehicle)) {
             relevantVehicles.add(selectedVehicle);
             if (vehicleSwitchAllowed && !isVehicleWithInitialRoute(selectedVehicle)) {
-                relevantVehicles.addAll(fleetManager.getAvailableVehicles(selectedVehicle));
+                relevantVehicles.addAll(fleetManager.vehiclesAvailable(selectedVehicle));
             }
         } else { //if no vehicle has been assigned, i.e. it is an empty route
-            relevantVehicles.addAll(fleetManager.getAvailableVehicles());
+            relevantVehicles.addAll(fleetManager.vehiclesAvailable());
         }
         for (Vehicle v : relevantVehicles) {
             double depTime;
-            if (v == selectedVehicle) depTime = currentRoute.getDepartureTime();
-            else depTime = v.getEarliestDeparture();
+            depTime = v == selectedVehicle ? currentRoute.getDepartureTime() : v.earliestDeparture();
             InsertionData iData = insertionCalculator.getInsertionData(currentRoute, jobToInsert, v, depTime, selectedDriver, bestKnownCost_);
             if (iData instanceof InsertionData.NoInsertionFound) {
                 bestIData.getFailedConstraintNames().addAll(iData.getFailedConstraintNames());
@@ -130,8 +131,8 @@ final class VehicleTypeDependentJobInsertionCalculator implements JobInsertionCo
         return fleetManager;
     }
 
-    private boolean isVehicleWithInitialRoute(Vehicle selectedVehicle) {
-        return initialVehicleIds.contains(selectedVehicle.getId());
+    private boolean isVehicleWithInitialRoute(HasId selectedVehicle) {
+        return initialVehicleIds.contains(selectedVehicle.id());
     }
 
 }

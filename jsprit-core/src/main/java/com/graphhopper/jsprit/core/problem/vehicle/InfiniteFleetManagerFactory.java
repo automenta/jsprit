@@ -26,7 +26,7 @@ import java.util.Collection;
  */
 public class InfiniteFleetManagerFactory implements VehicleFleetManagerFactory {
 
-    private Collection<Vehicle> vehicles;
+    private final Collection<Vehicle> vehicles;
 
 
     /**
@@ -35,7 +35,6 @@ public class InfiniteFleetManagerFactory implements VehicleFleetManagerFactory {
      * @param vehicles
      */
     public InfiniteFleetManagerFactory(Collection<Vehicle> vehicles) {
-        super();
         this.vehicles = vehicles;
     }
 

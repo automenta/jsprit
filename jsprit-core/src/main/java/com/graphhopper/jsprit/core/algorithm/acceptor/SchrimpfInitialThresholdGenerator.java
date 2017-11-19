@@ -33,14 +33,13 @@ import java.util.Collection;
 
 public class SchrimpfInitialThresholdGenerator implements AlgorithmStartsListener {
 
-    private static Logger logger = LoggerFactory.getLogger(SchrimpfInitialThresholdGenerator.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SchrimpfInitialThresholdGenerator.class.getName());
 
-    private SchrimpfAcceptance schrimpfAcceptance;
+    private final SchrimpfAcceptance schrimpfAcceptance;
 
-    private int nOfRandomWalks;
+    private final int nOfRandomWalks;
 
     public SchrimpfInitialThresholdGenerator(SchrimpfAcceptance schrimpfAcceptance, int nOfRandomWalks) {
-        super();
         this.schrimpfAcceptance = schrimpfAcceptance;
         this.nOfRandomWalks = nOfRandomWalks;
     }
@@ -55,19 +54,14 @@ public class SchrimpfInitialThresholdGenerator implements AlgorithmStartsListene
 		 */
         final double[] results = new double[nOfRandomWalks];
 
-        Jsprit.Builder builder = new GreedySchrimpfFactory().createGreedyAlgorithmBuilder(problem);
+        Jsprit.Builder builder = GreedySchrimpfFactory.createGreedyAlgorithmBuilder(problem);
         builder.setCustomAcceptor(new AcceptNewRemoveFirst(1));
         VehicleRoutingAlgorithm vra = builder.buildAlgorithm();
         vra.setMaxIterations(nOfRandomWalks);
-        vra.getAlgorithmListeners().addListener(new IterationEndsListener() {
-
-            @Override
-            public void informIterationEnds(int iteration, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
-                double result = Solutions.bestOf(solutions).getCost();
+        vra.getAlgorithmListeners().addListener((IterationEndsListener) (iteration, problem1, solutions1) -> {
+            double result = Solutions.bestOf(solutions1).cost();
 //				logger.info("result={}", result);
-                results[iteration - 1] = result;
-            }
-
+            results[iteration - 1] = result;
         });
         vra.searchSolutions();
 

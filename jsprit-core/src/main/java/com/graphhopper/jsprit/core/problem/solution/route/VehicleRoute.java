@@ -56,7 +56,7 @@ public class VehicleRoute {
      * @return empty route
      */
     public static VehicleRoute emptyRoute() {
-        return Builder.newInstance(VehicleImpl.createNoVehicle(), DriverImpl.noDriver()).build();
+        return Builder.newInstance(VehicleImpl.get(), DriverImpl.noDriver()).build();
     }
 
     /**
@@ -66,7 +66,7 @@ public class VehicleRoute {
      */
     public static class Builder {
 
-        private Map<Shipment, TourActivity> openActivities = new HashMap<Shipment, TourActivity>();
+        private final Map<Shipment, AbstractActivity> openActivities = new HashMap<>();
 
         /**
          * Returns new instance of this builder.
@@ -107,29 +107,29 @@ public class VehicleRoute {
             return new Builder(vehicle, DriverImpl.noDriver());
         }
 
-        private Vehicle vehicle;
+        private final Vehicle vehicle;
 
-        private Driver driver;
+        private final Driver driver;
 
-        private Start start;
+        private final Start start;
 
-        private End end;
+        private final End end;
 
         private final TourActivities tourActivities = new TourActivities();
 
-        private final Set<Shipment> openShipments = new HashSet<Shipment>();
+        private final Collection<Shipment> openShipments = new HashSet<>();
 
         private JobActivityFactory jobActivityFactory = new JobActivityFactory() {
-            
+
             private final TourShipmentActivityFactory shipmentActivityFactory = new DefaultShipmentActivityFactory();
-            
-            private final  TourActivityFactory serviceActivityFactory = new DefaultTourActivityFactory();
+
+            private final TourActivityFactory serviceActivityFactory = new DefaultTourActivityFactory();
 
             @Override
-            public List<AbstractActivity> createActivities(Job job) {
-                List<AbstractActivity> acts = new ArrayList<AbstractActivity>();
+            public List<JobActivity> the(Job job) {
+                List<JobActivity> acts = new ArrayList<>();
                 if (job instanceof Break) {
-                    acts.add(BreakActivity.newInstance((Break) job));
+                    acts.add(BreakActivity.the((Break) job));
                 } else if (job instanceof Service) {
                     acts.add(serviceActivityFactory.createActivity((Service) job));
                 } else if (job instanceof Shipment) {
@@ -147,12 +147,11 @@ public class VehicleRoute {
         }
 
         private Builder(Vehicle vehicle, Driver driver) {
-            super();
             this.vehicle = vehicle;
             this.driver = driver;
-            start = new Start(vehicle.getStartLocation(), vehicle.getEarliestDeparture(), Double.MAX_VALUE);
-            start.setEndTime(vehicle.getEarliestDeparture());
-            end = new End(vehicle.getEndLocation(), 0.0, vehicle.getLatestArrival());
+            start = new Start(vehicle.start(), vehicle.earliestDeparture(), Double.MAX_VALUE);
+            start.end(vehicle.earliestDeparture());
+            end = new End(vehicle.end(), 0.0, vehicle.latestArrival());
         }
 
         /**
@@ -165,9 +164,9 @@ public class VehicleRoute {
          * @throws IllegalArgumentException if departureTime < vehicle.getEarliestDeparture()
          */
         public Builder setDepartureTime(double departureTime) {
-            if (departureTime < start.getEndTime())
+            if (departureTime < start.end())
                 throw new IllegalArgumentException("departureTime < vehicle.getEarliestDepartureTime(). this must not be.");
-            start.setEndTime(departureTime);
+            start.end(departureTime);
             return this;
         }
 
@@ -184,15 +183,15 @@ public class VehicleRoute {
          * @throws IllegalArgumentException if service is null
          */
         public Builder addService(Service service) {
-            return addService(service,service.getTimeWindow());
+            return addService(service, service.timeWindow());
         }
 
-        public Builder addService(Service service, TimeWindow timeWindow) {
+        public Builder addService(Job service, TimeWindow timeWindow) {
             if (service == null) throw new IllegalArgumentException("service must not be null");
-            List<AbstractActivity> acts = jobActivityFactory.createActivities(service);
-            TourActivity act = acts.get(0);
-            act.setTheoreticalEarliestOperationStartTime(timeWindow.getStart());
-            act.setTheoreticalLatestOperationStartTime(timeWindow.getEnd());
+            List<JobActivity> acts = jobActivityFactory.the(service);
+            AbstractActivity act = acts.get(0);
+            act.startEarliest(timeWindow.start);
+            act.startLatest(timeWindow.end);
             tourActivities.addActivity(act);
             return this;
         }
@@ -200,13 +199,13 @@ public class VehicleRoute {
         @Deprecated
         public Builder addBreak(Break currentbreak) {
             if (currentbreak == null) throw new IllegalArgumentException("break must not be null");
-            return addBreak(currentbreak, currentbreak.getTimeWindow());
+            return addBreak(currentbreak, currentbreak.timeWindow());
         }
 
         @Deprecated
         public Builder addBreak(Break currentbreak, TimeWindow timeWindow) {
             if (currentbreak == null) throw new IllegalArgumentException("break must not be null");
-            return addService(currentbreak,timeWindow);
+            return addService(currentbreak, timeWindow);
         }
 
         public Builder addBreak(Break currentbreak, TimeWindow timeWindow, Location location) {
@@ -214,12 +213,12 @@ public class VehicleRoute {
             return addBreakInternally(currentbreak, timeWindow, location);
         }
 
-        private Builder addBreakInternally(Break currentBreak, TimeWindow timeWindow, Location breakLocation) {
-            List<AbstractActivity> acts = jobActivityFactory.createActivities(currentBreak);
+        private Builder addBreakInternally(Job currentBreak, TimeWindow timeWindow, Location breakLocation) {
+            List<JobActivity> acts = jobActivityFactory.the(currentBreak);
             BreakActivity act = (BreakActivity) acts.get(0);
-            act.setTheoreticalEarliestOperationStartTime(timeWindow.getStart());
-            act.setTheoreticalLatestOperationStartTime(timeWindow.getEnd());
-            act.setLocation(breakLocation);
+            act.startEarliest(timeWindow.start);
+            act.startLatest(timeWindow.end);
+            act.location(breakLocation);
             tourActivities.addActivity(act);
             return this;
         }
@@ -237,7 +236,7 @@ public class VehicleRoute {
 
         public Builder addPickup(Pickup pickup, TimeWindow timeWindow) {
             if (pickup == null) throw new IllegalArgumentException("pickup must not be null");
-            return addService(pickup,timeWindow);
+            return addService(pickup, timeWindow);
         }
 
         /**
@@ -253,7 +252,7 @@ public class VehicleRoute {
 
         public Builder addDelivery(Delivery delivery, TimeWindow timeWindow) {
             if (delivery == null) throw new IllegalArgumentException("delivery must not be null");
-            return addService(delivery,timeWindow);
+            return addService(delivery, timeWindow);
         }
 
         /**
@@ -270,10 +269,10 @@ public class VehicleRoute {
         public Builder addPickup(Shipment shipment, TimeWindow pickupTimeWindow) {
             if (openShipments.contains(shipment))
                 throw new IllegalArgumentException("shipment has already been added. cannot add it twice.");
-            List<AbstractActivity> acts = jobActivityFactory.createActivities(shipment);
-            TourActivity act = acts.get(0);
-            act.setTheoreticalEarliestOperationStartTime(pickupTimeWindow.getStart());
-            act.setTheoreticalLatestOperationStartTime(pickupTimeWindow.getEnd());
+            List<JobActivity> acts = jobActivityFactory.the(shipment);
+            AbstractActivity act = acts.get(0);
+            act.startEarliest(pickupTimeWindow.start);
+            act.startLatest(pickupTimeWindow.end);
             tourActivities.addActivity(act);
             openShipments.add(shipment);
             openActivities.put(shipment, acts.get(1));
@@ -288,14 +287,14 @@ public class VehicleRoute {
          * @throws IllegalArgumentException if specified shipment has not been picked up yet (i.e. method addPickup(shipment) has not been called yet).
          */
         public Builder addDelivery(Shipment shipment) {
-            return addDelivery(shipment,shipment.getDeliveryTimeWindow());
+            return addDelivery(shipment, shipment.getDeliveryTimeWindow());
         }
 
         public Builder addDelivery(Shipment shipment, TimeWindow deliveryTimeWindow) {
             if (openShipments.contains(shipment)) {
-                TourActivity act = openActivities.get(shipment);
-                act.setTheoreticalEarliestOperationStartTime(deliveryTimeWindow.getStart());
-                act.setTheoreticalLatestOperationStartTime(deliveryTimeWindow.getEnd());
+                AbstractActivity act = openActivities.get(shipment);
+                act.startEarliest(deliveryTimeWindow.start);
+                act.startLatest(deliveryTimeWindow.end);
                 tourActivities.addActivity(act);
                 openShipments.remove(shipment);
             } else {
@@ -317,7 +316,7 @@ public class VehicleRoute {
             }
             if (!vehicle.isReturnToDepot()) {
                 if (!tourActivities.isEmpty()) {
-                    end.setLocation(tourActivities.getActivities().get(tourActivities.getActivities().size() - 1).getLocation());
+                    end.location(tourActivities.activities().get(tourActivities.activities().size() - 1).location());
                 }
             }
             return new VehicleRoute(this);
@@ -325,15 +324,15 @@ public class VehicleRoute {
 
     }
 
-    private TourActivities tourActivities;
+    public final TourActivities activities;
 
-    private Vehicle vehicle;
+    public Vehicle vehicle;
 
-    private Driver driver;
+    public final Driver driver;
 
-    private Start start;
+    public Start start;
 
-    private End end;
+    public End end;
 
     /**
      * Copy constructor copying a route.
@@ -341,11 +340,11 @@ public class VehicleRoute {
      * @param route to copy
      */
     private VehicleRoute(VehicleRoute route) {
-        this.start = Start.copyOf(route.getStart());
-        this.end = End.copyOf(route.getEnd());
-        this.tourActivities = TourActivities.copyOf(route.getTourActivities());
-        this.vehicle = route.getVehicle();
-        this.driver = route.getDriver();
+        this.start = Start.copyOf(route.start);
+        this.end = End.copyOf(route.end);
+        this.activities = TourActivities.copyOf(route.tourActivities());
+        this.vehicle = route.vehicle();
+        this.driver = route.driver;
     }
 
     /**
@@ -354,7 +353,7 @@ public class VehicleRoute {
      * @param builder used to build route
      */
     private VehicleRoute(Builder builder) {
-        this.tourActivities = builder.tourActivities;
+        this.activities = builder.tourActivities;
         this.vehicle = builder.vehicle;
         this.driver = builder.driver;
         this.start = builder.start;
@@ -366,8 +365,8 @@ public class VehicleRoute {
      *
      * @return list of tourActivities
      */
-    public List<TourActivity> getActivities() {
-        return Collections.unmodifiableList(tourActivities.getActivities());
+    public List<AbstractActivity> activities() {
+        return Collections.unmodifiableList(activities.activities());
     }
 
     /**
@@ -375,8 +374,8 @@ public class VehicleRoute {
      *
      * @return {@link TourActivities}
      */
-    public TourActivities getTourActivities() {
-        return tourActivities;
+    public TourActivities tourActivities() {
+        return activities;
     }
 
     /**
@@ -384,7 +383,7 @@ public class VehicleRoute {
      *
      * @return Vehicle
      */
-    public Vehicle getVehicle() {
+    public Vehicle vehicle() {
         return vehicle;
     }
 
@@ -393,7 +392,7 @@ public class VehicleRoute {
      *
      * @return Driver
      */
-    public Driver getDriver() {
+    public Driver driver() {
         return driver;
     }
 
@@ -420,16 +419,16 @@ public class VehicleRoute {
     private void setStartAndEnd(Vehicle vehicle, double vehicleDepTime) {
         if (!(vehicle instanceof VehicleImpl.NoVehicle)) {
             if (start == null && end == null) {
-                start = new Start(vehicle.getStartLocation(), vehicle.getEarliestDeparture(), vehicle.getLatestArrival());
-                end = new End(vehicle.getEndLocation(), vehicle.getEarliestDeparture(), vehicle.getLatestArrival());
+                start = new Start(vehicle.start(), vehicle.earliestDeparture(), vehicle.latestArrival());
+                end = new End(vehicle.end(), vehicle.earliestDeparture(), vehicle.latestArrival());
             }
-            start.setEndTime(Math.max(vehicleDepTime, vehicle.getEarliestDeparture()));
-            start.setTheoreticalEarliestOperationStartTime(vehicle.getEarliestDeparture());
-            start.setTheoreticalLatestOperationStartTime(vehicle.getLatestArrival());
-            start.setLocation(vehicle.getStartLocation());
-            end.setLocation(vehicle.getEndLocation());
-            end.setTheoreticalEarliestOperationStartTime(vehicle.getEarliestDeparture());
-            end.setTheoreticalLatestOperationStartTime(vehicle.getLatestArrival());
+            start.end(Math.max(vehicleDepTime, vehicle.earliestDeparture()));
+            start.startEarliest(vehicle.earliestDeparture());
+            start.startLatest(vehicle.latestArrival());
+            start.setLocation(vehicle.start());
+            end.location(vehicle.end());
+            end.startEarliest(vehicle.earliestDeparture());
+            end.startLatest(vehicle.latestArrival());
         }
 
     }
@@ -443,7 +442,7 @@ public class VehicleRoute {
     public double getDepartureTime() {
         if (start == null)
             throw new IllegalArgumentException("cannot get departureTime without having a vehicle on this route. use setVehicle(vehicle,departureTime) instead.");
-        return start.getEndTime();
+        return start.end();
     }
 
     /**
@@ -452,7 +451,7 @@ public class VehicleRoute {
      * @return true if route is empty
      */
     public boolean isEmpty() {
-        return tourActivities.isEmpty();
+        return activities.isEmpty();
     }
 
     /**
@@ -460,7 +459,7 @@ public class VehicleRoute {
      *
      * @return start
      */
-    public Start getStart() {
+    public final Start start() {
         return start;
     }
 
@@ -469,13 +468,13 @@ public class VehicleRoute {
      *
      * @return end
      */
-    public End getEnd() {
+    public final End end() {
         return end;
     }
 
     @Override
     public String toString() {
-        return "[start=" + start + "][end=" + end + "][departureTime=" + start.getEndTime() + "][vehicle=" + vehicle + "][driver=" + driver + "][nuOfActs=" + tourActivities.getActivities().size() + "]";
+        return "[start=" + start + "][end=" + end + "][departureTime=" + start.end() + "][vehicle=" + vehicle + "][driver=" + driver + "][nuOfActs=" + activities.activities().size() + ']';
     }
 
 }

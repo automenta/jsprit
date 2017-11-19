@@ -29,7 +29,7 @@ import java.util.Random;
  */
 public class FiniteFleetManagerFactory implements VehicleFleetManagerFactory {
 
-    private Collection<Vehicle> vehicles;
+    private final Collection<Vehicle> vehicles;
 
     private Random random = RandomNumberGeneration.getRandom();
 
@@ -39,7 +39,6 @@ public class FiniteFleetManagerFactory implements VehicleFleetManagerFactory {
      * @param vehicles vehicles to be added to the fleetManager
      */
     public FiniteFleetManagerFactory(Collection<Vehicle> vehicles) {
-        super();
         this.vehicles = vehicles;
     }
 

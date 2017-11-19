@@ -18,7 +18,7 @@
 
 package com.graphhopper.jsprit.core.problem;
 
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,76 +34,76 @@ public class LocationTest {
 
     @Test
     public void whenIndexSet_buildLocation() {
-        Location l = Location.Builder.newInstance().setIndex(1).build();
-        Assert.assertEquals(1, l.getIndex());
+        Location l = Location.Builder.the().setIndex(1).build();
+        Assert.assertEquals(1, l.index);
         Assert.assertTrue(true);
     }
 
     @Test
     public void whenNameSet_buildLocation() {
-        Location l = Location.Builder.newInstance().setName("mystreet 6a").setIndex(1).build();
-        Assert.assertEquals("mystreet 6a", l.getName());
+        Location l = Location.Builder.the().setName("mystreet 6a").setIndex(1).build();
+        Assert.assertEquals("mystreet 6a", l.name());
     }
 
     @Test
     public void whenIndexSetWitFactory_returnCorrectLocation() {
-        Location l = Location.newInstance(1);
-        Assert.assertEquals(1, l.getIndex());
+        Location l = Location.the(1);
+        Assert.assertEquals(1, l.index);
         Assert.assertTrue(true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenIndexSmallerZero_throwException() {
-        Location l = Location.Builder.newInstance().setIndex(-1).build();
+        Location l = Location.Builder.the().setIndex(-1).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void whenCoordinateAndIdAndIndexNotSet_throwException() {
-        Location l = Location.Builder.newInstance().build();
+        Location l = Location.Builder.the().build();
     }
 
     @Test
     public void whenIdSet_build() {
-        Location l = Location.Builder.newInstance().setId("id").build();
-        Assert.assertEquals("id", l.getId());
+        Location l = Location.Builder.the().setId("id").build();
+        Assert.assertEquals("id", l.id);
         Assert.assertTrue(true);
     }
 
     @Test
     public void whenIdSetWithFactory_returnCorrectLocation() {
-        Location l = Location.newInstance("id");
-        Assert.assertEquals("id", l.getId());
+        Location l = Location.the("id");
+        Assert.assertEquals("id", l.id);
         Assert.assertTrue(true);
     }
 
     @Test
     public void whenCoordinateSet_build() {
-        Location l = Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 20)).build();
-        Assert.assertEquals(10., l.getCoordinate().getX(), 0.001);
-        Assert.assertEquals(20., l.getCoordinate().getY(), 0.001);
+        Location l = Location.Builder.the().setCoord(v2.the(10, 20)).build();
+        Assert.assertEquals(10., l.coord.x, 0.001);
+        Assert.assertEquals(20., l.coord.y, 0.001);
         Assert.assertTrue(true);
     }
 
     @Test
     public void whenCoordinateSetWithFactory_returnCorrectLocation() {
         //        Location l = Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10,20)).build();
-        Location l = Location.newInstance(10, 20);
-        Assert.assertEquals(10., l.getCoordinate().getX(), 0.001);
-        Assert.assertEquals(20., l.getCoordinate().getY(), 0.001);
+        Location l = Location.the(10, 20);
+        Assert.assertEquals(10., l.coord.x, 0.001);
+        Assert.assertEquals(20., l.coord.y, 0.001);
         Assert.assertTrue(true);
     }
 
 
     @Test
     public void whenSettingUserData_itIsAssociatedWithTheLocation() {
-        Location one = Location.Builder.newInstance().setCoordinate(Coordinate.newInstance(10, 20))
-            .setUserData(new HashMap<String, Object>()).build();
-        Location two = Location.Builder.newInstance().setIndex(1).setUserData(42).build();
-        Location three = Location.Builder.newInstance().setIndex(2).build();
+        Location one = Location.Builder.the().setCoord(v2.the(10, 20))
+            .setData(new HashMap<String, Object>()).build();
+        Location two = Location.Builder.the().setIndex(1).setData(42).build();
+        Location three = Location.Builder.the().setIndex(2).build();
 
-        assertTrue(one.getUserData() instanceof Map);
-        assertEquals(42, two.getUserData());
-        assertNull(three.getUserData());
+        assertTrue(one.data instanceof Map);
+        assertEquals(42, two.data);
+        assertNull(three.data);
     }
 
 }

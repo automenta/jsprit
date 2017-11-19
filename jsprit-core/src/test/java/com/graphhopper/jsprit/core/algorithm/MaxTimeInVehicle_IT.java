@@ -19,7 +19,7 @@
 package com.graphhopper.jsprit.core.algorithm;
 
 import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
-import com.graphhopper.jsprit.core.algorithm.state.StateId;
+import com.graphhopper.jsprit.core.algorithm.state.State;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.algorithm.state.UpdateMaxTimeInVehicle;
 import com.graphhopper.jsprit.core.problem.Location;
@@ -41,24 +41,24 @@ public class MaxTimeInVehicle_IT {
     @Test
     public void test(){
 
-        Shipment s1 = Shipment.Builder.newInstance("s1").setPickupLocation(Location.newInstance(0,0)).setDeliveryLocation(Location.newInstance(100,0)).setDeliveryServiceTime(10)
+        Shipment s1 = Shipment.Builder.newInstance("s1").setPickupLocation(Location.the(0,0)).setDeliveryLocation(Location.the(100,0)).setDeliveryServiceTime(10)
             .setMaxTimeInVehicle(100d)
             .build();
-        Shipment s2 = Shipment.Builder.newInstance("s2").setPickupLocation(Location.newInstance(0,0)).setDeliveryLocation(Location.newInstance(100,0)).setDeliveryServiceTime(10)
+        Shipment s2 = Shipment.Builder.newInstance("s2").setPickupLocation(Location.the(0,0)).setDeliveryLocation(Location.the(100,0)).setDeliveryServiceTime(10)
             .setMaxTimeInVehicle(100d)
             .build();
 
-        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.newInstance(0,0)).build();
+        VehicleImpl v = VehicleImpl.Builder.newInstance("v").setStartLocation(Location.the(0,0)).build();
 
-        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.newInstance().addVehicle(v).addJob(s1).addJob(s2).build();
+        VehicleRoutingProblem vrp = VehicleRoutingProblem.Builder.get().addVehicle(v).addJob(s1).addJob(s2).build();
 
         StateManager stateManager = new StateManager(vrp);
-        StateId id = stateManager.createStateId("max-time");
-        StateId openJobsId = stateManager.createStateId("open-jobs-id");
-        stateManager.addStateUpdater(new UpdateMaxTimeInVehicle(stateManager, id, vrp.getTransportCosts(), vrp.getActivityCosts(), openJobsId));
+        State id = stateManager.createStateId("max-time");
+        State openJobsId = stateManager.createStateId("open-jobs-id");
+        stateManager.addStateUpdater(new UpdateMaxTimeInVehicle(stateManager, id, vrp.transportCosts(), vrp.activityCosts(), openJobsId));
 
         ConstraintManager constraintManager = new ConstraintManager(vrp,stateManager);
-        constraintManager.addConstraint(new MaxTimeInVehicleConstraint(vrp.getTransportCosts(), vrp.getActivityCosts(), id, stateManager, vrp, openJobsId), ConstraintManager.Priority.CRITICAL);
+        constraintManager.addConstraint(new MaxTimeInVehicleConstraint(vrp.transportCosts(), vrp.activityCosts(), id, stateManager, vrp, openJobsId), ConstraintManager.Priority.CRITICAL);
 
         VehicleRoutingAlgorithm vra = Jsprit.Builder.newInstance(vrp).setStateAndConstraintManager(stateManager,constraintManager).buildAlgorithm();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(vra.searchSolutions());

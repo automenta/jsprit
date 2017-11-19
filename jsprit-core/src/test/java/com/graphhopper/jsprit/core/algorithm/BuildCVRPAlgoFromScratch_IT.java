@@ -39,7 +39,6 @@ import com.graphhopper.jsprit.core.util.ChristofidesReader;
 import com.graphhopper.jsprit.core.util.Solutions;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.Collection;
 
@@ -54,18 +53,18 @@ public class BuildCVRPAlgoFromScratch_IT {
 
     @Before
     public void setup() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
         new ChristofidesReader(builder).read(getClass().getResourceAsStream("vrpnc1.txt"));
         vrp = builder.build();
 
         final StateManager stateManager = new StateManager(vrp);
         ConstraintManager cManager = new ConstraintManager(vrp, stateManager);
 
-        VehicleFleetManager fleetManager = new InfiniteFleetManagerFactory(vrp.getVehicles()).createFleetManager();
+        VehicleFleetManager fleetManager = new InfiniteFleetManagerFactory(vrp.vehicles()).createFleetManager();
 
         InsertionStrategy bestInsertion = new BestInsertionBuilder(vrp, fleetManager, stateManager, cManager).build();
 
-        RuinStrategy radial = new RadialRuinStrategyFactory(0.15, new AvgServiceDistance(vrp.getTransportCosts())).createStrategy(vrp);
+        RuinStrategy radial = new RadialRuinStrategyFactory(0.15, new AvgServiceDistance(vrp.transportCosts())).createStrategy(vrp);
         RuinStrategy random = new RandomRuinStrategyFactory(0.25).createStrategy(vrp);
 
         SolutionCostCalculator solutionCostCalculator = new SolutionCostCalculator() {
@@ -73,7 +72,7 @@ public class BuildCVRPAlgoFromScratch_IT {
             @Override
             public double getCosts(VehicleRoutingProblemSolution solution) {
                 double costs = 0.0;
-                for (VehicleRoute route : solution.getRoutes()) {
+                for (VehicleRoute route : solution.routes) {
                     costs += stateManager.getRouteState(route, InternalStates.COSTS, Double.class);
                 }
                 return costs;
@@ -99,8 +98,8 @@ public class BuildCVRPAlgoFromScratch_IT {
     @Test
     public void testVRA() {
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
-        assertEquals(530.0, Solutions.bestOf(solutions).getCost(), 50.0);
-        assertEquals(5, Solutions.bestOf(solutions).getRoutes().size());
+        assertEquals(530.0, Solutions.bestOf(solutions).cost(), 50.0);
+        assertEquals(5, Solutions.bestOf(solutions).routes.size());
     }
 
 }

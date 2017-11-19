@@ -24,7 +24,7 @@ import java.util.Collection;
 
 public class SelectBest implements SolutionSelector {
 
-    private static SelectBest selector = null;
+    private static SelectBest selector;
 
     public static SelectBest getInstance() {
         if (selector == null) {
@@ -41,10 +41,10 @@ public class SelectBest implements SolutionSelector {
         for (VehicleRoutingProblemSolution sol : solutions) {
             if (bestSolution == null) {
                 bestSolution = sol;
-                minCost = sol.getCost();
-            } else if (sol.getCost() < minCost) {
+                minCost = sol.cost();
+            } else if (sol.cost() < minCost) {
                 bestSolution = sol;
-                minCost = sol.getCost();
+                minCost = sol.cost();
             }
         }
         return bestSolution;

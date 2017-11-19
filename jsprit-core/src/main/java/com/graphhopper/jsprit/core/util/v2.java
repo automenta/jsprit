@@ -15,36 +15,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- *
- */
 package com.graphhopper.jsprit.core.util;
 
-import com.graphhopper.jsprit.core.problem.Location;
+/** 2D point/vector/coordinate/tuple */
+public final class v2 {
 
+    public static v2 the(double x, double y) {
+        return new v2(x, y);
+    }
 
-/**
- * @author stefan schroeder
- */
-public class CrowFlyCosts extends EuclideanCosts {
+    public final double x;
+    public final double y;
+    public final int hash;
 
-    private final Locations locations;
-
-    public CrowFlyCosts(Locations locations) {
-        this.locations = locations;
+    public v2(double x, double y) {
+        this.x = x;
+        this.y = y;
+        this.hash = Double.hashCode(x) + 31 * Double.hashCode(y);
     }
 
     @Override
-    double distance(Location fromLocation, Location toLocation) {
-        v2 from = null;
-        v2 to = null;
-        if (fromLocation.coord != null && toLocation.coord != null) {
-            from = fromLocation.coord;
-            to = toLocation.coord;
-        } else if (locations != null) {
-            from = locations.coord(fromLocation.id);
-            to = locations.coord(toLocation.id);
-        }
-        return distance(from, to);
+    public String toString() {
+        return "[x=" + x + "][y=" + y + ']';
     }
+
+    @Override
+    public final int hashCode() {
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if ((!(obj instanceof v2)) || hash!=obj.hashCode()) return false;
+        v2 other = (v2) obj;
+        return Double.doubleToLongBits(x) == Double.doubleToLongBits(other.x) && Double.doubleToLongBits(y) == Double.doubleToLongBits(other.y);
+    }
+
 }

@@ -17,6 +17,7 @@
  */
 package com.graphhopper.jsprit.core.algorithm.recreate;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.JobActivityFactory;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.constraint.HardActivityConstraint.ConstraintsStatus;
@@ -33,12 +34,12 @@ import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.Start;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TimeWindow;
-import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -52,22 +53,21 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
 //
 //    private HardActivityConstraint hardActivityLevelConstraint;
 
-    private SoftRouteConstraint softRouteConstraint;
+    private final SoftRouteConstraint softRouteConstraint;
 
-    private SoftActivityConstraint softActivityConstraint;
+    private final SoftActivityConstraint softActivityConstraint;
 
-    private ActivityInsertionCostsCalculator activityInsertionCostsCalculator;
+    private final ActivityInsertionCostsCalculator activityInsertionCostsCalculator;
 
-    private VehicleRoutingTransportCosts transportCosts;
+    private final VehicleRoutingTransportCosts transportCosts;
 
-    private VehicleRoutingActivityCosts activityCosts;
+    private final VehicleRoutingActivityCosts activityCosts;
 
     private JobActivityFactory activityFactory;
 
-    private AdditionalAccessEgressCalculator additionalAccessEgressCalculator;
+    private final AdditionalAccessEgressCalculator additionalAccessEgressCalculator;
 
     public ShipmentInsertionCalculator(VehicleRoutingTransportCosts routingCosts, VehicleRoutingActivityCosts activityCosts, ActivityInsertionCostsCalculator activityInsertionCostsCalculator, ConstraintManager constraintManager) {
-        super();
         this.activityInsertionCostsCalculator = activityInsertionCostsCalculator;
         this.constraintManager = constraintManager;
         this.softActivityConstraint = constraintManager;
@@ -95,8 +95,8 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
     public InsertionData getInsertionData(final VehicleRoute currentRoute, final Job jobToInsert, final Vehicle newVehicle, double newVehicleDepartureTime, final Driver newDriver, final double bestKnownCosts) {
         JobInsertionContext insertionContext = new JobInsertionContext(currentRoute, jobToInsert, newVehicle, newDriver, newVehicleDepartureTime);
         Shipment shipment = (Shipment) jobToInsert;
-        TourActivity pickupShipment = activityFactory.createActivities(shipment).get(0);
-        TourActivity deliverShipment = activityFactory.createActivities(shipment).get(1);
+        AbstractActivity pickupShipment = activityFactory.the(shipment).get(0);
+        AbstractActivity deliverShipment = activityFactory.the(shipment).get(1);
         insertionContext.getAssociatedActivities().add(pickupShipment);
         insertionContext.getAssociatedActivities().add(deliverShipment);
 
@@ -119,25 +119,25 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
         TimeWindow bestPickupTimeWindow = null;
         TimeWindow bestDeliveryTimeWindow = null;
 
-        Start start = new Start(newVehicle.getStartLocation(), newVehicle.getEarliestDeparture(), newVehicle.getLatestArrival());
-        start.setEndTime(newVehicleDepartureTime);
+        Start start = new Start(newVehicle.start(), newVehicle.earliestDeparture(), newVehicle.latestArrival());
+        start.end(newVehicleDepartureTime);
 
-        End end = new End(newVehicle.getEndLocation(), 0.0, newVehicle.getLatestArrival());
+        End end = new End(newVehicle.end(), 0.0, newVehicle.latestArrival());
 
         ActivityContext pickupContext = new ActivityContext();
 
-        TourActivity prevAct = start;
+        AbstractActivity prevAct = start;
         double prevActEndTime = newVehicleDepartureTime;
 
         //loops
         int i = 0;
         boolean tourEnd = false;
         //pickupShipmentLoop
-        List<TourActivity> activities = currentRoute.getTourActivities().getActivities();
+        List<AbstractActivity> activities = currentRoute.tourActivities().activities();
 
-        List<String> failedActivityConstraints = new ArrayList<>();
+        Collection<String> failedActivityConstraints = new ArrayList<>();
         while (!tourEnd) {
-            TourActivity nextAct;
+            AbstractActivity nextAct;
             if (i < activities.size()) {
                 nextAct = activities.get(i);
             } else {
@@ -147,27 +147,27 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
 
             boolean pickupInsertionNotFulfilledBreak = true;
             for(TimeWindow pickupTimeWindow : shipment.getPickupTimeWindows()) {
-                pickupShipment.setTheoreticalEarliestOperationStartTime(pickupTimeWindow.getStart());
-                pickupShipment.setTheoreticalLatestOperationStartTime(pickupTimeWindow.getEnd());
+                pickupShipment.startEarliest(pickupTimeWindow.start);
+                pickupShipment.startLatest(pickupTimeWindow.end);
                 ActivityContext activityContext = new ActivityContext();
                 activityContext.setInsertionIndex(i);
                 insertionContext.setActivityContext(activityContext);
                 ConstraintsStatus pickupShipmentConstraintStatus = fulfilled(insertionContext, prevAct, pickupShipment, nextAct, prevActEndTime, failedActivityConstraints, constraintManager);
-                if (pickupShipmentConstraintStatus.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                if (pickupShipmentConstraintStatus == ConstraintsStatus.NOT_FULFILLED) {
                     pickupInsertionNotFulfilledBreak = false;
                     continue;
-                } else if(pickupShipmentConstraintStatus.equals(ConstraintsStatus.NOT_FULFILLED_BREAK)) {
+                } else if(pickupShipmentConstraintStatus == ConstraintsStatus.NOT_FULFILLED_BREAK) {
                     continue;
                 }
-                else if (pickupShipmentConstraintStatus.equals(ConstraintsStatus.FULFILLED)) {
+                else if (pickupShipmentConstraintStatus == ConstraintsStatus.FULFILLED) {
                     pickupInsertionNotFulfilledBreak = false;
                 }
                 double additionalPickupICosts = softActivityConstraint.getCosts(insertionContext, prevAct, pickupShipment, nextAct, prevActEndTime);
                 double pickupAIC = calculate(insertionContext, prevAct, pickupShipment, nextAct, prevActEndTime);
 
-                TourActivity prevAct_deliveryLoop = pickupShipment;
-                double shipmentPickupArrTime = prevActEndTime + transportCosts.getTransportTime(prevAct.getLocation(), pickupShipment.getLocation(), prevActEndTime, newDriver, newVehicle);
-                double shipmentPickupEndTime = Math.max(shipmentPickupArrTime, pickupShipment.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(pickupShipment, shipmentPickupArrTime, newDriver, newVehicle);
+                AbstractActivity prevAct_deliveryLoop = pickupShipment;
+                double shipmentPickupArrTime = prevActEndTime + transportCosts.transportTime(prevAct.location(), pickupShipment.location(), prevActEndTime, newDriver, newVehicle);
+                double shipmentPickupEndTime = Math.max(shipmentPickupArrTime, pickupShipment.startEarliest()) + activityCosts.getActivityDuration(pickupShipment, shipmentPickupArrTime, newDriver, newVehicle);
 
                 pickupContext.setArrivalTime(shipmentPickupArrTime);
                 pickupContext.setEndTime(shipmentPickupEndTime);
@@ -183,7 +183,7 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
                 int j = i;
                 boolean tourEnd_deliveryLoop = false;
                 while (!tourEnd_deliveryLoop) {
-                    TourActivity nextAct_deliveryLoop;
+                    AbstractActivity nextAct_deliveryLoop;
                     if (j < activities.size()) {
                         nextAct_deliveryLoop = activities.get(j);
                     } else {
@@ -193,13 +193,13 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
 
                     boolean deliveryInsertionNotFulfilledBreak = true;
                     for (TimeWindow deliveryTimeWindow : shipment.getDeliveryTimeWindows()) {
-                        deliverShipment.setTheoreticalEarliestOperationStartTime(deliveryTimeWindow.getStart());
-                        deliverShipment.setTheoreticalLatestOperationStartTime(deliveryTimeWindow.getEnd());
+                        deliverShipment.startEarliest(deliveryTimeWindow.start);
+                        deliverShipment.startLatest(deliveryTimeWindow.end);
                         ActivityContext activityContext_ = new ActivityContext();
                         activityContext_.setInsertionIndex(j);
                         insertionContext.setActivityContext(activityContext_);
                         ConstraintsStatus deliverShipmentConstraintStatus = fulfilled(insertionContext, prevAct_deliveryLoop, deliverShipment, nextAct_deliveryLoop, prevActEndTime_deliveryLoop, failedActivityConstraints, constraintManager);
-                        if (deliverShipmentConstraintStatus.equals(ConstraintsStatus.FULFILLED)) {
+                        if (deliverShipmentConstraintStatus == ConstraintsStatus.FULFILLED) {
                             double additionalDeliveryICosts = softActivityConstraint.getCosts(insertionContext, prevAct_deliveryLoop, deliverShipment, nextAct_deliveryLoop, prevActEndTime_deliveryLoop);
                             double deliveryAIC = calculate(insertionContext, prevAct_deliveryLoop, deliverShipment, nextAct_deliveryLoop, prevActEndTime_deliveryLoop);
                             double totalActivityInsertionCosts = pickupAIC + deliveryAIC
@@ -212,14 +212,14 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
                                 bestDeliveryTimeWindow = deliveryTimeWindow;
                             }
                             deliveryInsertionNotFulfilledBreak = false;
-                        } else if (deliverShipmentConstraintStatus.equals(ConstraintsStatus.NOT_FULFILLED)) {
+                        } else if (deliverShipmentConstraintStatus == ConstraintsStatus.NOT_FULFILLED) {
                             deliveryInsertionNotFulfilledBreak = false;
                         }
                     }
                     if (deliveryInsertionNotFulfilledBreak) break;
                     //update prevAct and endTime
-                    double nextActArrTime = prevActEndTime_deliveryLoop + transportCosts.getTransportTime(prevAct_deliveryLoop.getLocation(), nextAct_deliveryLoop.getLocation(), prevActEndTime_deliveryLoop, newDriver, newVehicle);
-                    prevActEndTime_deliveryLoop = Math.max(nextActArrTime, nextAct_deliveryLoop.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(nextAct_deliveryLoop,nextActArrTime,newDriver,newVehicle);
+                    double nextActArrTime = prevActEndTime_deliveryLoop + transportCosts.transportTime(prevAct_deliveryLoop.location(), nextAct_deliveryLoop.location(), prevActEndTime_deliveryLoop, newDriver, newVehicle);
+                    prevActEndTime_deliveryLoop = Math.max(nextActArrTime, nextAct_deliveryLoop.startEarliest()) + activityCosts.getActivityDuration(nextAct_deliveryLoop,nextActArrTime,newDriver,newVehicle);
                     prevAct_deliveryLoop = nextAct_deliveryLoop;
                     j++;
                 }
@@ -228,8 +228,8 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
                 break;
             }
             //update prevAct and endTime
-            double nextActArrTime = prevActEndTime + transportCosts.getTransportTime(prevAct.getLocation(), nextAct.getLocation(), prevActEndTime, newDriver, newVehicle);
-            prevActEndTime = Math.max(nextActArrTime, nextAct.getTheoreticalEarliestOperationStartTime()) + activityCosts.getActivityDuration(nextAct,nextActArrTime,newDriver,newVehicle);
+            double nextActArrTime = prevActEndTime + transportCosts.transportTime(prevAct.location(), nextAct.location(), prevActEndTime, newDriver, newVehicle);
+            prevActEndTime = Math.max(nextActArrTime, nextAct.startEarliest()) + activityCosts.getActivityDuration(nextAct,nextActArrTime,newDriver,newVehicle);
             prevAct = nextAct;
             i++;
         }
@@ -239,10 +239,10 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
             return emptyInsertionData;
         }
         InsertionData insertionData = new InsertionData(bestCost, pickupInsertionIndex, deliveryInsertionIndex, newVehicle, newDriver);
-        pickupShipment.setTheoreticalEarliestOperationStartTime(bestPickupTimeWindow.getStart());
-        pickupShipment.setTheoreticalLatestOperationStartTime(bestPickupTimeWindow.getEnd());
-        deliverShipment.setTheoreticalEarliestOperationStartTime(bestDeliveryTimeWindow.getStart());
-        deliverShipment.setTheoreticalLatestOperationStartTime(bestDeliveryTimeWindow.getEnd());
+        pickupShipment.startEarliest(bestPickupTimeWindow.start);
+        pickupShipment.startLatest(bestPickupTimeWindow.end);
+        deliverShipment.startEarliest(bestDeliveryTimeWindow.start);
+        deliverShipment.startLatest(bestDeliveryTimeWindow.end);
         insertionData.setVehicleDepartureTime(newVehicleDepartureTime);
         insertionData.getEvents().add(new InsertActivity(currentRoute, newVehicle, deliverShipment, deliveryInsertionIndex));
         insertionData.getEvents().add(new InsertActivity(currentRoute, newVehicle, pickupShipment, pickupInsertionIndex));
@@ -250,7 +250,7 @@ final class ShipmentInsertionCalculator extends AbstractInsertionCalculator {
         return insertionData;
     }
 
-    private double calculate(JobInsertionContext iFacts, TourActivity prevAct, TourActivity newAct, TourActivity nextAct, double departureTimeAtPrevAct) {
+    private double calculate(JobInsertionContext iFacts, AbstractActivity prevAct, AbstractActivity newAct, AbstractActivity nextAct, double departureTimeAtPrevAct) {
         return activityInsertionCostsCalculator.getCosts(iFacts, prevAct, nextAct, newAct, departureTimeAtPrevAct);
 
     }

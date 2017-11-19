@@ -32,7 +32,7 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
 import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
-import com.graphhopper.jsprit.core.util.Coordinate;
+import com.graphhopper.jsprit.core.util.v2;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.instance.reader.CordeauReader;
 import com.graphhopper.jsprit.util.Examples;
@@ -50,7 +50,7 @@ public class MultipleDepotExample2 {
 		 */
         Examples.createOutputFolder();
 
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         /*
          * Read cordeau-instance p01, BUT only its services without any vehicles
 		 */
@@ -67,17 +67,17 @@ public class MultipleDepotExample2 {
         int nuOfVehicles = 13;
         int capacity = 500;
         double maxDuration = 310;
-        Coordinate firstDepotCoord = Coordinate.newInstance(-33, 33);
-        Coordinate second = Coordinate.newInstance(33, -33);
+        v2 firstDepotCoord = v2.the(-33, 33);
+        v2 second = v2.the(33, -33);
 
         int depotCounter = 1;
-        for (Coordinate depotCoord : Arrays.asList(firstDepotCoord, second)) {
+        for (v2 depotCoord : Arrays.asList(firstDepotCoord, second)) {
             for (int i = 0; i < nuOfVehicles; i++) {
-                VehicleType vehicleType = VehicleTypeImpl.Builder.newInstance(depotCounter + "_type")
+                VehicleType vehicleType = VehicleTypeImpl.Builder.the(depotCounter + "_type")
                     .addCapacityDimension(0, capacity).setCostPerDistance(1.0).build();
                 String vehicleId = depotCounter + "_" + (i + 1) + "_vehicle";
                 VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance(vehicleId);
-                vehicleBuilder.setStartLocation(Location.newInstance(depotCoord.getX(), depotCoord.getY()));
+                vehicleBuilder.setStartLocation(Location.the(depotCoord.x, depotCoord.y));
                 vehicleBuilder.setType(vehicleType);
                 vehicleBuilder.setLatestArrival(maxDuration);
                 VehicleImpl vehicle = vehicleBuilder.build();

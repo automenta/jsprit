@@ -39,11 +39,11 @@ public class UnassignedJobListTest {
 
     @Test
     public void job2ShouldBeInBadJobList_dueToTimeWindow() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
-        builder.addVehicle(VehicleImpl.Builder.newInstance("v1").setEarliestStart(0).setLatestArrival(12).setStartLocation(Location.newInstance(1, 1)).build());
-        Service job1 = Service.Builder.newInstance("job1").setLocation(Location.newInstance(0, 0)).setTimeWindow(TimeWindow.newInstance(0, 12)).setServiceTime(1).build();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
+        builder.addVehicle(VehicleImpl.Builder.newInstance("v1").setEarliestStart(0).setLatestArrival(12).setStartLocation(Location.the(1, 1)).build());
+        Service job1 = Service.Builder.newInstance("job1").location(Location.the(0, 0)).timeWindowSet(TimeWindow.the(0, 12)).serviceTime(1).build();
         builder.addJob(job1);
-        Service job2 = Service.Builder.newInstance("job2").setLocation(Location.newInstance(2, 2)).setTimeWindow(TimeWindow.newInstance(12, 24)).setServiceTime(1).build();
+        Service job2 = Service.Builder.newInstance("job2").location(Location.the(2, 2)).timeWindowSet(TimeWindow.the(12, 24)).serviceTime(1).build();
         builder.addJob(job2);
 
         VehicleRoutingProblem vrp = builder.build();
@@ -57,18 +57,18 @@ public class UnassignedJobListTest {
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
 
-        assertTrue(!solution.getUnassignedJobs().contains(job1));
-        assertTrue(solution.getUnassignedJobs().contains(job2));
+        assertTrue(!solution.jobsUnassigned.contains(job1));
+        assertTrue(solution.jobsUnassigned.contains(job2));
         assertEquals(2, reasonTracker.getMostLikelyReasonCode("job2"));
     }
 
     @Test
     public void job2ShouldBeInBadJobList_dueToSize() {
-        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.newInstance();
-        builder.addVehicle(VehicleImpl.Builder.newInstance("v1").setEarliestStart(0).setLatestArrival(12).setStartLocation(Location.newInstance(1, 1)).build());
-        Service job1 = Service.Builder.newInstance("job1").setLocation(Location.newInstance(0, 0)).setTimeWindow(TimeWindow.newInstance(0, 12)).setServiceTime(1).build();
+        VehicleRoutingProblem.Builder builder = VehicleRoutingProblem.Builder.get();
+        builder.addVehicle(VehicleImpl.Builder.newInstance("v1").setEarliestStart(0).setLatestArrival(12).setStartLocation(Location.the(1, 1)).build());
+        Service job1 = Service.Builder.newInstance("job1").location(Location.the(0, 0)).timeWindowSet(TimeWindow.the(0, 12)).serviceTime(1).build();
         builder.addJob(job1);
-        Service job2 = Service.Builder.newInstance("job2").setLocation(Location.newInstance(2, 2)).addSizeDimension(0, 10).setTimeWindow(TimeWindow.newInstance(0, 12)).setServiceTime(1).build();
+        Service job2 = Service.Builder.newInstance("job2").location(Location.the(2, 2)).sizeDimension(0, 10).timeWindowSet(TimeWindow.the(0, 12)).serviceTime(1).build();
         builder.addJob(job2);
 
         VehicleRoutingProblem vrp = builder.build();
@@ -82,8 +82,8 @@ public class UnassignedJobListTest {
         Collection<VehicleRoutingProblemSolution> solutions = algorithm.searchSolutions();
 
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
-        assertTrue(!solution.getUnassignedJobs().contains(job1));
-        assertTrue(solution.getUnassignedJobs().contains(job2));
+        assertTrue(!solution.jobsUnassigned.contains(job1));
+        assertTrue(solution.jobsUnassigned.contains(job2));
         assertEquals(3, reasonTracker.getMostLikelyReasonCode("job2"));
     }
 

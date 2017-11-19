@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 
 class InsertionFactory {
 
-    private static Logger log = LoggerFactory.getLogger(InsertionFactory.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(InsertionFactory.class.getName());
 
     @SuppressWarnings("deprecation")
     public static InsertionStrategy createInsertion(VehicleRoutingProblem vrp, HierarchicalConfiguration config,

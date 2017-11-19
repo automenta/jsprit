@@ -32,7 +32,6 @@ import com.graphhopper.jsprit.core.util.SolomonReader;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.core.util.TestUtils;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.Collection;
 
@@ -45,33 +44,33 @@ public class SolomonSkills_IT {
 
     @Test
     public void itShouldMakeCorrectAssignmentAccordingToSkills() {
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
+        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.get();
         new SolomonReader(vrpBuilder).read(getClass().getResourceAsStream("C101.txt"));
         VehicleRoutingProblem vrp = vrpBuilder.build();
 
         //y >= 50 skill1 otherwise skill2
         //two vehicles: v1 - skill1 #5; v2 - skill2 #6
-        Vehicle solomonVehicle = vrp.getVehicles().iterator().next();
-        VehicleType newType = solomonVehicle.getType();
-        VehicleRoutingProblem.Builder skillProblemBuilder = VehicleRoutingProblem.Builder.newInstance();
+        Vehicle solomonVehicle = vrp.vehicles().iterator().next();
+        VehicleType newType = solomonVehicle.type();
+        VehicleRoutingProblem.Builder skillProblemBuilder = VehicleRoutingProblem.Builder.get();
         for (int i = 0; i < 6; i++) {
             VehicleImpl skill1Vehicle = VehicleImpl.Builder.newInstance("skill1_vehicle_" + i).addSkill("skill1")
-                .setStartLocation(TestUtils.loc(solomonVehicle.getStartLocation().getId(), solomonVehicle.getStartLocation().getCoordinate()))
-                .setEarliestStart(solomonVehicle.getEarliestDeparture())
+                .setStartLocation(TestUtils.loc(solomonVehicle.start().id, solomonVehicle.start().coord))
+                .setEarliestStart(solomonVehicle.earliestDeparture())
                 .setType(newType).build();
             VehicleImpl skill2Vehicle = VehicleImpl.Builder.newInstance("skill2_vehicle_" + i).addSkill("skill2")
-                .setStartLocation(TestUtils.loc(solomonVehicle.getStartLocation().getId(), solomonVehicle.getStartLocation().getCoordinate()))
-                .setEarliestStart(solomonVehicle.getEarliestDeparture())
+                .setStartLocation(TestUtils.loc(solomonVehicle.start().id, solomonVehicle.start().coord))
+                .setEarliestStart(solomonVehicle.earliestDeparture())
                 .setType(newType).build();
             skillProblemBuilder.addVehicle(skill1Vehicle).addVehicle(skill2Vehicle);
         }
-        for (Job job : vrp.getJobs().values()) {
+        for (Job job : vrp.jobs().values()) {
             Service service = (Service) job;
-            Service.Builder skillServiceBuilder = Service.Builder.newInstance(service.getId()).setServiceTime(service.getServiceDuration())
-                .setLocation(TestUtils.loc(service.getLocation().getId(), service.getLocation().getCoordinate())).setTimeWindow(service.getTimeWindow())
-                .addSizeDimension(0, service.getSize().get(0));
-            if (service.getLocation().getCoordinate().getY() < 50) skillServiceBuilder.addRequiredSkill("skill2");
-            else skillServiceBuilder.addRequiredSkill("skill1");
+            Service.Builder skillServiceBuilder = Service.Builder.newInstance(service.id).serviceTime(service.serviceTime)
+                .location(TestUtils.loc(service.location.id, service.location.coord)).timeWindowSet(service.timeWindow())
+                .sizeDimension(0, service.size.get(0));
+            if (service.location.coord.y < 50) skillServiceBuilder.skillRequired("skill2");
+            else skillServiceBuilder.skillRequired("skill1");
             skillProblemBuilder.addJob(skillServiceBuilder.build());
         }
         skillProblemBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
@@ -81,11 +80,11 @@ public class SolomonSkills_IT {
 
         Collection<VehicleRoutingProblemSolution> solutions = vra.searchSolutions();
         VehicleRoutingProblemSolution solution = Solutions.bestOf(solutions);
-        assertEquals(828.94, solution.getCost(), 0.01);
-        for (VehicleRoute route : solution.getRoutes()) {
-            Skills vehicleSkill = route.getVehicle().getSkills();
-            for (Job job : route.getTourActivities().getJobs()) {
-                for (String skill : job.getRequiredSkills().values()) {
+        assertEquals(828.94, solution.cost(), 0.01);
+        for (VehicleRoute route : solution.routes) {
+            Skills vehicleSkill = route.vehicle().skills();
+            for (Job job : route.tourActivities().jobs()) {
+                for (String skill : job.skillsRequired().values()) {
                     if (!vehicleSkill.containsSkill(skill)) {
                         assertFalse(true);
                     }

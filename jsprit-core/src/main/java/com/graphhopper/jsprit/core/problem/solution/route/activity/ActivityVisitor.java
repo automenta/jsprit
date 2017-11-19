@@ -17,15 +17,16 @@
  */
 package com.graphhopper.jsprit.core.problem.solution.route.activity;
 
+import com.graphhopper.jsprit.core.problem.AbstractActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 
 
 public interface ActivityVisitor {
 
-    public void begin(VehicleRoute route);
+    void begin(VehicleRoute route);
 
-    public void visit(TourActivity activity);
+    void visit(AbstractActivity activity);
 
-    public void finish();
+    void finish();
 
 }

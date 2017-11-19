@@ -35,36 +35,31 @@ import com.graphhopper.jsprit.core.problem.solution.route.state.RouteAndActivity
  */
 public class ServiceLoadRouteLevelConstraint implements HardRouteConstraint {
 
-    private RouteAndActivityStateGetter stateManager;
+    private final RouteAndActivityStateGetter stateManager;
 
-    private Capacity defaultValue;
+    private final Capacity defaultValue;
 
     public ServiceLoadRouteLevelConstraint(RouteAndActivityStateGetter stateManager) {
-        super();
         this.stateManager = stateManager;
-        this.defaultValue = Capacity.Builder.newInstance().build();
+        this.defaultValue = Capacity.Builder.get().build();
     }
 
     @Override
     public boolean fulfilled(JobInsertionContext insertionContext) {
         Capacity maxLoadAtRoute = stateManager.getRouteState(insertionContext.getRoute(), InternalStates.MAXLOAD, Capacity.class);
         if (maxLoadAtRoute == null) maxLoadAtRoute = defaultValue;
-        Capacity capacityDimensions = insertionContext.getNewVehicle().getType().getCapacityDimensions();
-        if (!maxLoadAtRoute.isLessOrEqual(capacityDimensions)) {
+        Capacity capacityDimensions = insertionContext.getNewVehicle().type().getCapacityDimensions();
+        if (!maxLoadAtRoute.lessOrEq(capacityDimensions)) {
             return false;
         }
         if (insertionContext.getJob() instanceof Delivery) {
             Capacity loadAtDepot = stateManager.getRouteState(insertionContext.getRoute(), InternalStates.LOAD_AT_BEGINNING, Capacity.class);
             if (loadAtDepot == null) loadAtDepot = defaultValue;
-            if (!Capacity.addup(loadAtDepot, insertionContext.getJob().getSize()).isLessOrEqual(capacityDimensions)) {
-                return false;
-            }
+            return Capacity.addup(loadAtDepot, insertionContext.getJob().size()).lessOrEq(capacityDimensions);
         } else if (insertionContext.getJob() instanceof Pickup || insertionContext.getJob() instanceof Service) {
             Capacity loadAtEnd = stateManager.getRouteState(insertionContext.getRoute(), InternalStates.LOAD_AT_END, Capacity.class);
             if (loadAtEnd == null) loadAtEnd = defaultValue;
-            if (!Capacity.addup(loadAtEnd, insertionContext.getJob().getSize()).isLessOrEqual(capacityDimensions)) {
-                return false;
-            }
+            return Capacity.addup(loadAtEnd, insertionContext.getJob().size()).lessOrEq(capacityDimensions);
         }
         return true;
     }
